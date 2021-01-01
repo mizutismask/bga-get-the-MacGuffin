@@ -1,4 +1,5 @@
 <?php
+
 /**
  *------
  * BGA framework: © Gregory Isabelli <gisabelli@boardgamearena.com> & Emmanuel Colin <ecolin@boardgamearena.com>
@@ -23,24 +24,25 @@
  * Note: if the HTML of your game interface is always the same, you don't have to place anything here.
  *
  */
-  
-  require_once( APP_BASE_PATH."view/common/game.view.php" );
-  
-  class view_getthemacguffin_getthemacguffin extends game_view
+
+require_once(APP_BASE_PATH . "view/common/game.view.php");
+
+class view_getthemacguffin_getthemacguffin extends game_view
+{
+  function getGameName()
   {
-    function getGameName() {
-        return "getthemacguffin";
-    }    
-  	function build_page( $viewArgs )
-  	{		
-  	    // Get players & players number
-        $players = $this->game->loadPlayersBasicInfos();
-        $players_nbr = count( $players );
+    return "getthemacguffin";
+  }
+  function build_page($viewArgs)
+  {
+    // Get players & players number
+    $players = $this->game->loadPlayersBasicInfos();
+    $players_nbr = count($players);
 
-        /*********** Place your code below:  ************/
+    /*********** Place your code below:  ************/
 
-
-        /*
+    $this->tpl['MY_HAND'] = self::_("My hand");
+    /*
         
         // Examples: set the value of some element defined in your tpl file like this: {MY_VARIABLE_ELEMENT}
 
@@ -54,8 +56,8 @@
         $this->tpl['MY_VARIABLE_ELEMENT'] = self::raw( $some_html_code );
         
         */
-        
-        /*
+
+    /*
         
         // Example: display a specific HTML block for each player in this game.
         // (note: the block is defined in your .tpl file like this:
@@ -78,8 +80,6 @@
 
 
 
-        /*********** Do not change anything below this line  ************/
-  	}
+    /*********** Do not change anything below this line  ************/
   }
-  
-
+}
