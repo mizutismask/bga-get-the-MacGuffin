@@ -225,7 +225,22 @@ define([
             },        
             
             */
+            onSelectCard: function (control_name, item_id) {
+                // This method is called when myStockControl selected items changed
+                var items = this.myStockControl.getSelectedItems();
+                if (items.length == 1) {
+                    var card = items[0];
+                    console.log("selection of ", card);
+                    switch (card.type) {
+                        case "larry":
+                            alert('Hey');
+                            break;
 
+                        default:
+
+                    }
+                };
+            },
 
             ///////////////////////////////////////////////////
             //// Reaction to cometD notifications
@@ -237,7 +252,7 @@ define([
                 
                 Note: game notification names correspond to "notifyAllPlayers" and "notifyPlayer" calls in
                       your getthemacguffin.game.php file.
-            
+             
             */
             setupNotifications: function () {
                 console.log('notifications subscriptions setup');
@@ -253,13 +268,16 @@ define([
                 // dojo.subscribe( 'cardPlayed', this, "notif_cardPlayed" );
                 // this.notifqueue.setSynchronous( 'cardPlayed', 3000 );
                 // 
+
+                dojo.subscribe('handChange', this, "notif_handChange");
+                dojo.connect(this.playerHand, 'onChangeSelection', this, 'onSelectCard');
             },
 
             // TODO: from this point and below, you can write your game notifications handling methods
 
             /*
             Example:
-            
+             
             notif_cardPlayed: function( notif )
             {
                 console.log( 'notif_cardPlayed' );
@@ -269,7 +287,26 @@ define([
                 
                 // TODO: play the card in the user interface.
             },    
-            
+             
             */
+
+            notif_handChange: function (notif) {
+
+                if (notif.args.reset) {
+                    this.playerHand.removeAll();
+                }
+
+                for (var i in notif.args.added) {
+                    var card = notif.args.cards[i];
+                    console.log("notif_handChange add card id/type :" + card.id + " " + card.type);
+                    this.playerHand.addToStockWithId(card.type_arg, card.id);
+                }
+
+                for (var i in notif.args.removed) {
+                    var card = notif.args.cards[i];
+                    console.log("notif_handChange remove card id/type :" + card.id + " " + card.type);
+                    this.playerHand.removeFromStockById(card.id);
+                }
+            },
         });
     });

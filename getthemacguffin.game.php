@@ -23,6 +23,7 @@ require_once(APP_GAMEMODULE_PATH . 'module/table/table.game.php');
 if (!defined('DECK_LOC_DECK')) {
     // constants for deck locations
     define("DECK_LOC_DECK", "deck");
+    define("DECK_LOC_IN_PLAY", "inPlay");
     define("DECK_LOC_DISCARD", "discard");
     define("DECK_LOC_HAND", "hand");
 
@@ -30,7 +31,7 @@ if (!defined('DECK_LOC_DECK')) {
     define("NOTIF_PLAYER_TURN", "playerTurn");
     define("NOTIF_UPDATE_SCORE", "updateScore");
     define("NOTIF_NEW_RIVER", "newRiver");
-    define("NOTIF_NEW_HAND", "newHand");
+    define("NOTIF_HAND_CHANGE", "handChange");
 
     // constants for game states
 }
@@ -175,9 +176,48 @@ class GetTheMacGuffin extends Table
     /*
         In this space, you can put any utility methods useful for your game logic
     */
+
+    function publicGetCurrentPlayerId()
+    {
+        return self::getCurrentPlayerId();
+    }
+
     function getCardsAvailable()
     {
         return $this->cards_description;
+    }
+
+    function concatenateFieldValues($arr, $field)
+    {
+        $concatenated = array();
+        foreach ($arr as $element) {
+            $concatenated[] = $element[$field];
+        }
+        return $concatenated;
+    }
+
+    function getPlayerName($player_id)
+    {
+        $sql = "select player_name from player where player_id=" . $player_id;
+        return self::getUniqueValueFromDB($sql);
+    }
+
+    function updateScore($player_id, $score)
+    {
+        $sql = "UPDATE player set player_score=" . $score . " where player_id=" . $player_id;
+        self::DbQuery($sql);
+    }
+
+    function updateScores($winner_id)
+    {
+        $players = self::loadPlayersBasicInfos();
+        foreach ($players as $player_id => $player) {
+            $score = 0;
+            if ($player_id == $winner_id) {
+                $score = 1;
+            }
+            $this->updateScore($player_id, $score);
+        }
     }
 
     function pickCardsAndNotifyPlayer($nb, $player_id)
@@ -185,8 +225,129 @@ class GetTheMacGuffin extends Table
         $cards = $this->deck->pickCards($nb, DECK_LOC_DECK, $player_id);
 
         // Notify player about his cards
-        // self::notifyPlayer($player_id, NOTIF_NEW_HAND, '', array('cards' => $cards));
+        self::notifyPlayer($player_id, NOTIF_HAND_CHANGE, '', array('added' => $cards));
     }
+
+    function stealCardFromHand($player_from, $player_to)
+    {
+        $cards = $this->deck->getCardsInLocation(DECK_LOC_DECK, $player_from);
+        $i = rand(0, count($cards) - 1);
+        $card_id = $cards[$i]["id"];
+        $card = $this->deck->getCard($card_id);
+        $this->deck->moveCard($card_id, DECK_LOC_DECK, $player_to);
+        // Notify players about changes
+        self::notifyPlayer($player_id, NOTIF_HAND_CHANGE, '', array('added' => [$card]));
+        self::notifyPlayer($player_id, NOTIF_HAND_CHANGE, '', array('removed' => [$card]));
+    }
+
+    function stealCardFromDiscard($player_to)
+    {
+        $cards = $this->deck->getCardsInLocation(DECK_LOC_DISCARD);
+        $i = rand(0, count($cards) - 1);
+        $card_id = $cards[$i]["id"];
+        $card = $this->deck->getCard($card_id);
+        $this->deck->moveCard($card_id, DECK_LOC_DECK, $player_to);
+        // Notify player about change
+        self::notifyPlayer($player_id, NOTIF_HAND_CHANGE, '', array('added' => [$card]));
+    }
+
+    function stealObjectInPlay($player_to, $object_id)
+    {
+        $card = $this->deck->getCard($object_id);
+        $this->deck->moveCard($card["id"], DECK_LOC_DECK, $player_to);
+        // Notify players about changes
+        //self::notifyPlayer($player_id, NOTIF_HAND_CHANGE, '', array('cards' => $cards));
+    }
+
+    function discardCardFromHand($card_id)
+    {
+        $card = $this->deck->getCard($card_id);
+        if ($card["location"] === DECK_LOC_HAND) {
+            $owner = $card["location_arg"];
+            $this->deck->play($card_id);
+            // Notify players about change
+            self::notifyPlayer($owner, NOTIF_HAND_CHANGE, '', array('removed' => [$card]));
+        } else {
+            throw new BgaUserException(self::_("This card is not part of the hand of any player"));
+        }
+    }
+
+    function swapHands($player_from, $player_to)
+    {
+        $from_cards = $this->deck->getCardsInLocation(DECK_LOC_DECK, $player_from);
+        $to_cards = $this->deck->getCardsInLocation(DECK_LOC_DECK, $player_to);
+
+        $this->deck->moveCards($this->concatenateFieldValues($from_cards, "id"), DECK_LOC_DECK, $player_to);
+        $this->deck->moveCards($this->concatenateFieldValues($to_cards, "id"), DECK_LOC_DECK, $player_from);
+
+        // Notify players about changes
+        self::notifyPlayer($player_from, NOTIF_HAND_CHANGE, '', array('added' => [$this->deck->getCardsInLocation(DECK_LOC_HAND, $player_from)], 'reset' => true));
+        self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, '', array('added' => [$this->deck->getCardsInLocation(DECK_LOC_HAND, $player_to)], 'reset' => true));
+    }
+
+    function playInterrogator()
+    {
+        $player_id = self::getActivePlayerId();
+        $mcGuffin = $this->deck->getCardsOfType(MACGUFFIN);
+        $seen = false;
+        if ($mcGuffin["location"] == DECK_LOC_HAND && $mcGuffin["location_arg"] != $player_id) {
+            $seen = true;
+            self::notifyAllPlayers(
+                NOTIF_REVELATION,
+                clienttranslate('${player_name} reveals ${card_name}'),
+                array(
+                    'player_name' => $this->getPlayerName($player_id),
+                    'card_name' => $this->cards_description[MACGUFFIN]["name"],
+                    'i18n' => array('card_name'),
+                )
+            );
+        }
+        if (!$seen) {
+            $mcGuffin = $this->deck->getCardsOfType(BACKUP_MACGUFFIN);
+            if ($mcGuffin["location"] == DECK_LOC_HAND && $mcGuffin["location_arg"] != $player_id) {
+                $seen = true;
+                self::notifyAllPlayers(
+                    NOTIF_REVELATION,
+                    clienttranslate('${player_name} reveals ${card_name}'),
+                    array(
+                        'player_name' => $this->getPlayerName($player_id),
+                        'card_name' => $this->cards_description[BACKUP_MACGUFFIN]["name"],
+                        'i18n' => array('card_name'),
+                    )
+                );
+            }
+        }
+    }
+
+    function checkIfEndOfGame($player_id)
+    {
+
+        //victory
+        $this->updateScores($player_id);
+        $this->gamestate->nextState(TRANSITION_END_GAME);
+    }
+
+    function eliminatePlayerIfNeeded($player_id)
+    {
+        $inHand = $this->guestcards->getCardsInLocation(DECK_LOC_HAND, $player_id);
+        $inPlay = $this->guestcards->getCardsInLocation(DECK_LOC_IN_PLAY, $player_id);
+        if (count($inHand) + count($inPlay) == 0) {
+            self::eliminatePlayer($player_id);
+        }
+    }
+
+    /*
+   * stEliminatePlayer: this function is called when the active player is eliminated
+   */
+    public function stEliminatePlayer()
+    {
+        $pId = $this->getActivePlayerId();
+        $this->activeNextPlayer();
+        PlayerManager::eliminate($pId);
+        $this->stNextPlayer(false);
+    }
+
+
     //////////////////////////////////////////////////////////////////////////////
     //////////// Player actions
     //////////// 

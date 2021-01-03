@@ -38,6 +38,8 @@ class view_getthemacguffin_getthemacguffin extends game_view
     // Get players & players number
     $players = $this->game->loadPlayersBasicInfos();
     $players_nbr = count($players);
+    $active_player_id = $this->game->publicGetCurrentPlayerId();
+    $template = self::getGameName() . "_" . self::getGameName();
 
     /*********** Place your code below:  ************/
 
@@ -56,7 +58,29 @@ class view_getthemacguffin_getthemacguffin extends game_view
         $this->tpl['MY_VARIABLE_ELEMENT'] = self::raw( $some_html_code );
         
         */
+    $this->page->begin_block($template, "player");
 
+    //starting with the active player if he’s not a spectator
+    if (key_exists($active_player_id, $players)) {
+      $this->page->insert_block("player", array(
+        "PLAYER_ID" => $active_player_id,
+        "PLAYER_NAME" => $players[$active_player_id]['player_name'],
+        "PLAYER_COLOR" => $players[$active_player_id]['player_color'],
+        "PLAYER_NAME" => $players[$active_player_id]['player_name'],
+      ));
+    }
+
+    //then the other players
+    foreach ($players as $player_id => $info) {
+      if ($player_id != $active_player_id) {
+        $this->page->insert_block("player", array(
+          "PLAYER_ID" => $player_id,
+          "PLAYER_NAME" => $players[$player_id]['player_name'],
+          "PLAYER_COLOR" => $players[$player_id]['player_color'],
+          "PLAYER_NAME" => $players[$player_id]['player_name'],
+        ));
+      }
+    }
     /*
         
         // Example: display a specific HTML block for each player in this game.

@@ -31,6 +31,20 @@
     </div>
 </div>
 
+<div id="in_play_wrapper">
+
+    <!-- BEGIN player -->
+    <div id="in_play_{PLAYER_ID}" class="whiteblock">
+        <div class="cardsInPlay" id="cards_in_play_{PLAYER_ID}" >
+            <div style="color:#{PLAYER_COLOR}">
+                <h3>{PLAYER_NAME}</h3>
+            </div>
+        </div>
+    </div>
+    <!-- END player -->
+
+</div>
+
 <script type="text/javascript">
 
 // Javascript HTML templates
