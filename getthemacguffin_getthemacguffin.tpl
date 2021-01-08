@@ -34,7 +34,7 @@
 <div id="in_play_wrapper">
 
     <!-- BEGIN player -->
-    <div id="in_play_{PLAYER_ID}" class="whiteblock">
+    <div id="in_play_{PLAYER_ID}" class="whiteblock gtmInPlayZone">
         <div class="cardsInPlay" id="cards_in_play_{PLAYER_ID}" >
         </div>
         <div style="color:#{PLAYER_COLOR}">

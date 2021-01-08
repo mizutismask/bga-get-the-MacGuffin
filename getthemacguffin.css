@@ -62,6 +62,16 @@
     display: none;
 }
 
+#in_play_wrapper
+{ 
+    display: inline-flex;
+}
+
+.gtmInPlayZone{
+    min-width: 220px;
+    margin: 3px;
+}
+
 /*
     Example of CSS sprites (a black token and a white token, 20x20px each, embedded in the same "tokens.png" 40x20px image):
 
