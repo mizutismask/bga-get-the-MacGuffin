@@ -1,4 +1,5 @@
 <?php
+
 /**
  *------
  * BGA framework: © Gregory Isabelli <gisabelli@boardgamearena.com> & Emmanuel Colin <ecolin@boardgamearena.com>
@@ -48,8 +49,15 @@
 */
 
 //    !! It is not a good idea to modify this file when a game is running !!
+// define contants for state ids
+if (!defined('STATE_PLAYER_TURN')) { // ensure this block is only invoked once, since it is included multiple times
+    define("STATE_PLAYER_TURN", 2);
+    define("STATE_NEXT_PLAYER", 23);
 
- 
+    //define("TRANSITION_PLAYER_TURN", "playerTurn");
+    define("TRANSITION_NEXT_PLAYER", "nextPlayer");
+}
+
 $machinestates = array(
 
     // The initial state. Please do not modify.
@@ -58,32 +66,32 @@ $machinestates = array(
         "description" => "",
         "type" => "manager",
         "action" => "stGameSetup",
-        "transitions" => array( "" => 2 )
+        "transitions" => array("" => 2)
     ),
-    
+
     // Note: ID=2 => your first state
 
-    2 => array(
-    		"name" => "playerTurn",
-    		"description" => clienttranslate('${actplayer} must play a card or pass'),
-    		"descriptionmyturn" => clienttranslate('${you} must play a card or pass'),
-    		"type" => "activeplayer",
-    		"possibleactions" => array( "playCard", "pass" ),
-    		"transitions" => array( "playCard" => 2, "pass" => 2 )
+    STATE_PLAYER_TURN => array(
+        "name" => "playerTurn",
+        "description" => clienttranslate('${actplayer} must play a card'),
+        "descriptionmyturn" => clienttranslate('${you} must play a card from your hand or play/discard an Object in play'),
+        "type" => "activeplayer",
+        "possibleactions" => array("playCard", "discard"),
+        "transitions" => array("playCard" => 2, "discard" => 2, TRANSITION_NEXT_PLAYER => STATE_NEXT_PLAYER,)
     ),
-    
-/*
-    Examples:
-    
-    2 => array(
+
+
+
+    STATE_NEXT_PLAYER => array(
         "name" => "nextPlayer",
         "description" => '',
         "type" => "game",
         "action" => "stNextPlayer",
-        "updateGameProgression" => true,   
-        "transitions" => array( "endGame" => 99, "nextPlayer" => 10 )
+        "updateGameProgression" => true,
+        "transitions" => array(TRANSITION_PLAYER_TURN => STATE_PLAYER_TURN)
     ),
-    
+    /*
+    Examples: 
     10 => array(
         "name" => "playerTurn",
         "description" => clienttranslate('${actplayer} must play a card or pass'),
@@ -93,8 +101,8 @@ $machinestates = array(
         "transitions" => array( "playCard" => 2, "pass" => 2 )
     ), 
 
-*/    
-   
+*/
+
     // Final state.
     // Please do not modify (and do not overload action/args methods).
     99 => array(
@@ -106,6 +114,3 @@ $machinestates = array(
     )
 
 );
-
-
-

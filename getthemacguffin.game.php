@@ -34,6 +34,7 @@ if (!defined('DECK_LOC_DECK')) {
     define("NOTIF_HAND_CHANGE", "handChange");
 
     // constants for game states
+    define("TRANSITION_PLAYER_TURN", "playerTurn");
 }
 
 class GetTheMacGuffin extends Table
@@ -145,6 +146,12 @@ class GetTheMacGuffin extends Table
         $result['players'] = self::getCollectionFromDb($sql);
 
         // TODO: Gather all information about current game situation (visible by player $current_player_id).
+        //in play cards for each player
+        $players = self::loadPlayersBasicInfos();
+        foreach ($players as $player) {
+            $result['inPlay'][$player["player_id"]] = $this->deck->getCardsInLocation(DECK_LOC_IN_PLAY, $player["player_id"]);
+        }
+
         $result['hand'] = $this->deck->getCardsInLocation(DECK_LOC_HAND, $current_player_id);
         $result['cardsAvailable'] = $this->getCardsAvailable();
 
@@ -357,31 +364,37 @@ class GetTheMacGuffin extends Table
         (note: each method below must match an input method in getthemacguffin.action.php)
     */
 
-    /*
-    
-    Example:
 
-    function playCard( $card_id )
+    function playCard($played_card_id, $effect_on_card_id, $effect_on_player_id)
     {
         // Check that this is the player's turn and that it is a "possible action" at this game state (see states.inc.php)
-        self::checkAction( 'playCard' ); 
-        
+        self::checkAction('playCard');
+
         $player_id = self::getActivePlayerId();
-        
-        // Add your game logic to play a card there 
-        ...
-        
+
+        $played_card = $this->deck->getCard($played_card_id);
+        $description = $this->cards_description[$played_card["type"]];
+
+        if ($description["type"] === OBJ) {
+            $this->deck->moveCard($played_card_id, DECK_LOC_IN_PLAY, $player_id);
+        }
+
         // Notify all players about the card played
-        self::notifyAllPlayers( "cardPlayed", clienttranslate( '${player_name} plays ${card_name}' ), array(
+        self::notifyAllPlayers("cardPlayed", clienttranslate('${player_name} plays ${card_name}'), array(
             'player_id' => $player_id,
             'player_name' => self::getActivePlayerName(),
-            'card_name' => $card_name,
-            'card_id' => $card_id
-        ) );
-          
+            'card_name' => $description["name"],
+            'card' => $played_card,
+            'toInPlay' => $description["type"] === OBJ,
+            'i18n' => array('card_name'),
+        ));
+
+        $this->gamestate->nextState(TRANSITION_NEXT_PLAYER);
     }
-    
-    */
+
+
+
+
 
 
     //////////////////////////////////////////////////////////////////////////////
@@ -410,7 +423,19 @@ class GetTheMacGuffin extends Table
         );
     }    
     */
+    /** Draws a dessert and a guest at the beginning of each turn for non zombie players. */
+    function stNextPlayer()
+    {
+        $players = self::loadPlayersBasicInfos();
+        $player_id = self::activeNextPlayer();
 
+        if (!self::isZombie($player_id)) {
+            //self::incStat(1, "turns_number", $player_id);
+            self::giveExtraTime($player_id);
+        }
+
+        $this->gamestate->nextState(TRANSITION_PLAYER_TURN);
+    }
     //////////////////////////////////////////////////////////////////////////////
     //////////// Game state actions
     ////////////
@@ -449,6 +474,10 @@ class GetTheMacGuffin extends Table
         As a consequence, there is no current player associated to this action. In your zombieTurn function,
         you must _never_ use getCurrentPlayerId() or getCurrentPlayerName(), otherwise it will fail with a "Not logged" error message. 
     */
+    function isZombie($player_id)
+    {
+        return self::getUniqueValueFromDB("SELECT player_zombie FROM player WHERE player_id=" . $player_id);
+    }
 
     function zombieTurn($state, $active_player)
     {

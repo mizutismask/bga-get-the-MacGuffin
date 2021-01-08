@@ -78,11 +78,38 @@ define([
                     this.playerHand.addItemType(name, 0, g_gamethemeurl + this.cards_img, i);
                 }
 
-
                 for (var card_id in gamedatas.hand) {
                     var card = gamedatas.hand[card_id];
                     //console.log("ajout dans la main de la carte id/type/type arg :" + card.id + " " + card.type + " " + card.type_arg);
                     this.playerHand.addToStockWithId(card.type, card.id);
+                }
+
+                //-----------cards in play setup for each player
+                this.inPlayStocksByPlayerId = [];
+                for (var player_id in gamedatas.inPlay) {
+
+                    var playerInPlayCards = new ebg.stock();
+                    playerInPlayCards.setSelectionMode(0);
+                    playerInPlayCards.create(this, $('cards_in_play_' + player_id), this.cardwidth, this.cardheight);
+                    playerInPlayCards.image_items_per_row = this.image_items_per_row;
+
+                    // Create cards types:
+                    var i = 0;
+                    for (var name in this.cardsAvailable) {
+                        var card = this.cardsAvailable[name];
+                        i++;
+                        // Build card type id
+                        playerInPlayCards.addItemType(name, 0, g_gamethemeurl + this.cards_img, i);
+                    }
+
+                    //adds already played objects
+                    var cards = gamedatas.inPlay[player_id];
+                    for (var card_id in cards) {
+                        var card = cards[card_id];
+                        playerInPlayCards.addToStockWithId(card.type, card.id);
+                        //this.addCardToolTip(playerInPlayCards, card.id, card.type_arg);
+                    }
+                    this.inPlayStocksByPlayerId[player_id] = playerInPlayCards;
                 }
 
                 // Setup game notifications to handle (see "setupNotifications" method below)
@@ -147,22 +174,14 @@ define([
             //                        action status bar (ie: the HTML links in the status bar).
             //        
             onUpdateActionButtons: function (stateName, args) {
-                console.log('onUpdateActionButtons: ' + stateName);
+                console.log('onUpdateActionButtons: ' + stateName, args);
 
                 if (this.isCurrentPlayerActive()) {
                     switch (stateName) {
-                        /*               
-                                         Example:
-                         
-                                         case 'myGameState':
-                                            
-                                            // Add 3 action buttons in the action status bar:
-                                            
-                                            this.addActionButton( 'button_1_id', _('Button 1 label'), 'onMyMethodToCall1' ); 
-                                            this.addActionButton( 'button_2_id', _('Button 2 label'), 'onMyMethodToCall2' ); 
-                                            this.addActionButton( 'button_3_id', _('Button 3 label'), 'onMyMethodToCall3' ); 
-                                            break;
-                        */
+                        case "playerTurn":
+                            this.addActionButton('button_confirm_card', _('Play selected card'), 'onPlayCard');
+                            this.addActionButton('button_discard', _('Discard an Object'), 'onDiscard');
+                            break;
                     }
                 }
             },
@@ -227,10 +246,10 @@ define([
             */
             onSelectCard: function (control_name, item_id) {
                 // This method is called when myStockControl selected items changed
-                var items = this.myStockControl.getSelectedItems();
+                var items = this.playerHand.getSelectedItems();
                 if (items.length == 1) {
                     var card = items[0];
-                    console.log("selection of ", card);
+                    console.log("selection of ", card.type);
                     switch (card.type) {
                         case "larry":
                             alert('Hey');
@@ -240,6 +259,84 @@ define([
 
                     }
                 };
+            },
+
+            onPlayCard: function (evt) {
+                console.log('onPlayCard');
+
+                // Preventing default browser reaction
+                dojo.stopEvent(evt);
+
+                var items = this.playerHand.getSelectedItems();
+                if (items.length == 1) {
+                    if (this.checkAction('playCard')) {
+                        //check selection
+                        var playedCard = items[0];
+
+                        this.inPlayStocksByPlayerId = [];
+                        var cardFromOtherPlayer;
+                        for (var inPlayStock in this.inPlayStocksByPlayerId) {
+                            var selected = inPlayStock.getSelectedItems();
+                            if (items.length == 1) {
+                                cardFromOtherPlayer = selected[0];
+                                console.log("selection from other player ", cardFromOtherPlayer.type);
+                            }
+                        }
+
+                        var selectedPlayer;
+
+                        switch (playedCard.type) {
+                            case "MACGUFFIN":
+                                break;
+
+                            default:
+
+                        }
+                        //back call
+                        this.ajaxcall('/getthemacguffin/getthemacguffin/playCardAction.html',
+                            {
+                                lock: true,
+                                played_card_id: playedCard.id,
+                                effect_on_card_id: cardFromOtherPlayer ? cardFromOtherPlayer.id : 0,
+                                effect_on_player_id: selectedPlayer ? selectedPlayer : 0,
+                            },
+                            this,
+                            function (result) {
+                                this.playerHand.removeFromStockById(playedCard.id);
+                                /*items.forEach(removed => {
+                                    this.discardedDesserts.addToStockWithId(removed.type, removed.id, "myhand");
+                                    this.playerHand.removeFromStockById(removed.id);
+                                });
+*/
+                            });
+                    }
+                } else {
+                    this.showMessage(_('You have to select a card to play'), 'error');
+                }
+            },
+
+            onDiscard: function (evt) {
+                console.log('onDiscard');
+
+                // Preventing default browser reaction
+                dojo.stopEvent(evt);
+
+                var items = this.inPlayStocksByPlayerId["metodo"].getSelectedItems();
+                if (items.length == 1) {
+                    var playedCard = items[0];
+                    //back call
+                    this.ajaxcall('/getthemacguffin/getthemacguffin/discardAction.html',
+                        {
+                            lock: true,
+                            played_card_id: playedCard.id,
+                        },
+                        this,
+                        function (result) {
+                        });
+
+                } else {
+                    this.showMessage(_('You have to select an Object in play to discard'), 'error');
+                }
             },
 
             ///////////////////////////////////////////////////
@@ -270,6 +367,7 @@ define([
                 // 
 
                 dojo.subscribe('handChange', this, "notif_handChange");
+                dojo.subscribe('cardPlayed', this, "notif_cardPlayed");
                 dojo.connect(this.playerHand, 'onChangeSelection', this, 'onSelectCard');
             },
 
@@ -308,5 +406,19 @@ define([
                     this.playerHand.removeFromStockById(card.id);
                 }
             },
+
+            notif_cardPlayed: function (notif) {
+
+                var card = notif.args.card;
+
+                if (notif.args.toInPlay) {
+                    this.inPlayStocksByPlayerId[player_id].addToStockWithId(card.type_arg, card.id);
+                }
+
+                /* if (player_id == notif.args.player_id) {
+                     this.playerHand.removeFromStockById(card.id);
+                  }*/
+            },
+
         });
     });

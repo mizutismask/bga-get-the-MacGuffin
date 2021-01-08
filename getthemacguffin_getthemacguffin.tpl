@@ -36,9 +36,9 @@
     <!-- BEGIN player -->
     <div id="in_play_{PLAYER_ID}" class="whiteblock">
         <div class="cardsInPlay" id="cards_in_play_{PLAYER_ID}" >
-            <div style="color:#{PLAYER_COLOR}">
-                <h3>{PLAYER_NAME}</h3>
-            </div>
+        </div>
+        <div style="color:#{PLAYER_COLOR}">
+            <h3>{PLAYER_NAME}</h3>
         </div>
     </div>
     <!-- END player -->

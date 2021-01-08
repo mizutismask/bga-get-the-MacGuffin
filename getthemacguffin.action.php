@@ -1,4 +1,5 @@
 <?php
+
 /**
  *------
  * BGA framework: © Gregory Isabelli <gisabelli@boardgamearena.com> & Emmanuel Colin <ecolin@boardgamearena.com>
@@ -20,29 +21,26 @@
  * this.ajaxcall( "/getthemacguffin/getthemacguffin/myAction.html", ...)
  *
  */
-  
-  
-  class action_getthemacguffin extends APP_GameAction
-  { 
-    // Constructor: please do not modify
-   	public function __default()
-  	{
-  	    if( self::isArg( 'notifwindow') )
-  	    {
-            $this->view = "common_notifwindow";
-  	        $this->viewArgs['table'] = self::getArg( "table", AT_posint, true );
-  	    }
-  	    else
-  	    {
-            $this->view = "getthemacguffin_getthemacguffin";
-            self::trace( "Complete reinitialization of board game" );
-      }
-  	} 
-  	
-  	// TODO: defines your action entry points there
 
 
-    /*
+class action_getthemacguffin extends APP_GameAction
+{
+  // Constructor: please do not modify
+  public function __default()
+  {
+    if (self::isArg('notifwindow')) {
+      $this->view = "common_notifwindow";
+      $this->viewArgs['table'] = self::getArg("table", AT_posint, true);
+    } else {
+      $this->view = "getthemacguffin_getthemacguffin";
+      self::trace("Complete reinitialization of board game");
+    }
+  }
+
+  // TODO: defines your action entry points there
+
+
+  /*
     
     Example:
   	
@@ -63,6 +61,14 @@
     
     */
 
-  }
-  
+  public function playCardAction()
+  {
+    self::setAjaxMode();
+    $played_card_id = self::getArg("played_card_id", AT_posint, true);
+    $effect_on_card_id = self::getArg("effect_on_card_id", AT_posint, true);
+    $effect_on_player_id = self::getArg("effect_on_player_id", AT_posint, true);
+    $this->game->playCard($played_card_id, $effect_on_card_id, $effect_on_player_id);
 
+    self::ajaxResponse();
+  }
+}
