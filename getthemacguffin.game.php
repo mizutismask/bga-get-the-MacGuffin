@@ -326,6 +326,107 @@ class GetTheMacGuffin extends Table
         }
     }
 
+    function playShifumi($played_card, $paperRockOrScissors)
+    {
+        $player_id = self::getActivePlayerId();
+        self::dump("**************************************", $this->deck->getCardsOfType($paperRockOrScissors));
+        self::dump("**************************************", array_values($this->deck->getCardsOfType($paperRockOrScissors)));
+        $cards = array_values($this->deck->getCardsOfType($paperRockOrScissors));
+        $toDiscard = array_pop($cards);
+        self::dump("************toDiscard**************************", $toDiscard);
+        if ($toDiscard["location"] === DECK_LOC_IN_PLAY && $toDiscard["location_arg"] != $player_id) {
+            $this->deck->playCard($played_card["id"]);
+            self::notifyPlayer($toDiscard["location_arg"], NOTIF_HAND_CHANGE, '', array('removed' => [$toDiscard]));
+        }
+    }
+
+    function playActionCard($played_card, $description, $effect_on_card = null, $effect_on_player_id = null)
+    {
+        $player_id = self::getActivePlayerId();
+        switch ($played_card["type"]) {
+            case MARSHALL:
+                # code...
+                break;
+            case INTERROGATOR:
+                $this->playInterrogator();
+                break;
+            case THIEF:
+                # code...
+                break;
+            case TOMB_ROBBERS:
+                # code...
+                break;
+            case WHEEL_OF_FORTUNE:
+                # code...
+                break;
+            case SWITCHEROO:
+                $this->swapHands($player_id, $effect_on_player_id);
+                break;
+            case MERCHANT:
+                # code...
+                break;
+            case SPY:
+                # code...
+                break;
+            case FIST_OF_DOOM:
+                # code...
+                break;
+            case GARBAGE_COLLECTR:
+                # code...
+                break;
+            case ASSASSIN:
+                # code...
+                break;
+            case VORTEX:
+                # code...
+                break;
+            case HIPPIE:
+                # code...
+                break;
+            case NOT_DEAD_YET:
+                # code...
+                break;
+            case FIRST_BUMP:
+                # code...
+                break;
+
+            default:
+                # code...
+                break;
+        }
+    }
+
+    function playObjectCard($played_card, $description, $effect_on_card = null, $effect_on_player_id = null)
+    {
+        $player_id = self::getActivePlayerId();
+        switch ($played_card["type"]) {
+            case MACGUFFIN:
+                # code...
+                break;
+            case MONEY:
+                # code...
+                break;
+            case CROWN:
+                # code...
+                break;
+            case BACKUP_MACGUFFIN:
+                # code...
+                break;
+            case SCISSORS:
+                $this->playShifumi($played_card, PAPER);
+                break;
+            case ROCK:
+                $this->playShifumi($played_card, SCISSORS);
+                break;
+            case PAPER:
+                $this->playShifumi($played_card, ROCK);
+                break;
+            default:
+                # code...
+                break;
+        }
+    }
+
     function checkIfEndOfGame($player_id)
     {
 
@@ -341,6 +442,12 @@ class GetTheMacGuffin extends Table
         if (count($inHand) + count($inPlay) == 0) {
             self::eliminatePlayer($player_id);
         }
+    }
+
+    function isInPlay($card_id)
+    {
+        $card = $this->deck->getCard($card_id);
+        return $card["location"] === DECK_LOC_IN_PLAY;
     }
 
     /*
@@ -375,18 +482,34 @@ class GetTheMacGuffin extends Table
         $played_card = $this->deck->getCard($played_card_id);
         $description = $this->cards_description[$played_card["type"]];
 
+        if ($effect_on_card_id) {
+            $effect_on_card = $this->deck->getCard($effect_on_card_id);
+        }
+
+        $uses = false;
         if ($description["type"] === OBJ) {
-            $this->deck->moveCard($played_card_id, DECK_LOC_IN_PLAY, $player_id);
+            if ($this->isInPlay($played_card_id)) {
+                //use object
+                $uses = true;
+                $this->playObjectCard($played_card, $description, $effect_on_card, $effect_on_player_id);
+            } else {
+                //put object in play
+                $this->deck->moveCard($played_card_id, DECK_LOC_IN_PLAY, $player_id);
+            }
+        } else {
+            //use action
+            $this->playActionCard($played_card, $description, $effect_on_card, $effect_on_player_id);
         }
 
         // Notify all players about the card played
-        self::notifyAllPlayers("cardPlayed", clienttranslate('${player_name} plays ${card_name}'), array(
+        self::notifyAllPlayers("cardPlayed", clienttranslate('${player_name} ${plays} ${card_name}'), array(
             'player_id' => $player_id,
             'player_name' => self::getActivePlayerName(),
             'card_name' => $description["name"],
             'card' => $played_card,
+            'plays' => $uses ? self::_("uses") : self::_("plays"),
             'toInPlay' => $description["type"] === OBJ,
-            'i18n' => array('card_name'),
+            'i18n' => array('card_name', 'plays'),
         ));
 
         $this->gamestate->nextState(TRANSITION_NEXT_PLAYER);

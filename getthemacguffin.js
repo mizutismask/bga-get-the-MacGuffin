@@ -89,7 +89,7 @@ define([
                 for (var player_id in gamedatas.inPlay) {
 
                     var playerInPlayCards = new ebg.stock();
-                    playerInPlayCards.setSelectionMode(0);
+                    playerInPlayCards.setSelectionMode(1);
                     playerInPlayCards.create(this, $('cards_in_play_' + player_id), this.cardwidth, this.cardheight);
                     playerInPlayCards.image_items_per_row = this.image_items_per_row;
 
@@ -251,7 +251,9 @@ define([
                     var card = items[0];
                     console.log("selection of ", card.type);
                     switch (card.type) {
-                        case "larry":
+                        case "ROCK":
+                        case "SCISSORS":
+                        case "PAPER":
                             alert('Hey');
                             break;
 
@@ -268,21 +270,24 @@ define([
                 dojo.stopEvent(evt);
 
                 var items = this.playerHand.getSelectedItems();
+                var cardFromOtherPlayer;
+                for (var player_id in this.inPlayStocksByPlayerId) {
+                    var selected = this.inPlayStocksByPlayerId[player_id].getSelectedItems();
+                    if (selected.length == 1) {
+                        cardFromOtherPlayer = selected[0];
+                        console.log("selection from other player ", cardFromOtherPlayer.type);
+                    }
+                }
+
                 if (items.length == 1) {
+                    var playedCard = items[0];
+                } else {
+                    var playedCard = cardFromOtherPlayer;
+                }
+
+                if (playedCard) {
                     if (this.checkAction('playCard')) {
                         //check selection
-                        var playedCard = items[0];
-
-                        this.inPlayStocksByPlayerId = [];
-                        var cardFromOtherPlayer;
-                        for (var inPlayStock in this.inPlayStocksByPlayerId) {
-                            var selected = inPlayStock.getSelectedItems();
-                            if (items.length == 1) {
-                                cardFromOtherPlayer = selected[0];
-                                console.log("selection from other player ", cardFromOtherPlayer.type);
-                            }
-                        }
-
                         var selectedPlayer;
 
                         switch (playedCard.type) {
@@ -393,26 +398,30 @@ define([
                 if (notif.args.reset) {
                     this.playerHand.removeAll();
                 }
-
-                for (var i in notif.args.added) {
-                    var card = notif.args.cards[i];
-                    console.log("notif_handChange add card id/type :" + card.id + " " + card.type);
-                    this.playerHand.addToStockWithId(card.type_arg, card.id);
+                if (notif.args.added) {
+                    for (var i in notif.args.added) {
+                        var card = notif.args.cards[i];
+                        console.log("notif_handChange add card id/type :" + card.id + " " + card.type);
+                        this.playerHand.addToStockWithId(card.type_arg, card.id);
+                    }
                 }
+                if (notif.args.removed) {
 
-                for (var i in notif.args.removed) {
-                    var card = notif.args.cards[i];
-                    console.log("notif_handChange remove card id/type :" + card.id + " " + card.type);
-                    this.playerHand.removeFromStockById(card.id);
+                    for (var i in notif.args.removed) {
+                        var card = notif.args.cards[i];
+                        console.log("notif_handChange remove card id/type :" + card.id + " " + card.type);
+                        this.playerHand.removeFromStockById(card.id);
+                    }
                 }
             },
 
             notif_cardPlayed: function (notif) {
-
+                console.log('notif_cardPlayed');
+                console.log(notif);
                 var card = notif.args.card;
 
                 if (notif.args.toInPlay) {
-                    this.inPlayStocksByPlayerId[player_id].addToStockWithId(card.type_arg, card.id);
+                    this.inPlayStocksByPlayerId[notif.args.player_id].addToStockWithId(card.type_arg, card.id);
                 }
 
                 /* if (player_id == notif.args.player_id) {
