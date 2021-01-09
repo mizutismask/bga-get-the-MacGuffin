@@ -254,7 +254,7 @@ define([
                         case "ROCK":
                         case "SCISSORS":
                         case "PAPER":
-                            alert('Hey');
+
                             break;
 
                         default:
@@ -372,6 +372,8 @@ define([
                 // 
 
                 dojo.subscribe('handChange', this, "notif_handChange");
+                dojo.subscribe('inPlayChange', this, "notif_inPlayChange");
+
                 dojo.subscribe('cardPlayed', this, "notif_cardPlayed");
                 dojo.connect(this.playerHand, 'onChangeSelection', this, 'onSelectCard');
             },
@@ -400,7 +402,7 @@ define([
                 }
                 if (notif.args.added) {
                     for (var i in notif.args.added) {
-                        var card = notif.args.cards[i];
+                        var card = notif.args.added[i];
                         console.log("notif_handChange add card id/type :" + card.id + " " + card.type);
                         this.playerHand.addToStockWithId(card.type_arg, card.id);
                     }
@@ -408,20 +410,38 @@ define([
                 if (notif.args.removed) {
 
                     for (var i in notif.args.removed) {
-                        var card = notif.args.cards[i];
+                        var card = notif.args.removed[i];
                         console.log("notif_handChange remove card id/type :" + card.id + " " + card.type);
                         this.playerHand.removeFromStockById(card.id);
                     }
                 }
             },
 
+            notif_inPlayChange: function (notif) {
+                $player_id = notif.args.player_id;
+                if (notif.args.added) {
+                    for (var i in notif.args.added) {
+                        var card = notif.args.added[i];
+                        console.log("notif_inPlayChange add card id/type :" + card.id + " " + card.type);
+                        this.inPlayStocksByPlayerId[$player_id].addToStockWithId(card.type_arg, card.id);
+                    }
+                }
+                if (notif.args.removed) {
+                    for (var i in notif.args.removed) {
+                        var card = notif.args.removed[i];
+                        console.log("notif_inPlayChange remove card id/type :" + card.id + " " + card.type);
+                        this.inPlayStocksByPlayerId[$player_id].removeFromStockById(card.id);
+                    }
+                }
+            },
+
             notif_cardPlayed: function (notif) {
-                console.log('notif_cardPlayed');
-                console.log(notif);
+                console.log('notif_cardPlayed', notif);
+                //console.log(notif);
                 var card = notif.args.card;
 
                 if (notif.args.toInPlay) {
-                    this.inPlayStocksByPlayerId[notif.args.player_id].addToStockWithId(card.type_arg, card.id);
+                    this.inPlayStocksByPlayerId[notif.args.player_id].addToStockWithId(card.type, card.id);
                 }
 
                 /* if (player_id == notif.args.player_id) {

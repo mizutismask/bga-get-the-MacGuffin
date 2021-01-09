@@ -32,6 +32,7 @@ if (!defined('DECK_LOC_DECK')) {
     define("NOTIF_UPDATE_SCORE", "updateScore");
     define("NOTIF_NEW_RIVER", "newRiver");
     define("NOTIF_HAND_CHANGE", "handChange");
+    define("NOTIF_IN_PLAY_CHANGE", "inPlayChange");
 
     // constants for game states
     define("TRANSITION_PLAYER_TURN", "playerTurn");
@@ -326,23 +327,27 @@ class GetTheMacGuffin extends Table
         }
     }
 
-    function playShifumi($played_card, $paperRockOrScissors)
+    function playShifumi($weakCard)
     {
         $player_id = self::getActivePlayerId();
-        self::dump("**************************************", $this->deck->getCardsOfType($paperRockOrScissors));
-        self::dump("**************************************", array_values($this->deck->getCardsOfType($paperRockOrScissors)));
-        $cards = array_values($this->deck->getCardsOfType($paperRockOrScissors));
+        $cards = array_values($this->deck->getCardsOfType($weakCard));
         $toDiscard = array_pop($cards);
-        self::dump("************toDiscard**************************", $toDiscard);
         if ($toDiscard["location"] === DECK_LOC_IN_PLAY && $toDiscard["location_arg"] != $player_id) {
-            $this->deck->playCard($played_card["id"]);
-            self::notifyPlayer($toDiscard["location_arg"], NOTIF_HAND_CHANGE, '', array('removed' => [$toDiscard]));
+            $this->deck->playCard($toDiscard["id"]);
+            self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '${player_name} looses ${card_name}', array(
+                'removed' => [$toDiscard],
+                "player_id" => $toDiscard["location_arg"],
+                'player_name' => $this->getPlayerName($toDiscard["location_arg"]),
+                'card_name' => $this->cards_description[$weakCard]["name"],
+                'i18n' => array('card_name'),
+            ));
         }
     }
 
     function playActionCard($played_card, $description, $effect_on_card = null, $effect_on_player_id = null)
     {
         $player_id = self::getActivePlayerId();
+        $this->deck->playCard($played_card["id"]);
         switch ($played_card["type"]) {
             case MARSHALL:
                 # code...
@@ -413,13 +418,13 @@ class GetTheMacGuffin extends Table
                 # code...
                 break;
             case SCISSORS:
-                $this->playShifumi($played_card, PAPER);
+                $this->playShifumi(PAPER);
                 break;
             case ROCK:
-                $this->playShifumi($played_card, SCISSORS);
+                $this->playShifumi(SCISSORS);
                 break;
             case PAPER:
-                $this->playShifumi($played_card, ROCK);
+                $this->playShifumi(ROCK);
                 break;
             default:
                 # code...
@@ -482,6 +487,7 @@ class GetTheMacGuffin extends Table
         $played_card = $this->deck->getCard($played_card_id);
         $description = $this->cards_description[$played_card["type"]];
 
+        $effect_on_card = null;
         if ($effect_on_card_id) {
             $effect_on_card = $this->deck->getCard($effect_on_card_id);
         }
