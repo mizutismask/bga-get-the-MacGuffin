@@ -499,7 +499,7 @@ class GetTheMacGuffin extends Table
         if ($stillAliveCount == 1) {
             //end of game
             $last = array_pop($stillAlivePlayers);
-            $this->updateScores($last["player_id"]);
+            $this->updateScores([$last["player_id"]]);
         } else if ($stillAliveCount == 0) {
             //end of game
             $this->updateScores($newEliminated);
