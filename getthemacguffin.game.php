@@ -327,9 +327,55 @@ class GetTheMacGuffin extends Table
         }
     }
 
-    function playShifumi($weakCard)
+    function getPlayersInOrder()
     {
-        $player_id = self::getActivePlayerId();
+        $result = array();
+
+        $players = self::loadPlayersBasicInfos();
+        $next_player = self::getNextPlayerTable();
+        $player_id = self::getCurrentPlayerId();
+
+        // Check for spectator
+        if (!key_exists($player_id, $players)) {
+            $player_id = $next_player[0];
+        }
+
+        // Build array starting with current player
+        for ($i = 0; $i < count($players); $i++) {
+            $result[] = $player_id;
+            $player_id = $next_player[$player_id];
+        }
+
+        return $result;
+    }
+
+    function playVortex($player_id)
+    {
+        $hands = $this->deck->getCardsInLocation(DECK_LOC_HAND);
+        shuffle($hands);
+        $players = new ArrayObject($this->getPlayersInOrder());
+        $playersIterator = $players->getIterator();
+        foreach ($hands as $card) {
+            $next_player = $playersIterator->current();
+            $this->deck->moveCard($card["id"], DECK_LOC_HAND, $next_player);
+            $playersIterator->next();
+            if (!$playersIterator->valid()) {
+                $playersIterator->rewind();
+            }
+        }
+
+        $playersIterator->rewind();
+        while ($playersIterator->valid()) {
+            self::notifyPlayer($playersIterator->current(), NOTIF_HAND_CHANGE, 'Cards have been reshuffled', array(
+                'reset' => true,
+                'added' => $this->deck->getCardsInLocation(DECK_LOC_HAND, $playersIterator->current())
+            ));
+            $playersIterator->next();
+        }
+    }
+
+    function playShifumi($player_id, $weakCard)
+    {
         $cards = array_values($this->deck->getCardsOfType($weakCard));
         $toDiscard = array_pop($cards);
         if ($toDiscard["location"] === DECK_LOC_IN_PLAY && $toDiscard["location_arg"] != $player_id) {
@@ -383,7 +429,7 @@ class GetTheMacGuffin extends Table
                 # code...
                 break;
             case VORTEX:
-                # code...
+                $this->playVortex($player_id);
                 break;
             case HIPPIE:
                 # code...
@@ -418,13 +464,13 @@ class GetTheMacGuffin extends Table
                 # code...
                 break;
             case SCISSORS:
-                $this->playShifumi(PAPER);
+                $this->playShifumi($player_id, PAPER);
                 break;
             case ROCK:
-                $this->playShifumi(SCISSORS);
+                $this->playShifumi($player_id, SCISSORS);
                 break;
             case PAPER:
-                $this->playShifumi(ROCK);
+                $this->playShifumi($player_id, ROCK);
                 break;
             default:
                 # code...

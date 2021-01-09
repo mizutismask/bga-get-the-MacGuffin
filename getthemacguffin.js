@@ -396,7 +396,7 @@ define([
             */
 
             notif_handChange: function (notif) {
-
+                console.log('notif_handChange', notif.args);
                 if (notif.args.reset) {
                     this.playerHand.removeAll();
                 }
@@ -404,7 +404,7 @@ define([
                     for (var i in notif.args.added) {
                         var card = notif.args.added[i];
                         console.log("notif_handChange add card id/type :" + card.id + " " + card.type);
-                        this.playerHand.addToStockWithId(card.type_arg, card.id);
+                        this.playerHand.addToStockWithId(card.type, card.id);
                     }
                 }
                 if (notif.args.removed) {
@@ -423,7 +423,7 @@ define([
                     for (var i in notif.args.added) {
                         var card = notif.args.added[i];
                         console.log("notif_inPlayChange add card id/type :" + card.id + " " + card.type);
-                        this.inPlayStocksByPlayerId[$player_id].addToStockWithId(card.type_arg, card.id);
+                        this.inPlayStocksByPlayerId[$player_id].addToStockWithId(card.type, card.id);
                     }
                 }
                 if (notif.args.removed) {
