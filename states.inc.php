@@ -56,6 +56,7 @@ if (!defined('STATE_PLAYER_TURN')) { // ensure this block is only invoked once, 
 
     //define("TRANSITION_PLAYER_TURN", "playerTurn");
     define("TRANSITION_NEXT_PLAYER", "nextPlayer");
+    define("TRANSITION_END_GAME", "endGame");
 }
 
 $machinestates = array(
@@ -88,7 +89,7 @@ $machinestates = array(
         "type" => "game",
         "action" => "stNextPlayer",
         "updateGameProgression" => true,
-        "transitions" => array(TRANSITION_PLAYER_TURN => STATE_PLAYER_TURN)
+        "transitions" => array(TRANSITION_PLAYER_TURN => STATE_PLAYER_TURN, TRANSITION_END_GAME => 99)
     ),
     /*
     Examples: 

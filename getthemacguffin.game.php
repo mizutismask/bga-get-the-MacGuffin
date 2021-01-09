@@ -217,15 +217,10 @@ class GetTheMacGuffin extends Table
         self::DbQuery($sql);
     }
 
-    function updateScores($winner_id)
+    function updateScores($winners_id)
     {
-        $players = self::loadPlayersBasicInfos();
-        foreach ($players as $player_id => $player) {
-            $score = 0;
-            if ($player_id == $winner_id) {
-                $score = 1;
-            }
-            $this->updateScore($player_id, $score);
+        foreach ($winners_id as $player_id) {
+            $this->updateScore($player_id, 1);
         }
     }
 
@@ -299,7 +294,7 @@ class GetTheMacGuffin extends Table
         $player_id = self::getActivePlayerId();
         $mcGuffin = $this->deck->getCardsOfType(MACGUFFIN);
         $seen = false;
-        if ($mcGuffin["location"] == DECK_LOC_HAND && $mcGuffin["location_arg"] != $player_id) {
+        /*if ($mcGuffin["location"] == DECK_LOC_HAND && $mcGuffin["location_arg"] != $player_id) {
             $seen = true;
             self::notifyAllPlayers(
                 NOTIF_REVELATION,
@@ -325,7 +320,7 @@ class GetTheMacGuffin extends Table
                     )
                 );
             }
-        }
+        }*/
     }
 
     function getPlayersInOrder()
@@ -448,7 +443,7 @@ class GetTheMacGuffin extends Table
         }
     }
 
-    function playObjectCard($played_card, $description, $effect_on_card = null, $effect_on_player_id = null)
+    function useObjectCard($played_card, $description, $effect_on_card = null, $effect_on_player_id = null)
     {
         $player_id = self::getActivePlayerId();
         switch ($played_card["type"]) {
@@ -479,21 +474,37 @@ class GetTheMacGuffin extends Table
         }
     }
 
-    function checkIfEndOfGame($player_id)
+    function eliminatePlayersIfNeeded()
     {
-
-        //victory
-        $this->updateScores($player_id);
-        $this->gamestate->nextState(TRANSITION_END_GAME);
-    }
-
-    function eliminatePlayerIfNeeded($player_id)
-    {
-        $inHand = $this->guestcards->getCardsInLocation(DECK_LOC_HAND, $player_id);
-        $inPlay = $this->guestcards->getCardsInLocation(DECK_LOC_IN_PLAY, $player_id);
-        if (count($inHand) + count($inPlay) == 0) {
-            self::eliminatePlayer($player_id);
+        $players = self::loadPlayersBasicInfos();
+        $newEliminated = array();
+        foreach ($players as $player) {
+            $player_id = $player["player_id"];
+            if (!$player["player_eliminated"]) {
+                $inHand = $this->deck->getCardsInLocation(DECK_LOC_HAND, $player_id);
+                $inPlay = $this->deck->getCardsInLocation(DECK_LOC_IN_PLAY, $player_id);
+                if (count($inHand) + count($inPlay) == 0) {
+                    $newEliminated[] = $player_id;
+                    self::eliminatePlayer($player_id);
+                }
+            }
         }
+
+        $players = self::loadPlayersBasicInfos();
+        $stillAlivePlayers = array_filter($players, function ($p) {
+            return !$p["player_eliminated"];
+        });
+        $stillAliveCount = count($stillAlivePlayers);
+
+        if ($stillAliveCount == 1) {
+            //end of game
+            $last = array_pop($stillAlivePlayers);
+            $this->updateScores($last["player_id"]);
+        } else if ($stillAliveCount == 0) {
+            //end of game
+            $this->updateScores($newEliminated);
+        }
+        return $stillAliveCount < 2;
     }
 
     function isInPlay($card_id)
@@ -502,16 +513,6 @@ class GetTheMacGuffin extends Table
         return $card["location"] === DECK_LOC_IN_PLAY;
     }
 
-    /*
-   * stEliminatePlayer: this function is called when the active player is eliminated
-   */
-    public function stEliminatePlayer()
-    {
-        $pId = $this->getActivePlayerId();
-        $this->activeNextPlayer();
-        PlayerManager::eliminate($pId);
-        $this->stNextPlayer(false);
-    }
 
 
     //////////////////////////////////////////////////////////////////////////////
@@ -544,7 +545,7 @@ class GetTheMacGuffin extends Table
             if ($this->isInPlay($played_card_id)) {
                 //use object
                 $uses = true;
-                $this->playObjectCard($played_card, $description, $effect_on_card, $effect_on_player_id);
+                $this->useObjectCard($played_card, $description, $effect_on_card, $effect_on_player_id);
             } else {
                 //put object in play
                 $this->deck->moveCard($played_card_id, DECK_LOC_IN_PLAY, $player_id);
@@ -563,6 +564,42 @@ class GetTheMacGuffin extends Table
             'plays' => $uses ? self::_("uses") : self::_("plays"),
             'toInPlay' => $description["type"] === OBJ,
             'i18n' => array('card_name', 'plays'),
+        ));
+
+        $this->gamestate->nextState(TRANSITION_NEXT_PLAYER);
+    }
+
+    function discard($played_card_id) //, $effect_on_card_id, $effect_on_player_id)
+    {
+        // Check that this is the player's turn and that it is a "possible action" at this game state (see states.inc.php)
+        self::checkAction('discard');
+
+        $player_id = self::getActivePlayerId();
+
+        $played_card = $this->deck->getCard($played_card_id);
+        $description = $this->cards_description[$played_card["type"]];
+
+        /*  $effect_on_card = null;
+        if ($effect_on_card_id) {
+            $effect_on_card = $this->deck->getCard($effect_on_card_id);
+        }
+
+        if ($played_card["type"] == MONEY) {
+            $this->useObjectCard($played_card, $description, $effect_on_card, $effect_on_player_id);
+        }*/
+
+        $this->deck->playCard($played_card_id);
+
+
+        // Notify all players about the card discarded
+        self::notifyAllPlayers("cardPlayed", clienttranslate('${player_name} discards ${card_name}'), array(
+            'player_id' => $player_id,
+            'discarded' => true,
+            'player_name' => self::getActivePlayerName(),
+            'card_name' => $description["name"],
+            'card' => $played_card,
+            'toInPlay' => false,
+            'i18n' => array('card_name'),
         ));
 
         $this->gamestate->nextState(TRANSITION_NEXT_PLAYER);
@@ -599,18 +636,26 @@ class GetTheMacGuffin extends Table
         );
     }    
     */
-    /** Draws a dessert and a guest at the beginning of each turn for non zombie players. */
-    function stNextPlayer()
+
+    /*
+   * stEliminatePlayer: this function is called when the active player is eliminated
+   */
+    public function stNextPlayer()
     {
-        $players = self::loadPlayersBasicInfos();
-        $player_id = self::activeNextPlayer();
+        $old_player_id = $this->getActivePlayerId();
+        $player_id = $this->activeNextPlayer();
 
-        if (!self::isZombie($player_id)) {
-            //self::incStat(1, "turns_number", $player_id);
-            self::giveExtraTime($player_id);
+        $endOfGame = $this->eliminatePlayersIfNeeded();
+
+        if ($endOfGame) {
+            $this->gamestate->nextState(TRANSITION_END_GAME);
+        } else {
+
+            if (!self::isZombie($player_id)) {
+                self::giveExtraTime($player_id);
+            }
+            $this->gamestate->nextState(TRANSITION_PLAYER_TURN);
         }
-
-        $this->gamestate->nextState(TRANSITION_PLAYER_TURN);
     }
     //////////////////////////////////////////////////////////////////////////////
     //////////// Game state actions
@@ -660,23 +705,16 @@ class GetTheMacGuffin extends Table
         $statename = $state['name'];
 
         if ($state['type'] === "activeplayer") {
+
             switch ($statename) {
-                default:
-                    $this->gamestate->nextState("zombiePass");
+                case "playerTurn":
+                    $this->gamestate->nextState(TRANSITION_NEXT_PLAYER);
                     break;
             }
-
             return;
         }
 
-        if ($state['type'] === "multipleactiveplayer") {
-            // Make sure player is in a non blocking status for role turn
-            $this->gamestate->setPlayerNonMultiactive($active_player, '');
-
-            return;
-        }
-
-        throw new feException("Zombie mode not supported at this game state: " . $statename);
+        throw new BgaUserException("Zombie mode not supported at this game state: " . $statename);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////:

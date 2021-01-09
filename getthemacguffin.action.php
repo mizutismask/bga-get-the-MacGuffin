@@ -71,4 +71,15 @@ class action_getthemacguffin extends APP_GameAction
 
     self::ajaxResponse();
   }
+
+  public function discardAction()
+  {
+    self::setAjaxMode();
+    $played_card_id = self::getArg("played_card_id", AT_posint, true);
+    /* $effect_on_card_id = self::getArg("effect_on_card_id", AT_posint, true);
+    $effect_on_player_id = self::getArg("effect_on_player_id", AT_posint, true);*/
+    $this->game->discard($played_card_id); ///, $effect_on_card_id, $effect_on_player_id);
+
+    self::ajaxResponse();
+  }
 }

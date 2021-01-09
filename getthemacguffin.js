@@ -345,7 +345,7 @@ define([
                 // Preventing default browser reaction
                 dojo.stopEvent(evt);
 
-                var items = this.inPlayStocksByPlayerId["metodo"].getSelectedItems();
+                var items = this.inPlayStocksByPlayerId[this.player_id].getSelectedItems();
                 if (items.length == 1) {
                     var playedCard = items[0];
                     //back call
@@ -467,9 +467,12 @@ define([
                     this.discard.addToStockWithId(card.type, card.id);
                 }
 
-                /* if (player_id == notif.args.player_id) {
-                     this.playerHand.removeFromStockById(card.id);
-                  }*/
+                if (this.player_id == notif.args.player_id) {
+                    this.playerHand.removeFromStockById(card.id);
+                }
+                if (notif.args.discarded) {
+                    this.inPlayStocksByPlayerId[notif.args.player_id].removeFromStockById(card.id);
+                }
             },
 
         });
