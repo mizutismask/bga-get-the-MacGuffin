@@ -112,6 +112,25 @@ define([
                     this.inPlayStocksByPlayerId[player_id] = playerInPlayCards;
                 }
 
+                //discard_pile
+                this.discard = new ebg.stock(); // new stock object for playing zone
+                this.discard.create(this, $('discard_pile'), this.cardwidth, this.cardheight);//discard_pile is the div where the card is going
+                this.discard.image_items_per_row = this.image_items_per_row;
+                this.discard.setSelectionMode(0);
+
+                // Create cards types:
+                var i = 0;
+                for (var name in this.cardsAvailable) {
+                    var card = this.cardsAvailable[name];
+                    i++;
+                    // Build card type id
+                    this.discard.addItemType(name, 0, g_gamethemeurl + this.cards_img, i);
+                }
+
+                if (gamedatas.topOfDiscard) {
+                    this.discard.addToStockWithId(gamedatas.topOfDiscard.type, gamedatas.topOfDiscard.id);
+                }
+
                 // Setup game notifications to handle (see "setupNotifications" method below)
                 this.setupNotifications();
 
@@ -442,6 +461,10 @@ define([
 
                 if (notif.args.toInPlay) {
                     this.inPlayStocksByPlayerId[notif.args.player_id].addToStockWithId(card.type, card.id);
+                }
+                else {
+                    this.discard.removeAll();
+                    this.discard.addToStockWithId(card.type, card.id);
                 }
 
                 /* if (player_id == notif.args.player_id) {

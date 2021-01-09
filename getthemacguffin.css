@@ -72,6 +72,20 @@
     margin: 3px;
 }
 
+#discard_pile_wrap{
+    width: 250px;
+    margin-right: 5px;
+}
+
+#myhand_wrap{
+    width: 100%;
+}
+
+#mainLine{
+    width: 100%;
+    display: inline-flex;
+    flex-direction: row;
+}
 /*
     Example of CSS sprites (a black token and a white token, 20x20px each, embedded in the same "tokens.png" 40x20px image):
 

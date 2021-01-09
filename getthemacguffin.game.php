@@ -155,6 +155,7 @@ class GetTheMacGuffin extends Table
 
         $result['hand'] = $this->deck->getCardsInLocation(DECK_LOC_HAND, $current_player_id);
         $result['cardsAvailable'] = $this->getCardsAvailable();
+        $result['topOfDiscard'] = $this->deck->getCardOnTop(DECK_LOC_DISCARD);
 
         return $result;
     }

@@ -24,12 +24,19 @@
     
     Please REMOVE this comment before publishing your game on BGA
 -->
-
-<div id="myhand_wrap" class="whiteblock">
-    <h3>{MY_HAND}</h3>
-    <div id="myhand">
+<div id="mainLine">
+    <div id="discard_pile_wrap" class="whiteblock">
+        <h3>{PLAYING_ZONE}</h3>
+        <div id="discard_pile">
+        </div>
+    </div>
+    <div id="myhand_wrap" class="whiteblock">
+        <h3>{MY_HAND}</h3>
+        <div id="myhand">
+        </div>
     </div>
 </div>
+
 
 <div id="in_play_wrapper">
 
