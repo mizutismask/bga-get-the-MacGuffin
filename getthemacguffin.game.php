@@ -235,8 +235,7 @@ class GetTheMacGuffin extends Table
     function stealCardFromHand($player_from, $player_to)
     {
         $cards = $this->deck->getCardsInLocation(DECK_LOC_DECK, $player_from);
-        $i = rand(0, count($cards) - 1);
-        $card_id = $cards[$i]["id"];
+        $card_id = array_rand($cards);
         $card = $this->deck->getCard($card_id);
         $this->deck->moveCard($card_id, DECK_LOC_DECK, $player_to);
         // Notify players about changes
@@ -247,8 +246,7 @@ class GetTheMacGuffin extends Table
     function stealCardFromDiscard($player_to)
     {
         $cards = $this->deck->getCardsInLocation(DECK_LOC_DISCARD);
-        $i = rand(0, count($cards) - 1);
-        $card_id = $cards[$i]["id"];
+        $card_id = array_rand($cards);
         $card = $this->deck->getCard($card_id);
         $this->deck->moveCard($card_id, DECK_LOC_DECK, $player_to);
         // Notify player about change
@@ -268,12 +266,19 @@ class GetTheMacGuffin extends Table
         $card = $this->deck->getCard($card_id);
         if ($card["location"] === DECK_LOC_HAND) {
             $owner = $card["location_arg"];
-            $this->deck->play($card_id);
+            $this->deck->playCard($card_id);
             // Notify players about change
             self::notifyPlayer($owner, NOTIF_HAND_CHANGE, '', array('removed' => [$card]));
         } else {
             throw new BgaUserException(self::_("This card is not part of the hand of any player"));
         }
+    }
+
+    function discardRandomCardFromHand($player_id)
+    {
+        $cards = $this->deck->getCardsInLocation(DECK_LOC_HAND, $player_id);
+        $card_id = array_rand($cards);
+        $this->discardCardFromHand($card_id);
     }
 
     function swapHands($player_from, $player_to)
@@ -395,6 +400,43 @@ class GetTheMacGuffin extends Table
         }
     }
 
+    function playAssassin($player_id, $effect_on_card, $effect_on_player_id)
+    {
+        $cards = array_values($this->deck->getCardsOfType(CROWN));
+        $toDiscard = array_pop($cards);
+        if ($toDiscard["location"] === DECK_LOC_IN_PLAY) {
+            $this->deck->playCard($toDiscard["id"]);
+            self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '${player_name} looses ${card_name}', array(
+                'removed' => [$toDiscard],
+                "player_id" => $toDiscard["location_arg"],
+                'player_name' => $this->getPlayerName($toDiscard["location_arg"]),
+                'card_name' => $this->cards_description[CROWN]["name"],
+                'i18n' => array('card_name'),
+            ));
+        } else {
+            //discards an object in play or a random card from hand
+            if (!$effect_on_card && !$effect_on_player_id)
+                throw new BgaUserException("When the crown is not in play, you have to choose an object in play or a player’s hand to use the assassin");
+            if ($effect_on_card) {
+                $toDiscard = $this->deck->getCard($effect_on_card["id"]);
+                $this->deck->playCard($effect_on_card["id"]);
+                self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '${player_name} looses ${card_name}', array(
+                    'removed' => [$toDiscard],
+                    "player_id" => $toDiscard["location_arg"],
+                    'player_name' => $this->getPlayerName($toDiscard["location_arg"]),
+                    'card_name' => $this->cards_description[$toDiscard["type"]]["name"],
+                    'i18n' => array('card_name'),
+                ));
+            }
+
+            if ($effect_on_player_id) {
+                $this->discardRandomCardFromHand($effect_on_player_id);
+                self::notifyAllPlayers('msg', '${player_name} looses a random card from his hand', array(
+                    'player_name' => $this->getPlayerName($effect_on_player_id),
+                ));
+            }
+        }
+    }
 
     function playActionCard($played_card, $description, $effect_on_card = null, $effect_on_player_id = null)
     {
@@ -432,7 +474,7 @@ class GetTheMacGuffin extends Table
                 # code...
                 break;
             case ASSASSIN:
-                # code...
+                $this->playAssassin($player_id, $effect_on_card, $effect_on_player_id);
                 break;
             case VORTEX:
                 $this->playVortex($player_id);
