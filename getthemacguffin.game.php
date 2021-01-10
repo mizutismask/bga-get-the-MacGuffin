@@ -390,8 +390,11 @@ class GetTheMacGuffin extends Table
                 'card_name' => $this->cards_description[$weakCard]["name"],
                 'i18n' => array('card_name'),
             ));
+        } else {
+            throw new BgaUserException("You can NOT use this card if the weaker shifumi card has not been played by another player");
         }
     }
+
 
     function playActionCard($played_card, $description, $effect_on_card = null, $effect_on_player_id = null)
     {

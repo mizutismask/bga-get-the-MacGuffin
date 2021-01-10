@@ -42,10 +42,12 @@
 
     <!-- BEGIN player -->
     <div id="in_play_{PLAYER_ID}" class="whiteblock gtmInPlayZone">
+        <div style="color:#{PLAYER_COLOR}" class="gtmPlayerName">
+            <h3>{PLAYER_NAME}</h3>
+        </div>
         <div class="cardsInPlay" id="cards_in_play_{PLAYER_ID}" >
         </div>
-        <div style="color:#{PLAYER_COLOR}">
-            <h3>{PLAYER_NAME}</h3>
+        <div id="options_{PLAYER_ID}" >
         </div>
     </div>
     <!-- END player -->

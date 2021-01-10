@@ -34,7 +34,7 @@ define([
                 this.cardheight = 311;
                 this.image_items_per_row = 10;
                 this.cards_img = 'img/cards/cards200x311.jpg';
-
+                this.icons_img = 'img/icons_50.png';
             },
 
             /*
@@ -84,8 +84,9 @@ define([
                     this.playerHand.addToStockWithId(card.type, card.id);
                 }
 
-                //-----------cards in play setup for each player
+                //-----------cards in play setup + options setup for each player
                 this.inPlayStocksByPlayerId = [];
+                this.optionsByPlayerId = [];
                 for (var player_id in gamedatas.inPlay) {
 
                     var playerInPlayCards = new ebg.stock();
@@ -110,9 +111,24 @@ define([
                         //this.addCardToolTip(playerInPlayCards, card.id, card.type_arg);
                     }
                     this.inPlayStocksByPlayerId[player_id] = playerInPlayCards;
+
+                    //adds options panel
+                    var stock = new ebg.stock();
+                    stock.setSelectionMode(1);
+                    stock.create(this, $('options_' + player_id), 50, 50);
+                    stock.image_items_per_row = 2;
+
+                    stock.addItemType("hand", 0, g_gamethemeurl + this.icons_img, 0);
+                    stock.addItemType("meeple", 1, g_gamethemeurl + this.icons_img, 1);
+
+                    stock.addToStockWithId("hand", 0);
+                    stock.addToStockWithId("meeple", 1);
+
+                    this.optionsByPlayerId[player_id] = stock;
                 }
 
                 dojo.connect(this.inPlayStocksByPlayerId[this.player_id], 'onChangeSelection', this, 'onSelectInPlayCard');
+
 
                 //discard_pile
                 this.discard = new ebg.stock(); // new stock object for playing zone
@@ -240,11 +256,11 @@ define([
                 
                 // Preventing default browser reaction
                 dojo.stopEvent( evt );
-    
+         
                 // Check that this action is possible (see "possibleactions" in states.inc.php)
                 if( ! this.checkAction( 'myAction' ) )
                 {   return; }
-    
+         
                 this.ajaxcall( "/getthemacguffin/getthemacguffin/myAction.html", { 
                                                                         lock: true, 
                                                                         myArgument1: arg1, 
@@ -257,10 +273,10 @@ define([
                                 // (most of the time: nothing)
                                 
                              }, function( is_error) {
-    
+         
                                 // What to do after the server call in anyway (success or failure)
                                 // (most of the time: nothing)
-    
+         
                              } );        
             },        
             
@@ -362,7 +378,7 @@ define([
                                     this.discardedDesserts.addToStockWithId(removed.type, removed.id, "myhand");
                                     this.playerHand.removeFromStockById(removed.id);
                                 });
-*/
+        */
                             });
                     }
                 } else {
