@@ -112,19 +112,21 @@ define([
                     }
                     this.inPlayStocksByPlayerId[player_id] = playerInPlayCards;
 
-                    //adds options panel
-                    var stock = new ebg.stock();
-                    stock.setSelectionMode(1);
-                    stock.create(this, $('options_' + player_id), 50, 50);
-                    stock.image_items_per_row = 2;
+                    //adds options panel for others
+                    if (this.player_id != player_id) {
+                        var stock = new ebg.stock();
+                        stock.setSelectionMode(1);
+                        stock.create(this, $('options_' + player_id), 50, 50);
+                        stock.image_items_per_row = 2;
 
-                    stock.addItemType("hand", 0, g_gamethemeurl + this.icons_img, 0);
-                    stock.addItemType("meeple", 1, g_gamethemeurl + this.icons_img, 1);
+                        stock.addItemType("hand", 0, g_gamethemeurl + this.icons_img, 0);
+                        stock.addItemType("meeple", 1, g_gamethemeurl + this.icons_img, 1);
 
-                    stock.addToStockWithId("hand", 0);
-                    stock.addToStockWithId("meeple", 1);
+                        stock.addToStockWithId("hand", 0);
+                        stock.addToStockWithId("meeple", 1);
 
-                    this.optionsByPlayerId[player_id] = stock;
+                        this.optionsByPlayerId[player_id] = stock;
+                    }
                 }
 
                 dojo.connect(this.inPlayStocksByPlayerId[this.player_id], 'onChangeSelection', this, 'onSelectInPlayCard');
@@ -232,7 +234,14 @@ define([
                 script.
             
             */
-
+            getSelectedPlayer: function () {
+                for (var player_id in this.optionsByPlayerId) {
+                    var stock = this.optionsByPlayerId[player_id];
+                    if (stock.getSelectedItems().length > 0) {
+                        return player_id;
+                    }
+                }
+            },
 
             ///////////////////////////////////////////////////
             //// Player's action
@@ -354,10 +363,11 @@ define([
                 if (playedCard) {
                     if (this.checkAction('playCard')) {
                         //check selection
-                        var selectedPlayer;
+                        var selectedPlayer = this.getSelectedPlayer();
 
                         switch (playedCard.type) {
-                            case "MACGUFFIN":
+                            case "SWITCHEROO":
+                                console.log(selectedPlayer);
                                 break;
 
                             default:

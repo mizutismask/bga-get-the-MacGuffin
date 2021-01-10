@@ -278,15 +278,15 @@ class GetTheMacGuffin extends Table
 
     function swapHands($player_from, $player_to)
     {
-        $from_cards = $this->deck->getCardsInLocation(DECK_LOC_DECK, $player_from);
-        $to_cards = $this->deck->getCardsInLocation(DECK_LOC_DECK, $player_to);
+        $from_cards = $this->deck->getCardsInLocation(DECK_LOC_HAND, $player_from);
+        $to_cards = $this->deck->getCardsInLocation(DECK_LOC_HAND, $player_to);
 
-        $this->deck->moveCards($this->concatenateFieldValues($from_cards, "id"), DECK_LOC_DECK, $player_to);
-        $this->deck->moveCards($this->concatenateFieldValues($to_cards, "id"), DECK_LOC_DECK, $player_from);
+        $this->deck->moveCards($this->concatenateFieldValues($from_cards, "id"), DECK_LOC_HAND, $player_to);
+        $this->deck->moveCards($this->concatenateFieldValues($to_cards, "id"), DECK_LOC_HAND, $player_from);
 
         // Notify players about changes
-        self::notifyPlayer($player_from, NOTIF_HAND_CHANGE, '', array('added' => [$this->deck->getCardsInLocation(DECK_LOC_HAND, $player_from)], 'reset' => true));
-        self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, '', array('added' => [$this->deck->getCardsInLocation(DECK_LOC_HAND, $player_to)], 'reset' => true));
+        self::notifyPlayer($player_from, NOTIF_HAND_CHANGE, '', array('added' => $this->deck->getCardsInLocation(DECK_LOC_HAND, $player_from), 'reset' => true));
+        self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, '', array('added' => $this->deck->getCardsInLocation(DECK_LOC_HAND, $player_to), 'reset' => true));
     }
 
     function playInterrogator()
