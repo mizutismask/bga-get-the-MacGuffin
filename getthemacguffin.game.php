@@ -30,9 +30,9 @@ if (!defined('DECK_LOC_DECK')) {
     // constants for notifications
     define("NOTIF_PLAYER_TURN", "playerTurn");
     define("NOTIF_UPDATE_SCORE", "updateScore");
-    define("NOTIF_NEW_RIVER", "newRiver");
     define("NOTIF_HAND_CHANGE", "handChange");
     define("NOTIF_IN_PLAY_CHANGE", "inPlayChange");
+    define("NOTIF_REVELATION", "revelation");
 
     // constants for game states
     define("TRANSITION_PLAYER_TURN", "playerTurn");
@@ -291,36 +291,43 @@ class GetTheMacGuffin extends Table
 
     function playInterrogator()
     {
-        $player_id = self::getActivePlayerId();
-        $mcGuffin = $this->deck->getCardsOfType(MACGUFFIN);
-        $seen = false;
-        /*if ($mcGuffin["location"] == DECK_LOC_HAND && $mcGuffin["location_arg"] != $player_id) {
-            $seen = true;
-            self::notifyAllPlayers(
-                NOTIF_REVELATION,
-                clienttranslate('${player_name} reveals ${card_name}'),
-                array(
-                    'player_name' => $this->getPlayerName($player_id),
-                    'card_name' => $this->cards_description[MACGUFFIN]["name"],
-                    'i18n' => array('card_name'),
-                )
-            );
-        }
+        $seen = $this->reveal(MACGUFFIN);
         if (!$seen) {
-            $mcGuffin = $this->deck->getCardsOfType(BACKUP_MACGUFFIN);
-            if ($mcGuffin["location"] == DECK_LOC_HAND && $mcGuffin["location_arg"] != $player_id) {
-                $seen = true;
-                self::notifyAllPlayers(
-                    NOTIF_REVELATION,
-                    clienttranslate('${player_name} reveals ${card_name}'),
-                    array(
-                        'player_name' => $this->getPlayerName($player_id),
-                        'card_name' => $this->cards_description[BACKUP_MACGUFFIN]["name"],
-                        'i18n' => array('card_name'),
-                    )
-                );
-            }
-        }*/
+            $this->reveal(BACKUP_MACGUFFIN);
+        }
+    }
+
+    function reveal($macGuffinType)
+    {
+        $player_id = self::getActivePlayerId();
+        $seen = false;
+        $cards = $this->deck->getCardsOfType($macGuffinType);
+        $mcGuffin = array_pop($cards);
+
+        $message = null;
+        $msg_args = array(
+            'card_name' => $this->cards_description[$macGuffinType]["name"],
+            'i18n' => array('card_name'),
+        );
+
+        if ($mcGuffin["location"] == DECK_LOC_DECK || $mcGuffin["location_arg"] == $player_id) {
+            $message = 'No one knows where ${card_name} is…';
+        } else if ($mcGuffin["location"] == DECK_LOC_HAND && $mcGuffin["location_arg"] != $player_id) {
+            //in the hand of someone else
+            $seen = true;
+            $message = '${player_name} reveals ${card_name}';
+            $msg_args['player_name'] = $this->getPlayerName($mcGuffin["location_arg"]);
+        } else if ($mcGuffin["location"] == DECK_LOC_IN_PLAY) {
+            $seen = true;
+            $message = '${player_name} already played ${card_name}';
+            $msg_args['player_name'] = $this->getPlayerName($mcGuffin["location_arg"]);
+        } else if ($mcGuffin["location"] == DECK_LOC_DISCARD) {
+            $seen = true;
+            $message = '${card_name} is in the playing zone';
+        }
+
+        self::notifyAllPlayers(NOTIF_REVELATION, clienttranslate($message), $msg_args);
+        return $seen;
     }
 
     function getPlayersInOrder()
@@ -448,16 +455,22 @@ class GetTheMacGuffin extends Table
         $player_id = self::getActivePlayerId();
         switch ($played_card["type"]) {
             case MACGUFFIN:
-                # code...
+                if (!$this->hasNoCardsInHand($player_id) || count($this->deck->getCardsInLocation(DECK_LOC_IN_PLAY, $player_id)) > 1) {
+                    throw new BgaUserException("You can NOT use the MacGuffin if you have cards in your hand or other Objects to play");
+                }
                 break;
             case MONEY:
                 # code...
                 break;
             case CROWN:
-                # code...
+                if ($this->isTypeInPlay(MACGUFFIN) || $this->isTypeInPlay(BACKUP_MACGUFFIN)) {
+                    throw new BgaUserException("You can NOT pass if a MacGuffin is in play");
+                }
                 break;
             case BACKUP_MACGUFFIN:
-                # code...
+                if ($this->isTypeInPlay(MACGUFFIN) || !$this->hasNoCardsInHand($player_id) || count($this->deck->getCardsInLocation(DECK_LOC_IN_PLAY, $player_id)) > 1) {
+                    throw new BgaUserException("You can NOT use the MacGuffin if the real MacGuffin is in play, or if you have cards in your hand or other Objects to play");
+                }
                 break;
             case SCISSORS:
                 $this->playShifumi($player_id, PAPER);
@@ -474,6 +487,16 @@ class GetTheMacGuffin extends Table
         }
     }
 
+    function hasNoCardsInHand($player_id)
+    {
+        return count($this->deck->getCardsInLocation(DECK_LOC_HAND, $player_id)) == 0;
+    }
+
+    function hasNoCardsInPlay($player_id)
+    {
+        return count($this->deck->getCardsInLocation(DECK_LOC_IN_PLAY, $player_id)) == 0;
+    }
+
     function eliminatePlayersIfNeeded()
     {
         $players = self::loadPlayersBasicInfos();
@@ -481,9 +504,7 @@ class GetTheMacGuffin extends Table
         foreach ($players as $player) {
             $player_id = $player["player_id"];
             if (!$player["player_eliminated"]) {
-                $inHand = $this->deck->getCardsInLocation(DECK_LOC_HAND, $player_id);
-                $inPlay = $this->deck->getCardsInLocation(DECK_LOC_IN_PLAY, $player_id);
-                if (count($inHand) + count($inPlay) == 0) {
+                if ($this->hasNoCardsInHand($player_id) && $this->hasNoCardsInPlay($player_id)) {
                     $newEliminated[] = $player_id;
                     self::eliminatePlayer($player_id);
                 }
@@ -512,6 +533,14 @@ class GetTheMacGuffin extends Table
         $card = $this->deck->getCard($card_id);
         return $card["location"] === DECK_LOC_IN_PLAY;
     }
+
+    function isTypeInPlay($card_type)
+    {
+        $cards = $this->deck->getCardsOfType($card_type);
+        $card = array_pop($cards);
+        return $card["location"] === DECK_LOC_IN_PLAY;
+    }
+
 
 
 

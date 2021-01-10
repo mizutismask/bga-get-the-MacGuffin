@@ -57,6 +57,8 @@ if (!defined('STATE_PLAYER_TURN')) { // ensure this block is only invoked once, 
     //define("TRANSITION_PLAYER_TURN", "playerTurn");
     define("TRANSITION_NEXT_PLAYER", "nextPlayer");
     define("TRANSITION_END_GAME", "endGame");
+    define("TRANSITION_DISCARD", "nextPlayer");
+    define("TRANSITION_PASS", "pass");
 }
 
 $machinestates = array(
@@ -77,8 +79,8 @@ $machinestates = array(
         "description" => clienttranslate('${actplayer} must play a card'),
         "descriptionmyturn" => clienttranslate('${you} must play a card from your hand or play/discard an Object in play'),
         "type" => "activeplayer",
-        "possibleactions" => array("playCard", "discard"),
-        "transitions" => array("playCard" => 2, "discard" => 2, TRANSITION_NEXT_PLAYER => STATE_NEXT_PLAYER,)
+        "possibleactions" => array("playCard", "discard", "pass"),
+        "transitions" => array("playCard" => STATE_PLAYER_TURN, TRANSITION_DISCARD => STATE_PLAYER_TURN, TRANSITION_PASS => STATE_NEXT_PLAYER, TRANSITION_NEXT_PLAYER => STATE_NEXT_PLAYER,)
     ),
 
 

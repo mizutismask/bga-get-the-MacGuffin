@@ -112,6 +112,8 @@ define([
                     this.inPlayStocksByPlayerId[player_id] = playerInPlayCards;
                 }
 
+                dojo.connect(this.inPlayStocksByPlayerId[this.player_id], 'onChangeSelection', this, 'onSelectInPlayCard');
+
                 //discard_pile
                 this.discard = new ebg.stock(); // new stock object for playing zone
                 this.discard.create(this, $('discard_pile'), this.cardwidth, this.cardheight);//discard_pile is the div where the card is going
@@ -265,19 +267,48 @@ define([
             */
             onSelectCard: function (control_name, item_id) {
                 // This method is called when myStockControl selected items changed
-                var items = this.playerHand.getSelectedItems();
-                if (items.length == 1) {
-                    var card = items[0];
-                    console.log("selection of ", card.type);
-                    switch (card.type) {
-                        case "ROCK":
-                        case "SCISSORS":
-                        case "PAPER":
+                if (this.isCurrentPlayerActive()) {
+                    //get selected card
+                    var itemsFromHand = this.playerHand.getSelectedItems();
+                    if (itemsFromHand.length == 1) {
+                        var card = itemsFromHand[0];
+                        console.log("selection of ", card.type);
 
-                            break;
 
-                        default:
+                        switch (card.type) {
+                            case "CROWN":
+                                break;
 
+                            default:
+
+
+                        }
+                    }
+                };
+            },
+
+            onSelectInPlayCard: function (control_name, item_id) {
+                // This method is called when myStockControl selected items changed
+                if (this.isCurrentPlayerActive()) {
+                    //get selected card
+                    var itemsFromInPlayZone = this.inPlayStocksByPlayerId[this.player_id].getSelectedItems();
+                    if (itemsFromInPlayZone.length == 1) {
+                        var card = itemsFromInPlayZone[0];
+                        console.log("selection of in play ", card.type);
+
+
+                        switch (card.type) {
+                            case "CROWN":
+                                dojo.byId("button_confirm_card").innerHTML = "Pass"
+                                break;
+
+                            default:
+                                dojo.byId("button_confirm_card").innerHTML = _("Play selected card")
+
+                        }
+                    }
+                    else {
+                        dojo.byId("button_confirm_card").innerHTML = _("Play selected card")
                     }
                 };
             },
