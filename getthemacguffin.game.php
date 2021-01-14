@@ -234,13 +234,13 @@ class GetTheMacGuffin extends Table
 
     function stealCardFromHand($player_from, $player_to)
     {
-        $cards = $this->deck->getCardsInLocation(DECK_LOC_DECK, $player_from);
+        $cards = $this->deck->getCardsInLocation(DECK_LOC_HAND, $player_from);
         $card_id = array_rand($cards);
         $card = $this->deck->getCard($card_id);
-        $this->deck->moveCard($card_id, DECK_LOC_DECK, $player_to);
+        $this->deck->moveCard($card_id, DECK_LOC_HAND, $player_to);
         // Notify players about changes
-        self::notifyPlayer($player_id, NOTIF_HAND_CHANGE, '', array('added' => [$card]));
-        self::notifyPlayer($player_id, NOTIF_HAND_CHANGE, '', array('removed' => [$card]));
+        self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, '', array('added' => [$card]));
+        self::notifyPlayer($player_from, NOTIF_HAND_CHANGE, '', array('removed' => [$card]));
     }
 
     function stealCardFromDiscard($player_to)
@@ -248,17 +248,18 @@ class GetTheMacGuffin extends Table
         $cards = $this->deck->getCardsInLocation(DECK_LOC_DISCARD);
         $card_id = array_rand($cards);
         $card = $this->deck->getCard($card_id);
-        $this->deck->moveCard($card_id, DECK_LOC_DECK, $player_to);
+        $this->deck->moveCard($card_id, DECK_LOC_HAND, $player_to);
         // Notify player about change
         self::notifyPlayer($player_id, NOTIF_HAND_CHANGE, '', array('added' => [$card]));
     }
 
-    function stealObjectInPlay($player_to, $object_id)
+    function stealObjectInPlay($player_to, $object_card)
     {
-        $card = $this->deck->getCard($object_id);
-        $this->deck->moveCard($card["id"], DECK_LOC_DECK, $player_to);
+        $from = $object_card["location_arg"];
+        $this->deck->moveCard($object_card["id"], DECK_LOC_HAND, $player_to);
+        self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '', array("player_id" => $from, 'removed' => [$object_card]));
         // Notify players about changes
-        //self::notifyPlayer($player_id, NOTIF_HAND_CHANGE, '', array('cards' => $cards));
+        self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, '', array('added' => [$object_card]));
     }
 
     function discardCardFromHand($card_id)
@@ -457,7 +458,11 @@ class GetTheMacGuffin extends Table
                 $this->playInterrogator();
                 break;
             case THIEF:
-                # code...
+                if ($effect_on_card) {
+                    $this->stealObjectInPlay($player_id, $effect_on_card);
+                } else if ($effect_on_player_id) {
+                    $this->stealCardFromHand($effect_on_player_id, $player_id);
+                }
                 break;
             case TOMB_ROBBERS:
                 # code...

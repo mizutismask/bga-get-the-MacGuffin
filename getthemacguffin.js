@@ -484,7 +484,6 @@ define([
                     }
                 }
                 if (notif.args.removed) {
-
                     for (var i in notif.args.removed) {
                         var card = notif.args.removed[i];
                         console.log("notif_handChange remove card id/type :" + card.id + " " + card.type);
