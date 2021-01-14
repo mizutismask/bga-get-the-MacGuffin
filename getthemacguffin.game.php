@@ -279,6 +279,23 @@ class GetTheMacGuffin extends Table
         $cards = $this->deck->getCardsInLocation(DECK_LOC_HAND, $player_id);
         $card_id = array_rand($cards);
         $this->discardCardFromHand($card_id);
+
+        self::notifyAllPlayers('msg', '${player_name} looses a random card from his hand', array(
+            'player_name' => $this->getPlayerName($player_id),
+        ));
+    }
+
+    function discardInPlayObject($object_card)
+    {
+        $toDiscard = $this->deck->getCard($object_card["id"]);
+        $this->deck->playCard($object_card["id"]);
+        self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '${player_name} looses ${card_name}', array(
+            'removed' => [$toDiscard],
+            "player_id" => $toDiscard["location_arg"],
+            'player_name' => $this->getPlayerName($toDiscard["location_arg"]),
+            'card_name' => $this->cards_description[$toDiscard["type"]]["name"],
+            'i18n' => array('card_name'),
+        ));
     }
 
     function swapHands($player_from, $player_to)
@@ -417,23 +434,13 @@ class GetTheMacGuffin extends Table
             //discards an object in play or a random card from hand
             if (!$effect_on_card && !$effect_on_player_id)
                 throw new BgaUserException("When the crown is not in play, you have to choose an object in play or a player’s hand to use the assassin");
+
             if ($effect_on_card) {
-                $toDiscard = $this->deck->getCard($effect_on_card["id"]);
-                $this->deck->playCard($effect_on_card["id"]);
-                self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '${player_name} looses ${card_name}', array(
-                    'removed' => [$toDiscard],
-                    "player_id" => $toDiscard["location_arg"],
-                    'player_name' => $this->getPlayerName($toDiscard["location_arg"]),
-                    'card_name' => $this->cards_description[$toDiscard["type"]]["name"],
-                    'i18n' => array('card_name'),
-                ));
+                $this->discardInPlayObject($effect_on_player_id);
             }
 
             if ($effect_on_player_id) {
                 $this->discardRandomCardFromHand($effect_on_player_id);
-                self::notifyAllPlayers('msg', '${player_name} looses a random card from his hand', array(
-                    'player_name' => $this->getPlayerName($effect_on_player_id),
-                ));
             }
         }
     }
