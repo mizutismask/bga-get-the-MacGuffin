@@ -446,13 +446,27 @@ class GetTheMacGuffin extends Table
         }
     }
 
+    function playFistOfDoom($effect_on_card, $effect_on_player_id)
+    {
+        if ($effect_on_card && $effect_on_card["location"] === DECK_LOC_IN_PLAY) {
+            $this->discardInPlayObject($effect_on_card);
+        } else if ($effect_on_player_id && $this->deck->countCardInLocation(DECK_LOC_IN_PLAY) == 0) {
+            $this->discardRandomCardFromHand($effect_on_player_id);
+        } else {
+            throw new BgaUserException("You can discard a card from another player’s hand only if no objects are in play. To play this card, select an object instead.");
+        }
+    }
+
     function playActionCard($played_card, $description, $effect_on_card = null, $effect_on_player_id = null)
     {
         $player_id = self::getActivePlayerId();
         $this->deck->playCard($played_card["id"]);
         switch ($played_card["type"]) {
             case MARSHALL:
-                # code...
+                //nothing
+                break;
+            case SHRUGMASTER:
+                //nothing
                 break;
             case INTERROGATOR:
                 $this->playInterrogator();
@@ -480,9 +494,12 @@ class GetTheMacGuffin extends Table
                 # code...
                 break;
             case FIST_OF_DOOM:
-                # code...
+                $this->playFistOfDoom($effect_on_card, $effect_on_player_id);
                 break;
             case GARBAGE_COLLECTR:
+                # code...
+                break;
+            case CAN_I_USE_THAT:
                 # code...
                 break;
             case ASSASSIN:
