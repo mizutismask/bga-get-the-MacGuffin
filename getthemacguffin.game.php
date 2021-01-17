@@ -555,6 +555,7 @@ class GetTheMacGuffin extends Table
         } else {
             throw new BgaUserException("You have to select a player to apply this effect on him");
         }
+        return TRANSITION_SEE_SECRET_CARDS;
     }
 
     function playGarbageCollector($player_id)
@@ -567,7 +568,106 @@ class GetTheMacGuffin extends Table
         self::notifyPlayer($player_id, NOTIF_SEE_SECRET_CARDS, '', array(
             'args' => $this->getSecretCardsProperties(),
         ));
+
+        return TRANSITION_SEE_SECRET_CARDS;
     }
+
+    function playMerchant($player_id)
+    {
+        $count_by_player_id = $this->deck->countCardsByLocationArgs(DECK_LOC_IN_PLAY);
+        //if one player has objects
+        if (count($count_by_player_id) == 1) {
+            //if he has only one card, take it
+            $playersWithOneCard = array_filter($count_by_player_id, function ($count, $player) {
+                return $count == "1";
+            }, ARRAY_FILTER_USE_BOTH);
+
+            if (count($playersWithOneCard) == 1) {
+                $playersWithOneCardIds = array_keys($playersWithOneCard);
+                $from = array_pop($playersWithOneCardIds);
+                $cards = $this->deck->getCardsInLocation(DECK_LOC_IN_PLAY, $from);
+                $card = array_pop($cards);
+                $this->deck->moveCard($card["id"], DECK_LOC_IN_PLAY, $player_id);
+                self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '', array("player_id" => $from, 'removed' => [$card]));
+
+                self::notifyAllPlayers("cardPlayed", clienttranslate('${player_name1} trades ${card_name} from ${player_name2}'), array(
+                    'player_id' => $player_id,
+                    'player_name1' => self::getActivePlayerName(),
+                    'player_name2' => self::getPlayerName($from),
+                    'card_name' =>  $this->cards_description[$card["type"]]["name"],
+                    'card' => $card,
+                    'toInPlay' => true,
+                    'i18n' => array('card_name'),
+                ));
+            } else {
+                //other specify which one
+                return TRANSITION_SPECIFY_IN_PLAY_OBJECT_TO_TAKE;
+            }
+        } else if (count($count_by_player_id) >= 2) {
+            //specify swap
+            return TRANSITION_SPECIFY_IN_PLAY_OBJECTS_TO_SWAP;
+        }
+    }
+
+    function takeObject($object_id)
+    {
+        self::checkAction('takeObject');
+
+        $player_id = self::getActivePlayerId();
+        $card = $this->deck->getCard($object_id);
+        $from = $card["location_arg"];
+        $this->deck->moveCard($object_id, DECK_LOC_IN_PLAY, $player_id);
+        self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '', array("player_id" => $from, 'removed' => [$card]));
+        self::notifyAllPlayers("cardPlayed", clienttranslate('${player_name1} trades ${card_name} from ${player_name2}'), array(
+            'player_id' => $player_id,
+            'player_name1' => self::getActivePlayerName(),
+            'player_name2' => self::getPlayerName($from),
+            'card_name' =>  $this->cards_description[$card["type"]]["name"],
+            'card' => $card,
+            'toInPlay' => true,
+            'i18n' => array('card_name'),
+        ));
+
+        $this->gamestate->nextState(TRANSITION_NEXT_PLAYER);
+    }
+
+    function swapObjects($object_id_1, $object_id_2)
+    {
+        self::checkAction('swapObjects');
+
+        $card1 = $this->deck->getCard($object_id_1);
+        $card2 = $this->deck->getCard($object_id_2);
+        $from1 = $card1["location_arg"];
+        $from2 = $card2["location_arg"];
+
+        $this->deck->moveCard($object_id_1, DECK_LOC_IN_PLAY, $from2);
+        $this->deck->moveCard($object_id_2, DECK_LOC_IN_PLAY, $from1);
+
+        self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '', array("player_id" => $from1, 'removed' => [$card1]));
+        self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '', array("player_id" => $from2, 'removed' => [$card2]));
+        self::notifyAllPlayers("cardPlayed", clienttranslate('${player_name1} and ${player_name2} swap ${card_name1} and ${card_name2}'), array(
+            'player_id' => $from2,
+            'player_name1' => self::getPlayerName($from1),
+            'player_name2' => self::getPlayerName($from2),
+            'card_name1' =>  $this->cards_description[$card1["type"]]["name"],
+            'card_name2' =>  $this->cards_description[$card2["type"]]["name"],
+            'card' => $card1,
+            'toInPlay' => true,
+            'i18n' => array('card_name1', 'card_name2'),
+        ));
+        self::notifyAllPlayers("cardPlayed", "", array(
+            'player_id' => $from1,
+            'player_name1' => self::getPlayerName($from1),
+            'player_name2' => self::getPlayerName($from2),
+            'card_name1' =>  $this->cards_description[$card1["type"]]["name"],
+            'card_name2' =>  $this->cards_description[$card2["type"]]["name"],
+            'card' => $card2,
+            'toInPlay' => true,
+        ));
+
+        $this->gamestate->nextState(TRANSITION_NEXT_PLAYER);
+    }
+
     function playActionCard($played_card, $description, $effect_on_card = null, $effect_on_player_id = null)
     {
         $player_id = self::getActivePlayerId();
@@ -594,22 +694,20 @@ class GetTheMacGuffin extends Table
                 break;
             case WHEEL_OF_FORTUNE:
                 //nothing is done here, but when you confirm clockwise or not
-                break;
+                return TRANSITION_SPECIFY_CLOCKWISE;
             case SWITCHEROO:
                 $this->swapHands($player_id, $effect_on_player_id);
                 break;
             case MERCHANT:
-                # code...
-                break;
+                return $this->playMerchant($player_id);
             case SPY:
-                $this->playSpy($player_id, $effect_on_player_id);
-                break;
+                return $this->playSpy($player_id, $effect_on_player_id);
             case FIST_OF_DOOM:
                 $this->playFistOfDoom($effect_on_card, $effect_on_player_id);
                 break;
             case GARBAGE_COLLECTR:
                 if ($this->deck->countCardInLocation(DECK_LOC_DISCARD) > 0) {
-                    $this->playGarbageCollector($player_id);
+                    return $this->playGarbageCollector($player_id);
                 }
                 break;
             case CAN_I_USE_THAT:
@@ -635,6 +733,7 @@ class GetTheMacGuffin extends Table
                 # code...
                 break;
         }
+        return null;
     }
 
     function useObjectCard($played_card, $description, $effect_on_card = null, $effect_on_player_id = null)
@@ -757,6 +856,7 @@ class GetTheMacGuffin extends Table
         }
 
         $uses = false;
+        $transition = null;
         if ($description["type"] === OBJ) {
             if ($this->isInPlay($played_card_id)) {
                 //use object
@@ -768,7 +868,7 @@ class GetTheMacGuffin extends Table
             }
         } else {
             //use action
-            $this->playActionCard($played_card, $description, $effect_on_card, $effect_on_player_id);
+            $transition = $this->playActionCard($played_card, $description, $effect_on_card, $effect_on_player_id);
         }
 
         // Notify all players about the card played
@@ -781,10 +881,8 @@ class GetTheMacGuffin extends Table
             'toInPlay' => $description["type"] === OBJ,
             'i18n' => array('card_name', 'plays'),
         ));
-        if ($played_card["type"] === SPY || $played_card["type"] === GARBAGE_COLLECTR) {
-            $this->gamestate->nextState(TRANSITION_SEE_SECRET_CARDS);
-        } else if ($played_card["type"] === WHEEL_OF_FORTUNE) {
-            $this->gamestate->nextState(TRANSITION_SPECIFY_CLOCKWISE);
+        if ($transition) {
+            $this->gamestate->nextState($transition);
         } else {
             $this->gamestate->nextState(TRANSITION_NEXT_PLAYER);
         }

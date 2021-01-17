@@ -259,6 +259,12 @@ define([
                             this.addActionButton('button_confirm_card_clockwise', _('Clockwise'), 'onClockwise');
                             this.addActionButton('button_confirm_card_counterclockwise', _('Counterclockwise'), 'onCounterclockwise');
                             break;
+                        case "specifyObjectToTake":
+                            this.addActionButton('button_take_object', _('Take'), 'onTakeObject');
+                            break;
+                        case "specifyObjectsToSwap":
+                            this.addActionButton('button_swap_objects', _('Swap'), 'onSwapObjects');
+                            break;
 
                     }
                 }
@@ -294,6 +300,12 @@ define([
                     this.secretZone.addToStockWithId(card.type, card.id);
                     this.secretZone.setSelectionMode(selectionRequired ? 1 : 0);
                     //this.addCardToolTip(playerInPlayCards, card.id, card.type_arg);
+                }
+            },
+
+            changeInnerHtml: function (id, text) {
+                if (dojo.byId(id)) {
+                    dojo.byId(id).innerHTML = text;
                 }
             },
 
@@ -378,16 +390,16 @@ define([
 
                         switch (card.type) {
                             case "CROWN":
-                                dojo.byId("button_confirm_card").innerHTML = _("Pass");
+                                this.changeInnerHtml("button_confirm_card", _("Pass"));
                                 break;
 
                             default:
-                                dojo.byId("button_confirm_card").innerHTML = _("Play selected card");
+                                this.changeInnerHtml("button_confirm_card", _("Play selected card"));
 
                         }
                     }
                     else {
-                        dojo.byId("button_confirm_card").innerHTML = _("Play selected card");
+                        this.changeInnerHtml("button_confirm_card", _("Play selected card"));
                     }
                 };
             },
@@ -479,7 +491,80 @@ define([
                 };
             },
 
+            onTakeObject: function (evt) {
+                console.log('onTakeObject');
 
+                // Preventing default browser reaction
+                dojo.stopEvent(evt);
+
+                this.checkAction('takeObject');
+                if (this.isCurrentPlayerActive()) {
+                    var cardFromOtherPlayer;
+                    for (var player_id in this.inPlayStocksByPlayerId) {
+                        if (player_id != this.player_id) {
+                            var selected = this.inPlayStocksByPlayerId[player_id].getSelectedItems();
+                            if (selected.length == 1) {
+                                cardFromOtherPlayer = selected[0];
+                                console.log("selection from other player ", cardFromOtherPlayer.type);
+                            }
+                        }
+                    }
+
+                    if (cardFromOtherPlayer) {
+                        this.ajaxcall('/getthemacguffin/getthemacguffin/takeObjectAction.html',
+                            {
+                                lock: true,
+                                object_id: cardFromOtherPlayer.id,
+                            },
+                            this,
+                            function (result) { });
+
+                    } else {
+                        this.showMessage(_('You have to select one card'), 'error');
+                    }
+                }
+            },
+
+            onSwapObjects: function (evt) {
+                console.log('onSwapObjects');
+
+                // Preventing default browser reaction
+                dojo.stopEvent(evt);
+
+                this.checkAction('swapObjects');
+                if (this.isCurrentPlayerActive()) {
+                    var card1;
+                    var card2;
+                    for (var player_id in this.inPlayStocksByPlayerId) {
+                        if (player_id != this.player_id) {
+                            var selected = this.inPlayStocksByPlayerId[player_id].getSelectedItems();
+                            if (selected.length == 1) {
+                                if (!card1) {
+                                    card1 = selected[0];
+                                    console.log("selection from other player ", card1.type);
+                                } else {
+                                    card2 = selected[0];
+                                    console.log("selection from other player ", card2.type);
+                                }
+                            }
+                        }
+                    }
+
+                    if (card1 && card2) {
+                        this.ajaxcall('/getthemacguffin/getthemacguffin/swapObjectsAction.html',
+                            {
+                                lock: true,
+                                object_id_1: card1.id,
+                                object_id_2: card2.id,
+                            },
+                            this,
+                            function (result) { });
+
+                    } else {
+                        this.showMessage(_('You have to select 2 cards from other players'), 'error');
+                    }
+                }
+            },
 
             onPlayCard: function (evt) {
                 console.log('onPlayCard');

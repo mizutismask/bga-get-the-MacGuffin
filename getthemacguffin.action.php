@@ -98,4 +98,23 @@ class action_getthemacguffin extends APP_GameAction
 
     self::ajaxResponse();
   }
+
+  public function takeObjectAction()
+  {
+    self::setAjaxMode();
+    $object_id = self::getArg("object_id", AT_posint, true);
+    $this->game->takeObject($object_id);
+
+    self::ajaxResponse();
+  }
+
+  public function swapObjectsAction()
+  {
+    self::setAjaxMode();
+    $object_id_1 = self::getArg("object_id_1", AT_posint, true);
+    $object_id_2 = self::getArg("object_id_2", AT_posint, true);
+    $this->game->swapObjects($object_id_1, $object_id_2);
+
+    self::ajaxResponse();
+  }
 }
