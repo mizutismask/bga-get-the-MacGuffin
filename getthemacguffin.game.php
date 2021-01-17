@@ -292,10 +292,10 @@ class GetTheMacGuffin extends Table
         self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, '', array('added' => [$card]));
     }
 
-
-    function stealRandomCardFromDiscard($player_to)
+    /** MUST NOT be called with location HAND */
+    function stealRandomCardFromLocation($player_to, $location)
     {
-        $cards = $this->deck->getCardsInLocation(DECK_LOC_DISCARD);
+        $cards = $this->deck->getCardsInLocation($location);
         $card_id = array_rand($cards);
         $card = $this->deck->getCard($card_id);
         $this->deck->moveCard($card_id, DECK_LOC_HAND, $player_to);
@@ -590,7 +590,7 @@ class GetTheMacGuffin extends Table
                 }
                 break;
             case TOMB_ROBBERS:
-                # code...
+                $this->stealRandomCardFromLocation($player_id, DECK_LOC_DECK);
                 break;
             case WHEEL_OF_FORTUNE:
                 # code...
