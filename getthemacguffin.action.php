@@ -89,4 +89,13 @@ class action_getthemacguffin extends APP_GameAction
 
     self::ajaxResponse();
   }
+
+  public function specifyClockwiseAction()
+  {
+    self::setAjaxMode();
+    $clockwise = self::getArg("clockwise", AT_bool, true);
+    $this->game->playClockwise($clockwise);
+
+    self::ajaxResponse();
+  }
 }

@@ -593,7 +593,7 @@ class GetTheMacGuffin extends Table
                 $this->stealRandomCardFromLocation($player_id, DECK_LOC_DECK);
                 break;
             case WHEEL_OF_FORTUNE:
-                # code...
+                //nothing is done here, but when you confirm clockwise or not
                 break;
             case SWITCHEROO:
                 $this->swapHands($player_id, $effect_on_player_id);
@@ -783,6 +783,8 @@ class GetTheMacGuffin extends Table
         ));
         if ($played_card["type"] === SPY || $played_card["type"] === GARBAGE_COLLECTR) {
             $this->gamestate->nextState(TRANSITION_SEE_SECRET_CARDS);
+        } else if ($played_card["type"] === WHEEL_OF_FORTUNE) {
+            $this->gamestate->nextState(TRANSITION_SPECIFY_CLOCKWISE);
         } else {
             $this->gamestate->nextState(TRANSITION_NEXT_PLAYER);
         }
@@ -821,6 +823,33 @@ class GetTheMacGuffin extends Table
             'i18n' => array('card_name'),
         ));
 
+        $this->gamestate->nextState(TRANSITION_NEXT_PLAYER);
+    }
+
+    function playClockwise($clockwise)
+    {
+        $order = $this->getPlayersInOrder();
+        if ($clockwise) {
+            $order = array_reverse($order);
+        }
+
+        $previous = null;
+        $first_hand = null;
+        foreach ($order as $player) {
+            if (!$previous) {
+                //save first player hand
+                $first_hand = $this->deck->getCardsInLocation(DECK_LOC_HAND, $player);
+            } else {
+                //player gives his hand to the previous
+                $this->swapHands($player, $previous);
+            }
+            $previous = $player;
+        }
+        //put saved cards to the last player
+        foreach ($first_hand as $card) {
+            $this->deck->moveCard($card["id"], DECK_LOC_HAND, $player);
+        }
+        self::notifyPlayer($player, NOTIF_HAND_CHANGE, '', array('added' => $this->deck->getCardsInLocation(DECK_LOC_HAND, $player), 'reset' => true));
         $this->gamestate->nextState(TRANSITION_NEXT_PLAYER);
     }
 

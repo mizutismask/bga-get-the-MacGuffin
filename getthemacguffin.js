@@ -255,6 +255,11 @@ define([
                                 this.addActionButton('button_confirm_viewed', _('Done with spying'), 'onDoneViewing');
                             }
                             break;
+                        case "specifyClockwise":
+                            this.addActionButton('button_confirm_card_clockwise', _('Clockwise'), 'onClockwise');
+                            this.addActionButton('button_confirm_card_counterclockwise', _('Counterclockwise'), 'onCounterclockwise');
+                            break;
+
                     }
                 }
             },
@@ -350,11 +355,11 @@ define([
 
 
                         switch (card.type) {
-                            case "CROWN":
+                            case "WHEEL_OF_FORTUNE":
+
                                 break;
 
                             default:
-
 
                         }
                     }
@@ -373,21 +378,27 @@ define([
 
                         switch (card.type) {
                             case "CROWN":
-                                dojo.byId("button_confirm_card").innerHTML = "Pass"
+                                dojo.byId("button_confirm_card").innerHTML = _("Pass");
                                 break;
 
                             default:
-                                dojo.byId("button_confirm_card").innerHTML = _("Play selected card")
+                                dojo.byId("button_confirm_card").innerHTML = _("Play selected card");
 
                         }
                     }
                     else {
-                        dojo.byId("button_confirm_card").innerHTML = _("Play selected card")
+                        dojo.byId("button_confirm_card").innerHTML = _("Play selected card");
                     }
                 };
             },
 
-            onSelectSecretCard: function () {
+            onSelectSecretCard: function (evt) {
+                console.log('onSelectSecretCard');
+
+                // Preventing default browser reaction
+                dojo.stopEvent(evt);
+
+                this.checkAction('takeCard');
                 // This method is called when myStockControl selected items changed
                 if (this.isCurrentPlayerActive()) {
                     //get selected card
@@ -409,7 +420,13 @@ define([
                 };
             },
 
-            onDoneViewing: function () {
+            onDoneViewing: function (evt) {
+                console.log('onDoneViewing');
+
+                // Preventing default browser reaction
+                dojo.stopEvent(evt);
+
+                this.checkAction('confirm');
                 // This method is called when myStockControl selected items changed
                 if (this.isCurrentPlayerActive()) {
                     this.ajaxcall('/getthemacguffin/getthemacguffin/seenSecretCardsAction.html',
@@ -421,6 +438,47 @@ define([
                         function (result) { });
                 };
             },
+
+            onClockwise: function (evt) {
+                console.log('onClockwise');
+
+                // Preventing default browser reaction
+                dojo.stopEvent(evt);
+
+                this.checkAction('clockwise');
+
+                // This method is called when myStockControl selected items changed
+                if (this.isCurrentPlayerActive()) {
+                    this.ajaxcall('/getthemacguffin/getthemacguffin/specifyClockwiseAction.html',
+                        {
+                            lock: true,
+                            clockwise: true,
+                        },
+                        this,
+                        function (result) { });
+                };
+            },
+
+            onCounterclockwise: function (evt) {
+                console.log('onClockonCounterclockwisewise');
+
+                // Preventing default browser reaction
+                dojo.stopEvent(evt);
+
+                this.checkAction('counterclockwise');
+
+                // This method is called when myStockControl selected items changed
+                if (this.isCurrentPlayerActive()) {
+                    this.ajaxcall('/getthemacguffin/getthemacguffin/specifyClockwiseAction.html',
+                        {
+                            lock: true,
+                            clockwise: false,
+                        },
+                        this,
+                        function (result) { });
+                };
+            },
+
 
 
             onPlayCard: function (evt) {
@@ -490,6 +548,7 @@ define([
 
             onDiscard: function (evt) {
                 console.log('onDiscard');
+                this.checkAction('discard');
 
                 // Preventing default browser reaction
                 dojo.stopEvent(evt);

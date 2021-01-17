@@ -53,6 +53,7 @@
 if (!defined('STATE_PLAYER_TURN')) { // ensure this block is only invoked once, since it is included multiple times
     define("STATE_PLAYER_TURN", 2);
     define("STATE_SEE_SECRET_CARDS", 3);
+    define("STATE_CLOCKWISE_OR_NOT", 4);
     define("STATE_NEXT_PLAYER", 23);
 
     //define("TRANSITION_PLAYER_TURN", "playerTurn");
@@ -61,6 +62,7 @@ if (!defined('STATE_PLAYER_TURN')) { // ensure this block is only invoked once, 
     define("TRANSITION_DISCARD", "nextPlayer");
     define("TRANSITION_PASS", "pass");
     define("TRANSITION_SEE_SECRET_CARDS", "secretCards");
+    define("TRANSITION_SPECIFY_CLOCKWISE", "specifyClockwise");
 }
 
 $machinestates = array(
@@ -85,7 +87,8 @@ $machinestates = array(
         "transitions" => array(
             "playCard" => STATE_PLAYER_TURN, TRANSITION_DISCARD => STATE_PLAYER_TURN,
             TRANSITION_PASS => STATE_NEXT_PLAYER, TRANSITION_NEXT_PLAYER => STATE_NEXT_PLAYER,
-            TRANSITION_SEE_SECRET_CARDS => STATE_SEE_SECRET_CARDS
+            TRANSITION_SEE_SECRET_CARDS => STATE_SEE_SECRET_CARDS,
+            TRANSITION_SPECIFY_CLOCKWISE => STATE_CLOCKWISE_OR_NOT
         )
     ),
 
@@ -96,6 +99,15 @@ $machinestates = array(
         "type" => "activeplayer",
         "args" => "argSeeSecretCards",
         "possibleactions" => array("takeCard", "confirm"),
+        "transitions" => array(TRANSITION_NEXT_PLAYER => STATE_NEXT_PLAYER,)
+    ),
+
+    STATE_CLOCKWISE_OR_NOT => array(
+        "name" => "specifyClockwise",
+        "description" => clienttranslate('${actplayer} is choosing clockwise or counterclockwise'),
+        "descriptionmyturn" => clienttranslate('${you} must give your hand clockwise or counterclockwise'),
+        "type" => "activeplayer",
+        "possibleactions" => array("clockwise", "counterclockwise"),
         "transitions" => array(TRANSITION_NEXT_PLAYER => STATE_NEXT_PLAYER,)
     ),
 
