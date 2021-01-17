@@ -151,6 +151,23 @@ define([
                     this.discard.addToStockWithId(gamedatas.topOfDiscard.type, gamedatas.topOfDiscard.id);
                 }
 
+                //secret zone
+                this.secretZone = new ebg.stock(); // new stock object for seeing secret cards
+                this.secretZone.create(this, $('secret_zone'), this.cardwidth, this.cardheight);//secret_zone is the div where the card is going
+                this.secretZone.image_items_per_row = this.image_items_per_row;
+                this.secretZone.setSelectionMode(0);
+
+                // Create cards types:
+                var i = 0;
+                for (var name in this.cardsAvailable) {
+                    var card = this.cardsAvailable[name];
+                    i++;
+                    // Build card type id
+                    this.secretZone.addItemType(name, 0, g_gamethemeurl + this.cards_img, i);
+                }
+
+                this.displaySecretCards(gamedatas.secretCards);
+
                 // Setup game notifications to handle (see "setupNotifications" method below)
                 this.setupNotifications();
 
@@ -178,9 +195,15 @@ define([
                         
                         break;
                    */
+                    case 'seeSecretCards':
+                        console.log('seeSecretCards', args);
+
+                        if (this.isCurrentPlayerActive()) {
+                            dojo.style("secret_zone_wrap", "display", "block");
+
+                        }
 
 
-                    case 'dummmy':
                         break;
                 }
             },
@@ -203,8 +226,11 @@ define([
                         break;
                    */
 
-
-                    case 'dummmy':
+                    case 'seeSecretCards':
+                        if (this.isCurrentPlayerActive()) {
+                            this.secretZone.removeAll();
+                            dojo.style("secret_zone_wrap", "display", "none");
+                        }
                         break;
                 }
             },
@@ -220,6 +246,14 @@ define([
                         case "playerTurn":
                             this.addActionButton('button_confirm_card', _('Play selected card'), 'onPlayCard');
                             this.addActionButton('button_discard', _('Discard an Object'), 'onDiscard');
+                            break;
+                        case "seeSecretCards":
+                            var selectionRequired = args.selection_required;
+                            if (selectionRequired) {
+                                this.addActionButton('button_confirm_card', _('Select a card'), 'onSelectSecretCard');
+                            } else {
+                                this.addActionButton('button_confirm_viewed', _('Done with spying'), 'onDoneViewing');
+                            }
                             break;
                     }
                 }
@@ -240,6 +274,21 @@ define([
                     if (stock.getSelectedItems().length > 0) {
                         return player_id;
                     }
+                }
+            },
+
+            displaySecretCards: function (secretCardsProperties) {
+                var cards = secretCardsProperties.cards;
+                var selectionRequired = secretCardsProperties.selection_required;
+                var title = secretCardsProperties.location_desc;
+
+                dojo.byId("secret_zone_title").innerHTML = title;
+
+                for (var card_id in cards) {
+                    var card = cards[card_id];
+                    this.secretZone.addToStockWithId(card.type, card.id);
+                    this.secretZone.setSelectionMode(selectionRequired ? 1 : 0);
+                    //this.addCardToolTip(playerInPlayCards, card.id, card.type_arg);
                 }
             },
 
@@ -338,62 +387,105 @@ define([
                 };
             },
 
+            onSelectSecretCard: function () {
+                // This method is called when myStockControl selected items changed
+                if (this.isCurrentPlayerActive()) {
+                    //get selected card
+                    var items = this.secretZone.getSelectedItems();
+                    if (items.length == 1) {
+                        var card = items[0];
+                        console.log("selection of secret ", card.type);
+                        this.ajaxcall('/getthemacguffin/getthemacguffin/seenSecretCardsAction.html',
+                            {
+                                lock: true,
+                                selected_card_id: card.id,
+                            },
+                            this,
+                            function (result) { });
+
+                    } else {
+                        this.showMessage(_('You have to select one card'), 'error');
+                    }
+                };
+            },
+
+            onDoneViewing: function () {
+                // This method is called when myStockControl selected items changed
+                if (this.isCurrentPlayerActive()) {
+                    this.ajaxcall('/getthemacguffin/getthemacguffin/seenSecretCardsAction.html',
+                        {
+                            lock: true,
+                            selected_card_id: 0,
+                        },
+                        this,
+                        function (result) { });
+                };
+            },
+
+
             onPlayCard: function (evt) {
                 console.log('onPlayCard');
 
                 // Preventing default browser reaction
                 dojo.stopEvent(evt);
 
-                var items = this.playerHand.getSelectedItems();
+                this.checkAction('playCard');
+
+                var itemsFromHand = this.playerHand.getSelectedItems();
+                var itemsFromInPlayZone = this.inPlayStocksByPlayerId[this.player_id].getSelectedItems();
+
                 var cardFromOtherPlayer;
                 for (var player_id in this.inPlayStocksByPlayerId) {
-                    var selected = this.inPlayStocksByPlayerId[player_id].getSelectedItems();
-                    if (selected.length == 1) {
-                        cardFromOtherPlayer = selected[0];
-                        console.log("selection from other player ", cardFromOtherPlayer.type);
-                    }
-                }
-
-                if (items.length == 1) {
-                    var playedCard = items[0];
-                } else {
-                    var playedCard = cardFromOtherPlayer;
-                }
-
-                if (playedCard) {
-                    if (this.checkAction('playCard')) {
-                        //check selection
-                        var selectedPlayer = this.getSelectedPlayer();
-
-                        switch (playedCard.type) {
-                            case "SWITCHEROO":
-                                console.log(selectedPlayer);
-                                break;
-
-                            default:
-
+                    if (player_id != this.player_id) {
+                        var selected = this.inPlayStocksByPlayerId[player_id].getSelectedItems();
+                        if (selected.length == 1) {
+                            cardFromOtherPlayer = selected[0];
+                            console.log("selection from other player ", cardFromOtherPlayer.type);
                         }
-                        //back call
-                        this.ajaxcall('/getthemacguffin/getthemacguffin/playCardAction.html',
-                            {
-                                lock: true,
-                                played_card_id: playedCard.id,
-                                effect_on_card_id: cardFromOtherPlayer ? cardFromOtherPlayer.id : 0,
-                                effect_on_player_id: selectedPlayer ? selectedPlayer : 0,
-                            },
-                            this,
-                            function (result) {
-                                this.playerHand.removeFromStockById(playedCard.id);
-                                /*items.forEach(removed => {
-                                    this.discardedDesserts.addToStockWithId(removed.type, removed.id, "myhand");
-                                    this.playerHand.removeFromStockById(removed.id);
-                                });
-        */
-                            });
                     }
-                } else {
-                    this.showMessage(_('You have to select a card to play'), 'error');
                 }
+                if ((itemsFromHand.length == 0 && itemsFromInPlayZone.length == 0)
+                    || (itemsFromHand.length == 1 && itemsFromInPlayZone.length == 1)) {
+                    this.showMessage(_('You have to select one card to play'), 'error');
+                }
+                else {
+                    var playedCard;
+                    if (itemsFromHand.length == 1) {
+                        var playedCard = itemsFromHand[0];
+                    } else {
+                        var playedCard = itemsFromInPlayZone[0];
+                    }
+
+                    //check selection
+                    var selectedPlayer = this.getSelectedPlayer();
+
+                    switch (playedCard.type) {
+                        case "SWITCHEROO":
+                            console.log(selectedPlayer);
+                            break;
+
+                        default:
+
+                    }
+                    //back call
+                    this.ajaxcall('/getthemacguffin/getthemacguffin/playCardAction.html',
+                        {
+                            lock: true,
+                            played_card_id: playedCard.id,
+                            effect_on_card_id: cardFromOtherPlayer ? cardFromOtherPlayer.id : 0,
+                            effect_on_player_id: selectedPlayer ? selectedPlayer : 0,
+                        },
+                        this,
+                        function (result) {
+                            this.playerHand.removeFromStockById(playedCard.id);
+                            /*items.forEach(removed => {
+                                this.discardedDesserts.addToStockWithId(removed.type, removed.id, "myhand");
+                                this.playerHand.removeFromStockById(removed.id);
+                            });
+    */
+                        });
+                }
+
             },
 
             onDiscard: function (evt) {
@@ -451,6 +543,8 @@ define([
                 dojo.subscribe('inPlayChange', this, "notif_inPlayChange");
 
                 dojo.subscribe('cardPlayed', this, "notif_cardPlayed");
+                dojo.subscribe('secretCards', this, "notif_secretCards");
+
                 dojo.connect(this.playerHand, 'onChangeSelection', this, 'onSelectCard');
             },
 
@@ -531,5 +625,9 @@ define([
                 }
             },
 
+            notif_secretCards: function (notif) {
+                console.log('notif_secretCards', notif);
+                this.displaySecretCards(notif.args.args);
+            },
         });
     });

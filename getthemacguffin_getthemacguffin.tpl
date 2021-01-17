@@ -36,7 +36,10 @@
         </div>
     </div>
 </div>
-
+<div id="secret_zone_wrap" class="whiteblock">
+    <h3 id="secret_zone_title"></h3>
+    <div id="secret_zone"></div>
+</div>
 
 <div id="in_play_wrapper">
 

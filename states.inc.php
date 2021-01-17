@@ -52,6 +52,7 @@
 // define contants for state ids
 if (!defined('STATE_PLAYER_TURN')) { // ensure this block is only invoked once, since it is included multiple times
     define("STATE_PLAYER_TURN", 2);
+    define("STATE_SEE_SECRET_CARDS", 3);
     define("STATE_NEXT_PLAYER", 23);
 
     //define("TRANSITION_PLAYER_TURN", "playerTurn");
@@ -59,6 +60,7 @@ if (!defined('STATE_PLAYER_TURN')) { // ensure this block is only invoked once, 
     define("TRANSITION_END_GAME", "endGame");
     define("TRANSITION_DISCARD", "nextPlayer");
     define("TRANSITION_PASS", "pass");
+    define("TRANSITION_SEE_SECRET_CARDS", "secretCards");
 }
 
 $machinestates = array(
@@ -80,10 +82,22 @@ $machinestates = array(
         "descriptionmyturn" => clienttranslate('${you} must play a card from your hand or play/discard an Object in play'),
         "type" => "activeplayer",
         "possibleactions" => array("playCard", "discard", "pass"),
-        "transitions" => array("playCard" => STATE_PLAYER_TURN, TRANSITION_DISCARD => STATE_PLAYER_TURN, TRANSITION_PASS => STATE_NEXT_PLAYER, TRANSITION_NEXT_PLAYER => STATE_NEXT_PLAYER,)
+        "transitions" => array(
+            "playCard" => STATE_PLAYER_TURN, TRANSITION_DISCARD => STATE_PLAYER_TURN,
+            TRANSITION_PASS => STATE_NEXT_PLAYER, TRANSITION_NEXT_PLAYER => STATE_NEXT_PLAYER,
+            TRANSITION_SEE_SECRET_CARDS => STATE_SEE_SECRET_CARDS
+        )
     ),
 
-
+    STATE_SEE_SECRET_CARDS => array(
+        "name" => "seeSecretCards",
+        "description" => clienttranslate('${actplayer} is looking at secret cards'),
+        "descriptionmyturn" => clienttranslate('${you} must confirm when you’ve done looking at secret cards'),
+        "type" => "activeplayer",
+        "args" => "argSeeSecretCards",
+        "possibleactions" => array("takeCard", "confirm"),
+        "transitions" => array(TRANSITION_NEXT_PLAYER => STATE_NEXT_PLAYER,)
+    ),
 
     STATE_NEXT_PLAYER => array(
         "name" => "nextPlayer",

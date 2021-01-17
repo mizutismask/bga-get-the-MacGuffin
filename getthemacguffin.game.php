@@ -33,9 +33,17 @@ if (!defined('DECK_LOC_DECK')) {
     define("NOTIF_HAND_CHANGE", "handChange");
     define("NOTIF_IN_PLAY_CHANGE", "inPlayChange");
     define("NOTIF_REVELATION", "revelation");
+    define("NOTIF_SEE_SECRET_CARDS", "secretCards");
 
     // constants for game states
     define("TRANSITION_PLAYER_TURN", "playerTurn");
+    define('GS_SECRET_CARDS_LOCATION', "secretCardsLocation");
+    define('GS_SECRET_CARDS_LOCATION_ARG', "secretCardsLocationArg");
+    define('GS_SECRET_CARDS_SELECTION', "secretCardsSelection");
+    define('GS_SECRET_CARDS_SHOW_SELECTED', "showSelectedSecretCard");
+
+    define('GS_SECRET_CARDS_LOCATION_DISCARD', "1");
+    define('GS_SECRET_CARDS_LOCATION_HAND', "2");
 }
 
 class GetTheMacGuffin extends Table
@@ -51,12 +59,10 @@ class GetTheMacGuffin extends Table
         parent::__construct();
 
         self::initGameStateLabels(array(
-            //    "my_first_global_variable" => 10,
-            //    "my_second_global_variable" => 11,
-            //      ...
-            //    "my_first_game_variant" => 100,
-            //    "my_second_game_variant" => 101,
-            //      ...
+            GS_SECRET_CARDS_LOCATION => 10,
+            GS_SECRET_CARDS_LOCATION_ARG => 11,
+            GS_SECRET_CARDS_SELECTION => 12,
+            GS_SECRET_CARDS_SHOW_SELECTED => 13,
         ));
 
         $this->deck = self::getNew("module.common.deck");
@@ -100,7 +106,10 @@ class GetTheMacGuffin extends Table
         /************ Start the game initialization *****/
 
         // Init global values with their initial values
-        //self::setGameStateInitialValue( 'my_first_global_variable', 0 );
+        self::setGameStateInitialValue(GS_SECRET_CARDS_LOCATION, 0);
+        self::setGameStateInitialValue(GS_SECRET_CARDS_LOCATION_ARG, 0);
+        self::setGameStateInitialValue(GS_SECRET_CARDS_SELECTION, 0);
+        self::setGameStateInitialValue(GS_SECRET_CARDS_SHOW_SELECTED, 0);
 
         // Init game statistics
         // (note: statistics used in this file must be defined in your stats.inc.php file)
@@ -156,8 +165,40 @@ class GetTheMacGuffin extends Table
         $result['hand'] = $this->deck->getCardsInLocation(DECK_LOC_HAND, $current_player_id);
         $result['cardsAvailable'] = $this->getCardsAvailable();
         $result['topOfDiscard'] = $this->deck->getCardOnTop(DECK_LOC_DISCARD);
+        $result['secretCards'] = $this->getSecretCardsProperties();
 
         return $result;
+    }
+
+    function getSecretCardsProperties()
+    {
+        $current_player_id = self::getCurrentPlayerId();
+        $active_player_id = self::getActivePlayerId();
+        $secretCardsAction = array();
+        $from = self::getGameStateValue(GS_SECRET_CARDS_LOCATION);
+        if ($current_player_id === $active_player_id && $from) {
+            //there is a seeing secret cards action running
+            $id_from_player = self::getGameStateValue(GS_SECRET_CARDS_LOCATION_ARG);
+            $location = null;
+            switch ($from) {
+                case GS_SECRET_CARDS_LOCATION_HAND:
+                    $location = DECK_LOC_HAND;
+                    break;
+                case GS_SECRET_CARDS_LOCATION_DISCARD:
+                    $location = DECK_LOC_DISCARD;
+                    break;
+
+                default:
+                    throw new BgaVisibleSystemException("this kind of location is not supposed to be found when looking for secret cards");
+            }
+            $cards = $this->deck->getCardsInLocation($location, $id_from_player ? $id_from_player : null);
+            $location_desc = $location === DECK_LOC_DISCARD ? self::_("discard") : $this->getPlayerName($id_from_player);
+
+            $secretCardsAction['cards'] = $cards;
+            $secretCardsAction['selection_required'] = (bool)self::getGameStateValue(GS_SECRET_CARDS_SELECTION);
+            $secretCardsAction['location_desc'] = $location_desc;
+        }
+        return $secretCardsAction;
     }
 
     /*
@@ -243,14 +284,23 @@ class GetTheMacGuffin extends Table
         self::notifyPlayer($player_from, NOTIF_HAND_CHANGE, '', array('removed' => [$card]));
     }
 
-    function stealCardFromDiscard($player_to)
+    function stealCardFromDiscard($card_id, $player_to)
+    {
+        $card = $this->deck->getCard($card_id);
+        $this->deck->moveCard($card_id, DECK_LOC_HAND, $player_to);
+        // Notify player about change
+        self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, '', array('added' => [$card]));
+    }
+
+
+    function stealRandomCardFromDiscard($player_to)
     {
         $cards = $this->deck->getCardsInLocation(DECK_LOC_DISCARD);
         $card_id = array_rand($cards);
         $card = $this->deck->getCard($card_id);
         $this->deck->moveCard($card_id, DECK_LOC_HAND, $player_to);
         // Notify player about change
-        self::notifyPlayer($player_id, NOTIF_HAND_CHANGE, '', array('added' => [$card]));
+        self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, '', array('added' => [$card]));
     }
 
     function stealObjectInPlay($player_to, $object_card)
@@ -437,7 +487,7 @@ class GetTheMacGuffin extends Table
                 throw new BgaUserException("When the crown is not in play, you have to choose an object in play or a player’s hand to use the assassin");
 
             if ($effect_on_card) {
-                $this->discardInPlayObject($effect_on_player_id);
+                $this->discardInPlayObject($effect_on_card);
             }
 
             if ($effect_on_player_id) {
@@ -457,6 +507,67 @@ class GetTheMacGuffin extends Table
         }
     }
 
+    function playNotDeadYet($player_id, $effect_on_card, $effect_on_player_id)
+    {
+        if ($this->hasNoCardsInHand($player_id) && $this->hasNoCardsInPlay($player_id)) {
+            if ($effect_on_player_id && !$this->hasNoCardsInHand($effect_on_player_id)) {
+                $this->stealCardFromHand($effect_on_player_id, $player_id);
+            } else if ($this->no_one_has_a_hand_other_than($player_id) && $effect_on_card) {
+                if (($effect_on_card["type"] === MACGUFFIN) || ($effect_on_card["type"] === BACKUP_MACGUFFIN)) {
+                    throw new BgaUserException("You can NOT steal a sort of MacGuffin");
+                }
+                $this->stealObjectInPlay($player_id, $effect_on_card);
+            } else {
+                throw new BgaUserException("Select a player to steal a card from his hand. If no one has a hand, you can steal an object.");
+            }
+        }
+    }
+
+    function no_one_has_a_hand_other_than($other_than_player_id)
+    {
+        $players = self::loadPlayersBasicInfos();
+        $noone = true;
+        foreach ($players as $player) {
+            $player_id = $player["player_id"];
+            if ($player_id != $other_than_player_id && !$this->hasNoCardsInHand($player_id)) {
+                $noone = false;
+            }
+        }
+        return $noone;
+    }
+
+    function playSpy($player_id, $effect_on_player_id)
+    {
+        if ($effect_on_player_id) {
+            self::setGameStateValue(GS_SECRET_CARDS_LOCATION, GS_SECRET_CARDS_LOCATION_HAND);
+            self::setGameStateValue(GS_SECRET_CARDS_LOCATION_ARG, $effect_on_player_id);
+            self::setGameStateValue(GS_SECRET_CARDS_SELECTION, 0);
+            self::setGameStateValue(GS_SECRET_CARDS_SHOW_SELECTED, 0);
+
+            self::notifyPlayer($player_id, NOTIF_SEE_SECRET_CARDS, '', array(
+                'args' => $this->getSecretCardsProperties(),
+            ));
+
+            self::notifyAllPlayers("msg", clienttranslate('${player_name1} spies on ${player_name2}'), array(
+                'player_name1' => self::getPlayerName($player_id),
+                'player_name2' => self::getPlayerName($effect_on_player_id),
+            ));
+        } else {
+            throw new BgaUserException("You have to select a player to apply this effect on him");
+        }
+    }
+
+    function playGarbageCollector($player_id)
+    {
+        self::setGameStateValue(GS_SECRET_CARDS_LOCATION, GS_SECRET_CARDS_LOCATION_DISCARD);
+        self::setGameStateValue(GS_SECRET_CARDS_LOCATION_ARG, 0);
+        self::setGameStateValue(GS_SECRET_CARDS_SELECTION, 1);
+        self::setGameStateValue(GS_SECRET_CARDS_SHOW_SELECTED, 1);
+
+        self::notifyPlayer($player_id, NOTIF_SEE_SECRET_CARDS, '', array(
+            'args' => $this->getSecretCardsProperties(),
+        ));
+    }
     function playActionCard($played_card, $description, $effect_on_card = null, $effect_on_player_id = null)
     {
         $player_id = self::getActivePlayerId();
@@ -491,13 +602,15 @@ class GetTheMacGuffin extends Table
                 # code...
                 break;
             case SPY:
-                # code...
+                $this->playSpy($player_id, $effect_on_player_id);
                 break;
             case FIST_OF_DOOM:
                 $this->playFistOfDoom($effect_on_card, $effect_on_player_id);
                 break;
             case GARBAGE_COLLECTR:
-                # code...
+                if ($this->deck->countCardInLocation(DECK_LOC_DISCARD) > 0) {
+                    $this->playGarbageCollector($player_id);
+                }
                 break;
             case CAN_I_USE_THAT:
                 # code...
@@ -509,10 +622,10 @@ class GetTheMacGuffin extends Table
                 $this->playVortex($player_id);
                 break;
             case HIPPIE:
-                # code...
+                //nothing
                 break;
             case NOT_DEAD_YET:
-                # code...
+                $this->playNotDeadYet($player_id, $effect_on_card, $effect_on_player_id);
                 break;
             case FIRST_BUMP:
                 # code...
@@ -668,8 +781,11 @@ class GetTheMacGuffin extends Table
             'toInPlay' => $description["type"] === OBJ,
             'i18n' => array('card_name', 'plays'),
         ));
-
-        $this->gamestate->nextState(TRANSITION_NEXT_PLAYER);
+        if ($played_card["type"] === SPY || $played_card["type"] === GARBAGE_COLLECTR) {
+            $this->gamestate->nextState(TRANSITION_SEE_SECRET_CARDS);
+        } else {
+            $this->gamestate->nextState(TRANSITION_NEXT_PLAYER);
+        }
     }
 
     function discard($played_card_id) //, $effect_on_card_id, $effect_on_player_id)
@@ -708,7 +824,38 @@ class GetTheMacGuffin extends Table
         $this->gamestate->nextState(TRANSITION_NEXT_PLAYER);
     }
 
-
+    function seenSecretCardsAction($selected_card_id)
+    {
+        if (self::getGameStateValue(GS_SECRET_CARDS_SELECTION) && !$selected_card_id) {
+            throw new BgaUserException("You have to select a card");
+        };
+        $location = self::getGameStateValue(GS_SECRET_CARDS_LOCATION);
+        if ($selected_card_id) {
+            $show = self::getGameStateValue(GS_SECRET_CARDS_SHOW_SELECTED);
+            $player_id = self::getActivePlayerId();
+            if ($location === GS_SECRET_CARDS_LOCATION_HAND) {
+                $this->stealCardFromHand(self::getGameStateValue(GS_SECRET_CARDS_LOCATION_ARG), $player_id);
+            } else if ($location === GS_SECRET_CARDS_LOCATION_DISCARD) {
+                $this->stealCardFromDiscard($selected_card_id, $player_id);
+            } else {
+                throw new BgaVisibleSystemException("this kind of location is not supposed to be found when seeing secret cards");
+            }
+            if ($show) {
+                $card = $this->deck->getCard($selected_card_id);
+                $description = $this->cards_description[$card["type"]];
+                self::notifyAllPlayers("msg", clienttranslate('${player_name} takes ${card_name}'), array(
+                    'player_name' => self::getActivePlayerName(),
+                    'card_name' => $description["name"],
+                    'i18n' => array('card_name'),
+                ));
+            }
+        }
+        self::setGameStateValue(GS_SECRET_CARDS_LOCATION, 0);
+        self::setGameStateValue(GS_SECRET_CARDS_LOCATION_ARG, 0);
+        self::setGameStateValue(GS_SECRET_CARDS_SELECTION, 0);
+        self::setGameStateValue(GS_SECRET_CARDS_SHOW_SELECTED, 0);
+        $this->gamestate->nextState(TRANSITION_NEXT_PLAYER);
+    }
 
 
 
@@ -745,7 +892,6 @@ class GetTheMacGuffin extends Table
    */
     public function stNextPlayer()
     {
-        $old_player_id = $this->getActivePlayerId();
         $player_id = $this->activeNextPlayer();
 
         $endOfGame = $this->eliminatePlayersIfNeeded();
@@ -760,6 +906,7 @@ class GetTheMacGuffin extends Table
             $this->gamestate->nextState(TRANSITION_PLAYER_TURN);
         }
     }
+
     //////////////////////////////////////////////////////////////////////////////
     //////////// Game state actions
     ////////////
@@ -769,18 +916,12 @@ class GetTheMacGuffin extends Table
         The action method of state X is called everytime the current game state is set to X.
     */
 
-    /*
-    
-    Example for game state "MyGameState":
-
-    function stMyGameState()
+    function argSeeSecretCards()
     {
-        // Do some stuff ...
-        
-        // (very often) go to another gamestate
-        $this->gamestate->nextState( 'some_gamestate_transition' );
-    }    
-    */
+        return array(
+            'selection_required' => (bool)self::getGameStateValue(GS_SECRET_CARDS_SELECTION),
+        );
+    }
 
     //////////////////////////////////////////////////////////////////////////////
     //////////// Zombie
