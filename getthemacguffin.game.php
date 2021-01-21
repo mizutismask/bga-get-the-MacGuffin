@@ -696,6 +696,9 @@ class GetTheMacGuffin extends Table
                 //nothing is done here, but when you confirm clockwise or not
                 return TRANSITION_SPECIFY_CLOCKWISE;
             case SWITCHEROO:
+                if (!$effect_on_player_id) {
+                    throw new BgaUserException("You have to select a player to switch hand with.");
+                }
                 $this->swapHands($player_id, $effect_on_player_id);
                 break;
             case MERCHANT:
@@ -746,7 +749,7 @@ class GetTheMacGuffin extends Table
                 }
                 break;
             case MONEY:
-                # code...
+                throw new BgaUserException("This card must be discarded to activate its effect.");
                 break;
             case CROWN:
                 if ($this->isTypeInPlay(MACGUFFIN) || $this->isTypeInPlay(BACKUP_MACGUFFIN)) {
@@ -888,7 +891,7 @@ class GetTheMacGuffin extends Table
         }
     }
 
-    function discard($played_card_id) //, $effect_on_card_id, $effect_on_player_id)
+    function discard($played_card_id, $effect_on_card_id, $effect_on_player_id)
     {
         // Check that this is the player's turn and that it is a "possible action" at this game state (see states.inc.php)
         self::checkAction('discard');
@@ -898,14 +901,22 @@ class GetTheMacGuffin extends Table
         $played_card = $this->deck->getCard($played_card_id);
         $description = $this->cards_description[$played_card["type"]];
 
-        /*  $effect_on_card = null;
+        $effect_on_card = null;
         if ($effect_on_card_id) {
             $effect_on_card = $this->deck->getCard($effect_on_card_id);
         }
 
         if ($played_card["type"] == MONEY) {
-            $this->useObjectCard($played_card, $description, $effect_on_card, $effect_on_player_id);
-        }*/
+
+            if (!$effect_on_card && !$effect_on_player_id) {
+                throw new BgaUserException("You have to select an object to steal or a player");
+            }
+            if ($effect_on_card) {
+                $this->stealObjectInPlay($player_id, $effect_on_card);
+            } else if ($effect_on_player_id) {
+                $this->stealCardFromHand($effect_on_player_id, $player_id);
+            }
+        }
 
         $this->deck->playCard($played_card_id);
 

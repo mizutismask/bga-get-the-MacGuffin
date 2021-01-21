@@ -566,6 +566,20 @@ define([
                 }
             },
 
+            getSelectedInPlayCard: function () {
+                var cardFromOtherPlayer;
+                for (var player_id in this.inPlayStocksByPlayerId) {
+                    if (player_id != this.player_id) {
+                        var selected = this.inPlayStocksByPlayerId[player_id].getSelectedItems();
+                        if (selected.length == 1) {
+                            cardFromOtherPlayer = selected[0];
+                            console.log("selection from other player ", cardFromOtherPlayer.type);
+                        }
+                    }
+                }
+                return cardFromOtherPlayer;
+            },
+
             onPlayCard: function (evt) {
                 console.log('onPlayCard');
 
@@ -577,16 +591,7 @@ define([
                 var itemsFromHand = this.playerHand.getSelectedItems();
                 var itemsFromInPlayZone = this.inPlayStocksByPlayerId[this.player_id].getSelectedItems();
 
-                var cardFromOtherPlayer;
-                for (var player_id in this.inPlayStocksByPlayerId) {
-                    if (player_id != this.player_id) {
-                        var selected = this.inPlayStocksByPlayerId[player_id].getSelectedItems();
-                        if (selected.length == 1) {
-                            cardFromOtherPlayer = selected[0];
-                            console.log("selection from other player ", cardFromOtherPlayer.type);
-                        }
-                    }
-                }
+                var cardFromOtherPlayer = this.getSelectedInPlayCard();
                 if ((itemsFromHand.length == 0 && itemsFromInPlayZone.length == 0)
                     || (itemsFromHand.length == 1 && itemsFromInPlayZone.length == 1)) {
                     this.showMessage(_('You have to select one card to play'), 'error');
@@ -639,6 +644,10 @@ define([
                 dojo.stopEvent(evt);
 
                 var items = this.inPlayStocksByPlayerId[this.player_id].getSelectedItems();
+                //money needs to select an object or a player
+                var cardFromOtherPlayer = this.getSelectedInPlayCard();
+                var selectedPlayer = this.getSelectedPlayer();
+
                 if (items.length == 1) {
                     var playedCard = items[0];
                     //back call
@@ -646,6 +655,9 @@ define([
                         {
                             lock: true,
                             played_card_id: playedCard.id,
+                            effect_on_card_id: cardFromOtherPlayer ? cardFromOtherPlayer.id : 0,
+                            effect_on_player_id: selectedPlayer ? selectedPlayer : 0,
+
                         },
                         this,
                         function (result) {
