@@ -41,6 +41,7 @@ if (!defined('DECK_LOC_DECK')) {
     define('GS_SECRET_CARDS_LOCATION_ARG', "secretCardsLocationArg");
     define('GS_SECRET_CARDS_SELECTION', "secretCardsSelection");
     define('GS_SECRET_CARDS_SHOW_SELECTED', "showSelectedSecretCard");
+    define('GS_MANDATORY_CARD', "mandatory_card_id");
 
     define('GS_SECRET_CARDS_LOCATION_DISCARD', "1");
     define('GS_SECRET_CARDS_LOCATION_HAND', "2");
@@ -63,6 +64,7 @@ class GetTheMacGuffin extends Table
             GS_SECRET_CARDS_LOCATION_ARG => 11,
             GS_SECRET_CARDS_SELECTION => 12,
             GS_SECRET_CARDS_SHOW_SELECTED => 13,
+            GS_MANDATORY_CARD => 14,
         ));
 
         $this->deck = self::getNew("module.common.deck");
@@ -110,6 +112,7 @@ class GetTheMacGuffin extends Table
         self::setGameStateInitialValue(GS_SECRET_CARDS_LOCATION_ARG, 0);
         self::setGameStateInitialValue(GS_SECRET_CARDS_SELECTION, 0);
         self::setGameStateInitialValue(GS_SECRET_CARDS_SHOW_SELECTED, 0);
+        self::setGameStateInitialValue(GS_MANDATORY_CARD, 0);
 
         // Init game statistics
         // (note: statistics used in this file must be defined in your stats.inc.php file)
@@ -282,6 +285,7 @@ class GetTheMacGuffin extends Table
         // Notify players about changes
         self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, '', array('added' => [$card]));
         self::notifyPlayer($player_from, NOTIF_HAND_CHANGE, '', array('removed' => [$card]));
+        return $this->deck->getCard($card_id);
     }
 
     function stealCardFromDiscard($card_id, $player_to)
@@ -668,6 +672,22 @@ class GetTheMacGuffin extends Table
         $this->gamestate->nextState(TRANSITION_NEXT_PLAYER);
     }
 
+    function playCanIUseThat($player_id, $effect_on_player_id)
+    {
+        if (!$effect_on_player_id) {
+            throw new BgaUserException("You have to select a player to take a card from.");
+        }
+        $card = $this->stealCardFromHand($effect_on_player_id, $player_id);
+        self::setGameStateValue(GS_MANDATORY_CARD, $card["id"]);
+
+        self::notifyAllPlayers("msg", '${player_name} takes the ${card_name}', array(
+            'player_name' => $this->getPlayerName($player_id),
+            'card_name' => $this->cards_description[$card["type"]]["name"],
+            'i18n' => array('card_name'),
+        ));
+        return TRANSITION_MANDATORY_CARD;
+    }
+
     function playActionCard($played_card, $description, $effect_on_card = null, $effect_on_player_id = null)
     {
         $player_id = self::getActivePlayerId();
@@ -714,8 +734,7 @@ class GetTheMacGuffin extends Table
                 }
                 break;
             case CAN_I_USE_THAT:
-                # code...
-                break;
+                return $this->playCanIUseThat($player_id, $effect_on_player_id);
             case ASSASSIN:
                 $this->playAssassin($player_id, $effect_on_card, $effect_on_player_id);
                 break;
@@ -847,6 +866,10 @@ class GetTheMacGuffin extends Table
     {
         // Check that this is the player's turn and that it is a "possible action" at this game state (see states.inc.php)
         self::checkAction('playCard');
+        $mandatory_id = self::getGameStateValue(GS_MANDATORY_CARD);
+        if ($mandatory_id && $played_card_id != $mandatory_id) {
+            throw new BgaUserException("You have to play the card you’ve just stolen");
+        }
 
         $player_id = self::getActivePlayerId();
 
@@ -1025,19 +1048,16 @@ class GetTheMacGuffin extends Table
     }    
     */
 
-    /*
-   * stEliminatePlayer: this function is called when the active player is eliminated
-   */
     public function stNextPlayer()
     {
         $player_id = $this->activeNextPlayer();
+        self::setGameStateValue(GS_MANDATORY_CARD, 0);
 
         $endOfGame = $this->eliminatePlayersIfNeeded();
 
         if ($endOfGame) {
             $this->gamestate->nextState(TRANSITION_END_GAME);
         } else {
-
             if (!self::isZombie($player_id)) {
                 self::giveExtraTime($player_id);
             }
@@ -1060,6 +1080,14 @@ class GetTheMacGuffin extends Table
             'selection_required' => (bool)self::getGameStateValue(GS_SECRET_CARDS_SELECTION),
         );
     }
+
+    public function argMandatoryCard()
+    {
+        return array(
+            'mandatory_card_id' => self::getGameStateValue(GS_MANDATORY_CARD),
+        );
+    }
+
 
     //////////////////////////////////////////////////////////////////////////////
     //////////// Zombie

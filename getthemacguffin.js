@@ -183,28 +183,20 @@ define([
             //
             onEnteringState: function (stateName, args) {
                 console.log('Entering state: ' + stateName);
+                console.log('args', args);
 
                 switch (stateName) {
-
-                    /* Example:
-                    
-                    case 'myGameState':
-                    
-                        // Show some HTML block at this game state
-                        dojo.style( 'my_html_block_id', 'display', 'block' );
-                        
-                        break;
-                   */
                     case 'seeSecretCards':
-                        console.log('seeSecretCards', args);
-
                         if (this.isCurrentPlayerActive()) {
                             dojo.style("secret_zone_wrap", "display", "block");
-
                         }
-
-
                         break;
+                    case 'mandatoryCard':
+                        var mandatorCardId = args.mandatory_card_id;
+                        if (this.isCurrentPlayerActive()) {
+                            this.inPlayStocksByPlayerId[this.player_id].setSelectionMode(0);
+                            break;
+                        }
                 }
             },
 
@@ -232,6 +224,11 @@ define([
                             dojo.style("secret_zone_wrap", "display", "none");
                         }
                         break;
+                    case 'mandatoryCard':
+                        if (this.isCurrentPlayerActive()) {
+                            this.inPlayStocksByPlayerId[this.player_id].setSelectionMode(1);
+                            break;
+                        }
                 }
             },
 
@@ -246,6 +243,9 @@ define([
                         case "playerTurn":
                             this.addActionButton('button_confirm_card', _('Play selected card'), 'onPlayCard');
                             this.addActionButton('button_discard', _('Discard an Object'), 'onDiscard');
+                            break;
+                        case "mandatoryCard":
+                            this.addActionButton('button_confirm_card', _('Play selected card'), 'onPlayCard');
                             break;
                         case "seeSecretCards":
                             var selectionRequired = args.selection_required;

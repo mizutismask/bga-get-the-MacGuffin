@@ -56,6 +56,7 @@ if (!defined('STATE_PLAYER_TURN')) { // ensure this block is only invoked once, 
     define("STATE_CLOCKWISE_OR_NOT", 4);
     define("STATE_SPECIFY_IN_PLAY_OBJECT_TO_TAKE", 5);
     define("STATE_SPECIFY_IN_PLAY_OBJECTS_TO_SWAP", 6);
+    define("STATE_MANDATORY_CARD", 7);
     define("STATE_NEXT_PLAYER", 23);
 
     //define("TRANSITION_PLAYER_TURN", "playerTurn");
@@ -67,6 +68,7 @@ if (!defined('STATE_PLAYER_TURN')) { // ensure this block is only invoked once, 
     define("TRANSITION_SPECIFY_CLOCKWISE", "specifyClockwise");
     define("TRANSITION_SPECIFY_IN_PLAY_OBJECT_TO_TAKE", "specifyInPlayObject");
     define("TRANSITION_SPECIFY_IN_PLAY_OBJECTS_TO_SWAP", "specifyObjectsToSwap");
+    define("TRANSITION_MANDATORY_CARD", "mandatoryCard");
 }
 
 $machinestates = array(
@@ -87,6 +89,24 @@ $machinestates = array(
         "description" => clienttranslate('${actplayer} must play a card'),
         "descriptionmyturn" => clienttranslate('${you} must play a card from your hand or play/discard an Object in play'),
         "type" => "activeplayer",
+        "possibleactions" => array("playCard", "discard", "pass"),
+        "transitions" => array(
+            "playCard" => STATE_PLAYER_TURN, TRANSITION_DISCARD => STATE_PLAYER_TURN,
+            TRANSITION_PASS => STATE_NEXT_PLAYER, TRANSITION_NEXT_PLAYER => STATE_NEXT_PLAYER,
+            TRANSITION_SEE_SECRET_CARDS => STATE_SEE_SECRET_CARDS,
+            TRANSITION_SPECIFY_CLOCKWISE => STATE_CLOCKWISE_OR_NOT,
+            TRANSITION_SPECIFY_IN_PLAY_OBJECT_TO_TAKE => STATE_SPECIFY_IN_PLAY_OBJECT_TO_TAKE,
+            TRANSITION_SPECIFY_IN_PLAY_OBJECTS_TO_SWAP => STATE_SPECIFY_IN_PLAY_OBJECTS_TO_SWAP,
+            TRANSITION_MANDATORY_CARD => STATE_MANDATORY_CARD,
+        )
+    ),
+
+    STATE_MANDATORY_CARD => array(
+        "name" => "mandatoryCard",
+        "description" => clienttranslate('${actplayer} must play the previously stolen card'),
+        "descriptionmyturn" => clienttranslate('${you} must play the card you’ve just took'),
+        "type" => "activeplayer",
+        "args" => "argMandatoryCard",
         "possibleactions" => array("playCard", "discard", "pass"),
         "transitions" => array(
             "playCard" => STATE_PLAYER_TURN, TRANSITION_DISCARD => STATE_PLAYER_TURN,
