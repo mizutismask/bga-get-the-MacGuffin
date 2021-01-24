@@ -120,10 +120,7 @@ define([
                         stock.image_items_per_row = 2;
 
                         stock.addItemType("hand", 0, g_gamethemeurl + this.icons_img, 0);
-                        stock.addItemType("meeple", 1, g_gamethemeurl + this.icons_img, 1);
-
                         stock.addToStockWithId("hand", 0);
-                        stock.addToStockWithId("meeple", 1);
 
                         this.optionsByPlayerId[player_id] = stock;
                     }
@@ -201,7 +198,6 @@ define([
                             break;
                         }
                     case 'nextPlayer':
-                        console.log('updateCounters', args.args);
                         this.updateCounters(args.args);
                         break;
                 }

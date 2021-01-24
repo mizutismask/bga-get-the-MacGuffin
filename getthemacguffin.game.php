@@ -217,9 +217,9 @@ class GetTheMacGuffin extends Table
     */
     function getGameProgression()
     {
-        // TODO: compute and return the game progression
-
-        return 0;
+        $dealt = 23 - $this->deck->countCardInLocation(DECK_LOC_DECK);
+        $played = $this->deck->countCardInLocation(DECK_LOC_DISCARD) + $this->deck->countCardInLocation(DECK_LOC_IN_PLAY) / 2;
+        return $this->isEndOfGame() ? 100 : $played * 100 / $dealt;
     }
 
 
@@ -819,13 +819,7 @@ class GetTheMacGuffin extends Table
                 }
             }
         }
-
-        $players = self::loadPlayersBasicInfos();
-        $stillAlivePlayers = array_filter($players, function ($p) {
-            return !$p["player_eliminated"];
-        });
-        $stillAliveCount = count($stillAlivePlayers);
-
+        $stillAliveCount = $this->getStillAlivePlayersNumber();
         if ($stillAliveCount == 1) {
             //end of game
             $last = array_pop($stillAlivePlayers);
@@ -834,7 +828,22 @@ class GetTheMacGuffin extends Table
             //end of game
             $this->updateScores($newEliminated);
         }
-        return $stillAliveCount < 2;
+        return $this->isEndOfGame();
+    }
+
+    function getStillAlivePlayersNumber()
+    {
+        $players = self::loadPlayersBasicInfos();
+        $stillAlivePlayers = array_filter($players, function ($p) {
+            return !$p["player_eliminated"];
+        });
+        $stillAliveCount = count($stillAlivePlayers);
+        return $stillAliveCount;
+    }
+
+    function isEndOfGame()
+    {
+        return $this->getStillAlivePlayersNumber() < 2;
     }
 
     function isInPlay($card_id)
