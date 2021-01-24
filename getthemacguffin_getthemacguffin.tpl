@@ -50,6 +50,7 @@
         </div>
         <div class="cardsInPlay" id="cards_in_play_{PLAYER_ID}" >
         </div>
+        <span id="cards_count_{PLAYER_ID}" class="gtm_cards_count"></span>
         <div id="options_{PLAYER_ID}" >
         </div>
     </div>

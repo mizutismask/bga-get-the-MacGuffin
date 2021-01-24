@@ -169,6 +169,7 @@ class GetTheMacGuffin extends Table
         $result['cardsAvailable'] = $this->getCardsAvailable();
         $result['topOfDiscard'] = $this->deck->getCardOnTop(DECK_LOC_DISCARD);
         $result['secretCards'] = $this->getSecretCardsProperties();
+        $result['counters'] = $this->argCardsCounters();
 
         return $result;
     }
@@ -1047,6 +1048,21 @@ class GetTheMacGuffin extends Table
         );
     }    
     */
+
+    function argCardsCounters()
+    {
+        $players = self::getObjectListFromDB("SELECT player_id id FROM player", true);
+        $counters = array();
+        for ($i = 0; $i < ($this->getPlayersNumber()); $i++) {
+            $counters['cards_count_' . $players[$i]] = array('counter_name' => 'cards_count_' . $players[$i], 'counter_value' => 0);
+        }
+        $cards_in_hand = $this->deck->countCardsByLocationArgs(DECK_LOC_HAND);
+        foreach ($cards_in_hand as $player_id => $cards_nbr) {
+            $counters['cards_count_' . $player_id]['counter_value'] = $cards_nbr;
+        }
+        return $counters;
+    }
+
 
     public function stNextPlayer()
     {

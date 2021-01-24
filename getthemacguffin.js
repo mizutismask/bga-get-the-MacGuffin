@@ -168,6 +168,9 @@ define([
 
                 this.displaySecretCards(gamedatas.secretCards);
 
+                dojo.style("cards_count_" + this.player_id, "display", "none");//do not display my counter
+                this.updateCounters(gamedatas.counters);
+
                 // Setup game notifications to handle (see "setupNotifications" method below)
                 this.setupNotifications();
 
@@ -192,11 +195,15 @@ define([
                         }
                         break;
                     case 'mandatoryCard':
-                        var mandatorCardId = args.mandatory_card_id;
+                        var mandatorCardId = args.args.mandatory_card_id;
                         if (this.isCurrentPlayerActive()) {
                             this.inPlayStocksByPlayerId[this.player_id].setSelectionMode(0);
                             break;
                         }
+                    case 'nextPlayer':
+                        console.log('updateCounters', args.args);
+                        this.updateCounters(args.args);
+                        break;
                 }
             },
 

@@ -159,6 +159,7 @@ $machinestates = array(
         "name" => "nextPlayer",
         "description" => '',
         "type" => "game",
+        "args" => "argCardsCounters",
         "action" => "stNextPlayer",
         "updateGameProgression" => true,
         "transitions" => array(TRANSITION_PLAYER_TURN => STATE_PLAYER_TURN, TRANSITION_END_GAME => 99)
