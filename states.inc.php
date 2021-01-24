@@ -149,7 +149,7 @@ $machinestates = array(
     STATE_SPECIFY_IN_PLAY_OBJECTS_TO_SWAP => array(
         "name" => "specifyObjectsToSwap",
         "description" => clienttranslate('${actplayer} is choosing 2 objects to swap'),
-        "descriptionmyturn" => clienttranslate('${you} must choose 2 objects to swap between other players'),
+        "descriptionmyturn" => clienttranslate('${you} must choose 2 objects to swap between different players'),
         "type" => "activeplayer",
         "possibleactions" => array("swapObjects"),
         "transitions" => array(TRANSITION_NEXT_PLAYER => STATE_NEXT_PLAYER,)

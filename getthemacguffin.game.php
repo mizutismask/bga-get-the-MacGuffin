@@ -34,6 +34,8 @@ if (!defined('DECK_LOC_DECK')) {
     define("NOTIF_IN_PLAY_CHANGE", "inPlayChange");
     define("NOTIF_REVELATION", "revelation");
     define("NOTIF_SEE_SECRET_CARDS", "secretCards");
+    define("NOTIF_PLAYER_ELIMINATED", "gtmplayerEliminated");
+
 
     // constants for game states
     define("TRANSITION_PLAYER_TURN", "playerTurn");
@@ -816,10 +818,12 @@ class GetTheMacGuffin extends Table
                 if ($this->hasNoCardsInHand($player_id) && $this->hasNoCardsInPlay($player_id)) {
                     $newEliminated[] = $player_id;
                     self::eliminatePlayer($player_id);
+                    self::notifyAllPlayers(NOTIF_PLAYER_ELIMINATED, '', array("player_id" => $player_id));
                 }
             }
         }
-        $stillAliveCount = $this->getStillAlivePlayersNumber();
+        $stillAlivePlayers = $this->getStillAlivePlayers();
+        $stillAliveCount = count($stillAlivePlayers);
         if ($stillAliveCount == 1) {
             //end of game
             $last = array_pop($stillAlivePlayers);
@@ -831,19 +835,24 @@ class GetTheMacGuffin extends Table
         return $this->isEndOfGame();
     }
 
-    function getStillAlivePlayersNumber()
+    function getStillAlivePlayers()
     {
         $players = self::loadPlayersBasicInfos();
         $stillAlivePlayers = array_filter($players, function ($p) {
             return !$p["player_eliminated"];
         });
-        $stillAliveCount = count($stillAlivePlayers);
-        return $stillAliveCount;
+        return $stillAlivePlayers;
+    }
+
+    function getStillAlivePlayersCount()
+    {
+        $stillAlivePlayers = $this->getStillAlivePlayers();
+        return count($stillAlivePlayers);
     }
 
     function isEndOfGame()
     {
-        return $this->getStillAlivePlayersNumber() < 2;
+        return $this->getStillAlivePlayersCount() < 2;
     }
 
     function isInPlay($card_id)
@@ -1035,28 +1044,19 @@ class GetTheMacGuffin extends Table
     //////////// Game state arguments
     ////////////
 
-    /*
-        Here, you can create methods defined as "game state arguments" (see "args" property in states.inc.php).
-        These methods function is to return some additional information that is specific to the current
-        game state.
-    */
-
-    /*
-    
-    Example for game state "MyGameState":
-    
-    function argMyGameState()
+    function argSeeSecretCards()
     {
-        // Get some values from the current game situation in database...
-    
-        // return values:
         return array(
-            'variable1' => $value1,
-            'variable2' => $value2,
-            ...
+            'selection_required' => (bool)self::getGameStateValue(GS_SECRET_CARDS_SELECTION),
         );
-    }    
-    */
+    }
+
+    public function argMandatoryCard()
+    {
+        return array(
+            'mandatory_card_id' => self::getGameStateValue(GS_MANDATORY_CARD),
+        );
+    }
 
     function argCardsCounters()
     {
@@ -1072,7 +1072,14 @@ class GetTheMacGuffin extends Table
         return $counters;
     }
 
+    //////////////////////////////////////////////////////////////////////////////
+    //////////// Game state actions
+    ////////////
 
+    /*
+        Here, you can create methods defined as "game state actions" (see "action" property in states.inc.php).
+        The action method of state X is called everytime the current game state is set to X.
+    */
     public function stNextPlayer()
     {
         $player_id = $this->activeNextPlayer();
@@ -1089,30 +1096,6 @@ class GetTheMacGuffin extends Table
             $this->gamestate->nextState(TRANSITION_PLAYER_TURN);
         }
     }
-
-    //////////////////////////////////////////////////////////////////////////////
-    //////////// Game state actions
-    ////////////
-
-    /*
-        Here, you can create methods defined as "game state actions" (see "action" property in states.inc.php).
-        The action method of state X is called everytime the current game state is set to X.
-    */
-
-    function argSeeSecretCards()
-    {
-        return array(
-            'selection_required' => (bool)self::getGameStateValue(GS_SECRET_CARDS_SELECTION),
-        );
-    }
-
-    public function argMandatoryCard()
-    {
-        return array(
-            'mandatory_card_id' => self::getGameStateValue(GS_MANDATORY_CARD),
-        );
-    }
-
 
     //////////////////////////////////////////////////////////////////////////////
     //////////// Zombie

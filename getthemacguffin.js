@@ -539,16 +539,14 @@ define([
                     var card1;
                     var card2;
                     for (var player_id in this.inPlayStocksByPlayerId) {
-                        if (player_id != this.player_id) {
-                            var selected = this.inPlayStocksByPlayerId[player_id].getSelectedItems();
-                            if (selected.length == 1) {
-                                if (!card1) {
-                                    card1 = selected[0];
-                                    console.log("selection from other player ", card1.type);
-                                } else {
-                                    card2 = selected[0];
-                                    console.log("selection from other player ", card2.type);
-                                }
+                        var selected = this.inPlayStocksByPlayerId[player_id].getSelectedItems();
+                        if (selected.length == 1) {
+                            if (!card1) {
+                                card1 = selected[0];
+                                console.log("selection from other player ", card1.type);
+                            } else {
+                                card2 = selected[0];
+                                console.log("selection from other player ", card2.type);
                             }
                         }
                     }
@@ -564,7 +562,7 @@ define([
                             function (result) { });
 
                     } else {
-                        this.showMessage(_('You have to select 2 cards from other players'), 'error');
+                        this.showMessage(_('You have to select 2 cards from different players'), 'error');
                     }
                 }
             },
@@ -703,6 +701,7 @@ define([
 
                 dojo.subscribe('cardPlayed', this, "notif_cardPlayed");
                 dojo.subscribe('secretCards', this, "notif_secretCards");
+                dojo.subscribe('gtmplayerEliminated', this, "notif_playerEliminated");
 
                 dojo.connect(this.playerHand, 'onChangeSelection', this, 'onSelectCard');
             },
@@ -785,8 +784,12 @@ define([
             },
 
             notif_secretCards: function (notif) {
-                console.log('notif_secretCards', notif);
                 this.displaySecretCards(notif.args.args);
+            },
+
+            notif_playerEliminated: function (notif) {
+                var player_id = notif.args.player_id;
+                this.disablePlayerPanel(player_id);
             },
         });
     });
