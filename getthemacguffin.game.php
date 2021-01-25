@@ -131,7 +131,7 @@ class GetTheMacGuffin extends Table
         }
         $this->deck->createCards($cards, DECK_LOC_DECK);
         $this->deck->shuffle(DECK_LOC_DECK);
-        $number = min(5, round(25 / count($players), 0, PHP_ROUND_HALF_DOWN));
+        $number = min(5, round(23 / count($players), 0, PHP_ROUND_HALF_DOWN));
 
         foreach ($players as $player_id => $player) {
             $this->pickCardsAndNotifyPlayer($number, $player_id);
@@ -175,7 +175,6 @@ class GetTheMacGuffin extends Table
         $result['topOfDiscard'] = $this->deck->getCardOnTop(DECK_LOC_DISCARD);
         $result['secretCards'] = $this->getSecretCardsProperties();
         $result['counters'] = $this->argCardsCounters();
-        $result['cardsDescription'] = $this->cards_description;
 
         return $result;
     }
@@ -765,10 +764,6 @@ class GetTheMacGuffin extends Table
             case NOT_DEAD_YET:
                 $this->playNotDeadYet($player_id, $effect_on_card, $effect_on_player_id);
                 break;
-            case FIRST_BUMP:
-                # code...
-                break;
-
             default:
                 # code...
                 break;

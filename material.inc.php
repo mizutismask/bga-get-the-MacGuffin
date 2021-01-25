@@ -48,7 +48,6 @@ if (!defined("OBJ")) {
   define("VORTEX", "VORTEX");
   define("HIPPIE", "HIPPIE");
   define("NOT_DEAD_YET", "NOT_DEAD_YET");
-  define("FIRST_BUMP", "FIRST_BUMP");
 }
 
 
@@ -191,11 +190,5 @@ $this->cards_description = array(
     'type' => ACTION,
     'description' => clienttranslate('If you have no other cards (including Objects), take a card at random from another player’s hand and add it to your own. <p>If no one has a hand, you may steal an Object (other than any MacGuffin) and add it to your hand.</p>
     <p>Nothing happens if you play this early.</p>'),
-  ),
-  FIRST_BUMP => array(
-    'name' => clienttranslate('First Bump'),
-    'nametr' => self::_('First Bump'),
-    'type' => ACTION,
-    'description' => clienttranslate('First bump another player when you play this.'),
   ),
 );

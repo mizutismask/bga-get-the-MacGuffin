@@ -54,7 +54,6 @@ define([
                 console.log("gamedatas ", gamedatas);
 
                 this.cardsAvailable = gamedatas.cardsAvailable;
-                this.cardsDescription = gamedatas.cardsDescription;
                 // Setting up player boards
                 for (var player_id in gamedatas.players) {
                     var player = gamedatas.players[player_id];
@@ -311,8 +310,8 @@ define([
                 // Note that "card_type_id" contains the type of the item, so you can do special actions depending on the item type
                 delay = 200;
                 this.addTooltipHtml(card_id, this.format_block('jstpl_card_tooltip', {
-                    cardName: this.cardsDescription[card_type_id].name,
-                    cardDescription: this.cardsDescription[card_type_id].description,
+                    cardName: this.cardsAvailable[card_type_id].name,
+                    cardDescription: this.cardsAvailable[card_type_id].description,
                 }), delay);
 
             },
