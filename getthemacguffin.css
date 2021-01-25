@@ -76,6 +76,7 @@
 #in_play_wrapper
 { 
     display: inline-flex;
+    flex-wrap: wrap;
 }
 
 .gtmInPlayZone{

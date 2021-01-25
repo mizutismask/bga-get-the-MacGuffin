@@ -304,11 +304,15 @@ class GetTheMacGuffin extends Table
     function stealRandomCardFromLocation($player_to, $location)
     {
         $cards = $this->deck->getCardsInLocation($location);
-        $card_id = array_rand($cards);
-        $card = $this->deck->getCard($card_id);
-        $this->deck->moveCard($card_id, DECK_LOC_HAND, $player_to);
-        // Notify player about change
-        self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, '', array('added' => [$card]));
+        if ($cards) {
+            $card_id = array_rand($cards);
+            $card = $this->deck->getCard($card_id);
+            $this->deck->moveCard($card_id, DECK_LOC_HAND, $player_to);
+            // Notify player about change
+            self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, '', array('added' => [$card]));
+        } else {
+            self::notifyAllPlayers('msg', 'There is no card left', array());
+        }
     }
 
     function stealObjectInPlay($player_to, $object_card)
