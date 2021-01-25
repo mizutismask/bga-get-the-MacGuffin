@@ -46,6 +46,8 @@ class view_getthemacguffin_getthemacguffin extends game_view
     $this->tpl['MY_HAND'] = self::_("My hand");
     $this->tpl['PLAYING_ZONE'] = self::_("Playing zone");
     $this->tpl['HAND_COUNT'] = self::_("Cards in hand number");
+    $this->tpl['SECRET_CARDS_FROM'] = self::_("Secret cards from ");
+
     /*
         
         // Examples: set the value of some element defined in your tpl file like this: {MY_VARIABLE_ELEMENT}

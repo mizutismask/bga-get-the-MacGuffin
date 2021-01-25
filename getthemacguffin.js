@@ -264,7 +264,7 @@ define([
                             if (selectionRequired) {
                                 this.addActionButton('button_confirm_card', _('Select a card'), 'onSelectSecretCard');
                             } else {
-                                this.addActionButton('button_confirm_viewed', _('Done with spying'), 'onDoneViewing');
+                                this.addActionButton('button_confirm_viewed', _('Done'), 'onDoneViewing');
                             }
                             break;
                         case "specifyClockwise":

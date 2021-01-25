@@ -40,7 +40,8 @@
     </div>
 </div>
 <div id="secret_zone_wrap" class="whiteblock gtm_white_block">
-    <h3 id="secret_zone_title"></h3>
+    <h3 style="display: inline;">{SECRET_CARDS_FROM}</h3>
+    <h3 id="secret_zone_title" style="display: inline-block;"></h3>
     <div id="secret_zone"></div>
 </div>
 
