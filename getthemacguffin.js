@@ -195,11 +195,6 @@ define([
                 console.log('args', args);
 
                 switch (stateName) {
-                    case 'seeSecretCards':
-                        if (this.isCurrentPlayerActive()) {
-                            dojo.style("secret_zone_wrap", "display", "block");
-                        }
-                        break;
                     case 'mandatoryCard':
                         var mandatorCardId = args.args.mandatory_card_id;
                         if (this.isCurrentPlayerActive()) {
@@ -219,22 +214,9 @@ define([
                 console.log('Leaving state: ' + stateName);
 
                 switch (stateName) {
-
-                    /* Example:
-                    
-                    case 'myGameState':
-                    
-                        // Hide the HTML block we are displaying only during this game state
-                        dojo.style( 'my_html_block_id', 'display', 'none' );
-                        
-                        break;
-                   */
-
                     case 'seeSecretCards':
-                        if (this.isCurrentPlayerActive()) {
-                            this.secretZone.removeAll();
-                            dojo.style("secret_zone_wrap", "display", "none");
-                        }
+                        this.secretZone.removeAll();
+                        dojo.style("secret_zone_wrap", "display", "none");
                         break;
                     case 'mandatoryCard':
                         if (this.isCurrentPlayerActive()) {
@@ -302,15 +284,18 @@ define([
 
             displaySecretCards: function (secretCardsProperties) {
                 var cards = secretCardsProperties.cards;
-                var selectionRequired = secretCardsProperties.selection_required;
-                var title = secretCardsProperties.location_desc;
+                if (this.isCurrentPlayerActive() && cards) {
+                    var selectionRequired = secretCardsProperties.selection_required;
+                    var title = secretCardsProperties.location_desc;
 
-                dojo.byId("secret_zone_title").innerHTML = title;
+                    dojo.byId("secret_zone_title").innerHTML = title;
+                    dojo.style("secret_zone_wrap", "display", "block");
 
-                for (var card_id in cards) {
-                    var card = cards[card_id];
-                    this.secretZone.addToStockWithId(card.type, card.id);
-                    this.secretZone.setSelectionMode(selectionRequired ? 1 : 0);
+                    for (var card_id in cards) {
+                        var card = cards[card_id];
+                        this.secretZone.addToStockWithId(card.type, card.id);
+                        this.secretZone.setSelectionMode(selectionRequired ? 1 : 0);
+                    }
                 }
             },
 
