@@ -47,21 +47,27 @@
 
 
 /********* You can start writing your CSS below this line: **********/
- .stockitem  {
+.gtm_white_block{
+    border: 2px solid #70c4cf;
+    font-family: "Broadway", "Roboto", Arial, sans-serif;
+    color: rgb(13, 158, 177);
+}
+
+.stockitem  {
     border-radius: 15px;
-    
     -moz-box-shadow: 5px 5px 5px 0px rgba(0,0,0,0.4);
     -webkit-box-shadow: 5px 5px 5px 0px rgba(0,0,0,0.4);
     -o-box-shadow: 5px 5px 5px 0px rgba(0,0,0,0.4);
     box-shadow: 5px 5px 5px 0px rgba(0,0,0,0.4);
     filter:progid:DXImageTransform.Microsoft.Shadow(color=#656565, Direction=134, Strength=30);   
 }
-
+.stockitem_selected {
+	border: 2px solid rgb(140, 67, 182) ! important;
+}
 
 .spectatorMode #myhand_wrap{
     display: none;
 }
-
 
 #secret_zone_wrap{
     display: none;
@@ -104,6 +110,44 @@
     left: 17px;
     z-index: 1;
 }
+
+@-webkit-keyframes slide {
+    100% { left:100%; }
+}
+
+@keyframes slide {
+    100% { left: 100%; }
+}
+
+.wrapper {
+    z-index: 1;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    height: 100px;
+}
+
+#animation{
+    position: absolute;
+    left: -100px;
+    background-image: url("./img/cards/cards200x311.jpg");
+    width: 100px;
+    height: 100px;
+    -webkit-animation: slide 6s forwards;
+    -webkit-animation-delay: 2s;
+    animation: slide 6s forwards;
+    animation-delay: 2s;
+}
+
+.gtm-tooltip-name{
+    font-family: "Broadway", "Roboto", Arial, sans-serif;
+    color: rgb(13, 158, 177);
+}
+
+.gtm-tooltip-description{
+    max-width: 300px;
+}
+
 /*
     Example of CSS sprites (a black token and a white token, 20x20px each, embedded in the same "tokens.png" 40x20px image):
 

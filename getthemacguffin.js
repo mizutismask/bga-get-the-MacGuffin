@@ -54,6 +54,7 @@ define([
                 console.log("gamedatas ", gamedatas);
 
                 this.cardsAvailable = gamedatas.cardsAvailable;
+                this.cardsDescription = gamedatas.cardsDescription;
                 // Setting up player boards
                 for (var player_id in gamedatas.players) {
                     var player = gamedatas.players[player_id];
@@ -67,7 +68,9 @@ define([
                 this.playerHand.image_items_per_row = this.image_items_per_row;
                 this.playerHand.item_margin = 6;
                 this.playerHand.apparenceBorderWidth = '2px';
+                this.playerHand.setSelectionAppearance('class');
                 this.playerHand.setSelectionMode(1);
+                this.playerHand.onItemCreate = dojo.hitch(this, 'createTooltip');
 
                 // Create cards types:
                 var i = 0;
@@ -84,6 +87,8 @@ define([
                     this.playerHand.addToStockWithId(card.type, card.id);
                 }
 
+
+
                 //-----------cards in play setup + options setup for each player
                 this.inPlayStocksByPlayerId = [];
                 this.optionsByPlayerId = [];
@@ -91,8 +96,10 @@ define([
 
                     var playerInPlayCards = new ebg.stock();
                     playerInPlayCards.setSelectionMode(1);
+                    playerInPlayCards.autowidth = true;
                     playerInPlayCards.create(this, $('cards_in_play_' + player_id), this.cardwidth, this.cardheight);
                     playerInPlayCards.image_items_per_row = this.image_items_per_row;
+                    playerInPlayCards.onItemCreate = dojo.hitch(this, 'createTooltip');
 
                     // Create cards types:
                     var i = 0;
@@ -108,7 +115,6 @@ define([
                     for (var card_id in cards) {
                         var card = cards[card_id];
                         playerInPlayCards.addToStockWithId(card.type, card.id);
-                        //this.addCardToolTip(playerInPlayCards, card.id, card.type_arg);
                     }
                     this.inPlayStocksByPlayerId[player_id] = playerInPlayCards;
 
@@ -134,6 +140,8 @@ define([
                 this.discard.create(this, $('discard_pile'), this.cardwidth, this.cardheight);//discard_pile is the div where the card is going
                 this.discard.image_items_per_row = this.image_items_per_row;
                 this.discard.setSelectionMode(0);
+                this.discard.autowidth = true;
+                this.discard.onItemCreate = dojo.hitch(this, 'createTooltip');
 
                 // Create cards types:
                 var i = 0;
@@ -153,6 +161,7 @@ define([
                 this.secretZone.create(this, $('secret_zone'), this.cardwidth, this.cardheight);//secret_zone is the div where the card is going
                 this.secretZone.image_items_per_row = this.image_items_per_row;
                 this.secretZone.setSelectionMode(0);
+                this.secretZone.onItemCreate = dojo.hitch(this, 'createTooltip');
 
                 // Create cards types:
                 var i = 0;
@@ -302,7 +311,6 @@ define([
                     var card = cards[card_id];
                     this.secretZone.addToStockWithId(card.type, card.id);
                     this.secretZone.setSelectionMode(selectionRequired ? 1 : 0);
-                    //this.addCardToolTip(playerInPlayCards, card.id, card.type_arg);
                 }
             },
 
@@ -310,6 +318,18 @@ define([
                 if (dojo.byId(id)) {
                     dojo.byId(id).innerHTML = text;
                 }
+            },
+
+            createTooltip: function (card_div, card_type_id, card_id) {
+                console.log("tooltip card_type_id" + card_type_id);
+                console.log("tooltip card_id" + card_id);
+                // Note that "card_type_id" contains the type of the item, so you can do special actions depending on the item type
+                delay = 200;
+                this.addTooltipHtml(card_id, this.format_block('jstpl_card_tooltip', {
+                    cardName: this.cardsDescription[card_type_id].name,
+                    cardDescription: this.cardsDescription[card_type_id].description,
+                }), delay);
+
             },
 
             ///////////////////////////////////////////////////

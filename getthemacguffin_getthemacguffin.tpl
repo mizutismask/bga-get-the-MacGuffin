@@ -24,19 +24,22 @@
     
     Please REMOVE this comment before publishing your game on BGA
 -->
+<div class="wrapper">
+    <div id="animation"></div>
+</div>
 <div id="mainLine">
-    <div id="discard_pile_wrap" class="whiteblock">
+    <div id="discard_pile_wrap" class="whiteblock gtm_white_block">
         <h3>{PLAYING_ZONE}</h3>
         <div id="discard_pile">
         </div>
     </div>
-    <div id="myhand_wrap" class="whiteblock">
+    <div id="myhand_wrap" class="whiteblock gtm_white_block">
         <h3>{MY_HAND}</h3>
         <div id="myhand">
         </div>
     </div>
 </div>
-<div id="secret_zone_wrap" class="whiteblock">
+<div id="secret_zone_wrap" class="whiteblock gtm_white_block">
     <h3 id="secret_zone_title"></h3>
     <div id="secret_zone"></div>
 </div>
@@ -44,14 +47,14 @@
 <div id="in_play_wrapper">
 
     <!-- BEGIN player -->
-    <div id="in_play_{PLAYER_ID}" class="whiteblock gtmInPlayZone">
+    <div id="in_play_{PLAYER_ID}" class="whiteblock gtmInPlayZone gtm_white_block">
         <div style="color:#{PLAYER_COLOR}" class="gtmPlayerName">
             <h3>{PLAYER_NAME}</h3>
         </div>
-        <div class="cardsInPlay" id="cards_in_play_{PLAYER_ID}" >
+        <div class="cardsInPlay" id="cards_in_play_{PLAYER_ID}">
         </div>
         <span id="cards_count_{PLAYER_ID}" class="gtm_cards_count"></span>
-        <div id="options_{PLAYER_ID}" >
+        <div id="options_{PLAYER_ID}">
         </div>
     </div>
     <!-- END player -->
@@ -60,14 +63,19 @@
 
 <script type="text/javascript">
 
-// Javascript HTML templates
+    // Javascript HTML templates
 
     /*
     // Example:
     var jstpl_some_game_item='<div class="my_game_item" id="my_game_item_${MY_ITEM_ID}"></div>';
     
     */
-
+    var jstpl_card_tooltip = '\
+        <div class="gtm_card-tooltip-desc">\
+            <div class="gtm-tooltip-name">${cardName}</div>\
+            <hr/>\
+            <div class="gtm-tooltip-description">${cardDescription}</div>\
+        </div>';
 </script>
 
 {OVERALL_GAME_FOOTER}

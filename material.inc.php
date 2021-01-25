@@ -75,7 +75,7 @@ $this->cards_description = array(
     'name' => clienttranslate('Backup MacGuffin'),
     'nametr' => self::_('Backup MacGuffin'),
     'type' => OBJ,
-    'description' => clienttranslate('In the absence of the real MacGuffin, this is considered to be the MacGuffin. If the real MacGuffin is not in play, and you have no cards in hand and no other Objects, pick this up and put it down again as your play.'),
+    'description' => clienttranslate('In the absence of the real MacGuffin, this is considered to be the MacGuffin. <p>If the real MacGuffin is not in play, and you have no cards in hand and no other Objects, pick this up and put it down again as your play.</p>'),
   ),
   SCISSORS => array(
     'name' => clienttranslate('The Scissors'),
@@ -111,7 +111,7 @@ $this->cards_description = array(
     'name' => clienttranslate('The Interrogator'),
     'nametr' => self::_('The Interrogator'),
     'type' => ACTION,
-    'description' => clienttranslate('If a player (othan than you) has the MacGuffin, they must reveal it. If the MacGuffin has not been seen and a player (other than you) has the Backup MacGuffin, they must reveal it.'),
+    'description' => clienttranslate('If a player (othan than you) has the MacGuffin, they must reveal it. <p>If the MacGuffin has not been seen and a player (other than you) has the Backup MacGuffin, they must reveal it.</p>'),
   ),
   THIEF => array(
     'name' => clienttranslate('The Thief'),
@@ -141,7 +141,7 @@ $this->cards_description = array(
     'name' => clienttranslate('The Merchant'),
     'nametr' => self::_('The Merchant'),
     'type' => ACTION,
-    'description' => clienttranslate('If no one has an Object in play, do nothing. If only one player has an Object(s), move one Object from that player to you. If at least two players have Objects in play, any two of those players must make a one-for-one exchange of Objects as per your direction.'),
+    'description' => clienttranslate('If no one has an Object in play, do nothing. <p>If only one player has an Object(s), move one Object from that player to you.</p><p>If at least two players have Objects in play, any two of those players must make a one-for-one exchange of Objects as per your direction.</p>'),
   ),
   SPY => array(
     'name' => clienttranslate('The Spy'),
@@ -171,13 +171,13 @@ $this->cards_description = array(
     'name' => clienttranslate('The Assassin'),
     'nametr' => self::_('The Assassin'),
     'type' => ACTION,
-    'description' => clienttranslate('If someone has the Crown in play, that player must immediatly discard it. If no one has the Crown in play, discard any Object in play or a randomly chosen card from another player’s hand.'),
+    'description' => clienttranslate('If someone has the Crown in play, that player must immediatly discard it. <p>If no one has the Crown in play, discard any Object in play or a randomly chosen card from another player’s hand.</p>'),
   ),
   VORTEX => array(
     'name' => clienttranslate('Vortex'),
     'nametr' => self::_('Vortex'),
     'type' => ACTION,
-    'description' => clienttranslate('Gather up all players’s hands (but not cards they have in play), shuffle the cards together, and deal them back out, starting with yourself. Do NOT look at the cards.'),
+    'description' => clienttranslate('Gather up all players’s hands (but not cards they have in play), shuffle the cards together, and deal them back out, starting with yourself.'),
   ),
   HIPPIE => array(
     'name' => clienttranslate('The Hippie'),
@@ -189,8 +189,8 @@ $this->cards_description = array(
     'name' => clienttranslate('I’m Not Dead Yet'),
     'nametr' => self::_('I’m Not Dead Yet'),
     'type' => ACTION,
-    'description' => clienttranslate('If you have no other cards (including Objects), take a card at random from another player’s hand and add it to your own. If no one has a hand, you may steal an Object (other than any MacGuffin) and add it to your hand.
-    Nothing happens if you play this early.'),
+    'description' => clienttranslate('If you have no other cards (including Objects), take a card at random from another player’s hand and add it to your own. <p>If no one has a hand, you may steal an Object (other than any MacGuffin) and add it to your hand.</p>
+    <p>Nothing happens if you play this early.</p>'),
   ),
   FIRST_BUMP => array(
     'name' => clienttranslate('First Bump'),

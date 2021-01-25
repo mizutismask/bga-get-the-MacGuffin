@@ -172,6 +172,7 @@ class GetTheMacGuffin extends Table
         $result['topOfDiscard'] = $this->deck->getCardOnTop(DECK_LOC_DISCARD);
         $result['secretCards'] = $this->getSecretCardsProperties();
         $result['counters'] = $this->argCardsCounters();
+        $result['cardsDescription'] = $this->cards_description;
 
         return $result;
     }
