@@ -95,6 +95,7 @@ define([
 
                     var playerInPlayCards = new ebg.stock();
                     playerInPlayCards.setSelectionMode(1);
+                    playerInPlayCards.setSelectionAppearance('class');
                     playerInPlayCards.autowidth = true;
                     playerInPlayCards.create(this, $('cards_in_play_' + player_id), this.cardwidth, this.cardheight);
                     playerInPlayCards.image_items_per_row = this.image_items_per_row;
@@ -160,6 +161,7 @@ define([
                 this.secretZone.create(this, $('secret_zone'), this.cardwidth, this.cardheight);//secret_zone is the div where the card is going
                 this.secretZone.image_items_per_row = this.image_items_per_row;
                 this.secretZone.setSelectionMode(0);
+                this.secretZone.setSelectionAppearance('class');
                 this.secretZone.onItemCreate = dojo.hitch(this, 'createTooltip');
 
                 // Create cards types:
