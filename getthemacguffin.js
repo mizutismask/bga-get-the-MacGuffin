@@ -659,7 +659,7 @@ define([
                                 this.playerHand.removeFromStockById(removed.id);
                             });
     */
-                            if (playedCard.type == "HIPPIE") {
+                            if (playedCard.type == "HIPPIE" || playedCard.type == "SHRUGMASTER" || playedCard.type == "MARSHALL") {
                                 dojo.addClass("animationDiv", "background_" + playedCard.type);
                                 dojo.addClass("animationDiv", "animation");
                                 dojo.style("wrapper", "display", "block");
