@@ -24,23 +24,23 @@
     
     Please REMOVE this comment before publishing your game on BGA
 -->
-<div class="wrapper">
-    <div id="animation"></div>
-</div>
 <div id="mainLine">
     <div id="discard_pile_wrap" class="whiteblock gtm_white_block">
-        <h3>{PLAYING_ZONE}</h3>
+        <h3 class="gtm_block_title">{PLAYING_ZONE}</h3>
         <div id="discard_pile">
         </div>
     </div>
     <div id="myhand_wrap" class="whiteblock gtm_white_block">
-        <h3>{MY_HAND}</h3>
+        <h3 class="gtm_block_title">{MY_HAND}</h3>
         <div id="myhand">
         </div>
     </div>
 </div>
+<div id="wrapper" class="wrapper">
+    <div id="animationDiv" class="animation_background"></div>
+</div>
 <div id="secret_zone_wrap" class="whiteblock gtm_white_block">
-    <h3 style="display: inline;">{SECRET_CARDS_FROM}</h3>
+    <h3 class="gtm_block_title" style="display: inline;">{SECRET_CARDS_FROM}</h3>
     <h3 id="secret_zone_title" style="display: inline-block;"></h3>
     <div id="secret_zone"></div>
 </div>
@@ -50,7 +50,7 @@
     <!-- BEGIN player -->
     <div id="in_play_{PLAYER_ID}" class="whiteblock gtmInPlayZone gtm_white_block">
         <div style="color:#{PLAYER_COLOR}" class="gtmPlayerName">
-            <h3>{PLAYER_NAME}</h3>
+            <h3 class="gtm_block_title">{PLAYER_NAME}</h3>
         </div>
         <div class="cardsInPlay" id="cards_in_play_{PLAYER_ID}">
         </div>

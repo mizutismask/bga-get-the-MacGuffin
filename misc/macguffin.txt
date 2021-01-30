@@ -2,3 +2,6 @@ for f in *\ *; do mv "$f" "${f// /_}"; done //removes spaces from pictures name
 magick montage  `ls -v D:/Users/skamycki/Downloads/looneylabs-MacGuffin/GettheMacGuffinAssets_BGA/Cards/*.png` -tile 10 -geometry 200x311+0+0 cards200x311.jpg
 
 magick montage  `ls -v D:/workspaces/bga-get-the-MacGuffin/img/icons/*` -tile 2 -geometry 50x50+0+0 icons_50.png
+
+
+magick montage  `ls -v D:/workspaces/bga-get-the-MacGuffin/img/animations/*.jpg` -tile 5 -geometry 200x200+0+0 animations200x200.jpg

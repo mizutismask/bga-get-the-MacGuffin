@@ -127,6 +127,7 @@ define([
 
                         stock.addItemType("hand", 0, g_gamethemeurl + this.icons_img, 0);
                         stock.addToStockWithId("hand", 0);
+                        dojo.connect(stock, 'onChangeSelection', this, 'onSelectOption');
 
                         this.optionsByPlayerId[player_id] = stock;
                     }
@@ -413,6 +414,26 @@ define([
                 };
             },
 
+            /** 
+             * Unselects other player hands when one is clicked, since hands are not in the same stock.
+             */
+            onSelectOption: function (control_name, item_id) {
+                var clickedStock = null;
+                for (var player_id in this.optionsByPlayerId) {
+                    var stock = this.optionsByPlayerId[player_id];
+                    if (stock.control_name == control_name)
+                        clickedStock = stock;
+                }
+
+                if (clickedStock.getSelectedItems().length == 1) {
+                    for (var player_id in this.optionsByPlayerId) {
+                        var stock = this.optionsByPlayerId[player_id];
+                        if (stock.control_name != clickedStock.control_name)
+                            stock.unselectAll();
+                    }
+                }
+            },
+
             onSelectSecretCard: function (evt) {
                 console.log('onSelectSecretCard');
 
@@ -638,6 +659,11 @@ define([
                                 this.playerHand.removeFromStockById(removed.id);
                             });
     */
+                            if (playedCard.type == "HIPPIE") {
+                                dojo.addClass("animationDiv", "background_" + playedCard.type);
+                                dojo.addClass("animationDiv", "animation");
+                                dojo.style("wrapper", "display", "block");
+                            }
                         });
                 }
 

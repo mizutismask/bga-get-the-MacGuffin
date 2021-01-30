@@ -47,10 +47,29 @@
 
 
 /********* You can start writing your CSS below this line: **********/
+@font-face {font-family: "Parisish"; src: url("//db.onlinewebfonts.com/t/d9699dc8331cf1269216063160d308ef.eot"); 
+    src: url("//db.onlinewebfonts.com/t/d9699dc8331cf1269216063160d308ef.eot?#iefix") format("embedded-opentype"), 
+    url("//db.onlinewebfonts.com/t/d9699dc8331cf1269216063160d308ef.woff2") format("woff2"),
+     url("//db.onlinewebfonts.com/t/d9699dc8331cf1269216063160d308ef.woff") format("woff"), 
+     url("//db.onlinewebfonts.com/t/d9699dc8331cf1269216063160d308ef.ttf") format("truetype"), 
+     url("//db.onlinewebfonts.com/t/d9699dc8331cf1269216063160d308ef.svg#Parisish") format("svg"); 
+}
+
 .gtm_white_block{
     border: 2px solid #70c4cf;
-    font-family: "Broadway", "Roboto", Arial, sans-serif;
     color: rgb(13, 158, 177);
+    font-family: "Parisish", "Broadway", "Roboto", Arial, sans-serif;
+}
+
+.gtm-tooltip-name{
+    font-family: "Parisish", "Broadway", "Roboto", Arial, sans-serif;
+    color: rgb(13, 158, 177);
+    font-size: x-large;
+    font-weight: bold;
+}
+
+.gtm_block_title{ 
+    font-size: x-large;
 }
 
 .stockitem  {
@@ -121,33 +140,45 @@
 }
 
 .wrapper {
-    z-index: 1;
+    z-index: 100;
     position: relative;
     overflow: hidden;
     width: 100%;
-    height: 100px;
+    height: 200px;
+    display: none;
+    float: left;
 }
 
-#animation{
+#animationDiv{
+   
+    
+}
+
+.animation{
     position: absolute;
-    left: -100px;
-    background-image: url("./img/cards/cards200x311.jpg");
-    width: 100px;
-    height: 100px;
+    left: -200px;
     -webkit-animation: slide 6s forwards;
-    -webkit-animation-delay: 2s;
+    -webkit-animation-delay: 0s;
     animation: slide 6s forwards;
-    animation-delay: 2s;
+    animation-delay: 0s;
 }
 
-.gtm-tooltip-name{
-    font-family: "Broadway", "Roboto", Arial, sans-serif;
-    color: rgb(13, 158, 177);
+.animation_background{
+    background-image: url("./img/animations200x200.jpg");
+    width: 199px;
+    height: 199px;
 }
+
+.background_HIPPIE{
+    background-position: -400px 0px;
+}
+
 
 .gtm-tooltip-description{
     max-width: 300px;
 }
+
+
 
 /*
     Example of CSS sprites (a black token and a white token, 20x20px each, embedded in the same "tokens.png" 40x20px image):
