@@ -131,61 +131,41 @@
     z-index: 1;
 }
 
-@-webkit-keyframes slide {
-    100% { left:100%; }
-}
-
-@keyframes slide {
-    100% { left: 100%; }
-}
-
-.wrapper {
-    z-index: 100;
-    position: relative;
-    overflow: hidden;
-    width: 100%;
-    height: 200px;
-    display: none;
-    float: left;
-}
-
-#animationDiv{
-   
-    
+@keyframes zoominout {
+    0% { transform: scale(1,1);}
+    50% { transform: scale(1.2,1.2);}
+    100% { transform: scale(1,1);}
 }
 
 .animation{
     position: absolute;
-    left: -200px;
-    -webkit-animation: slide 6s forwards;
+    top: 19%;
+    left: 7%;
+    -webkit-animation: zoominout 3s linear;
     -webkit-animation-delay: 0s;
-    animation: slide 6s forwards;
+    animation: zoominout 3s linear;
     animation-delay: 0s;
 }
 
 .animation_background{
-    background-image: url("./img/animations200x200.jpg");
-    width: 199px;
-    height: 199px;
+    background-image: url("./img/animations175x175.jpg");
+    width: 174px;
+    height: 175px;
 }
 
 .background_HIPPIE{
-    background-position: -400px 0px;
+    background-position: -350px 0px;
 }
 .background_MARSHALL{
-    background-position: -600px 0px;
+    background-position: -525px 0px;
 }
 .background_SHRUGMASTER{
-    background-position: -800px 0px;
+    background-position: -700px 0px;
 }
-
 
 .gtm-tooltip-description{
     max-width: 300px;
 }
-
-
-
 /*
     Example of CSS sprites (a black token and a white token, 20x20px each, embedded in the same "tokens.png" 40x20px image):
 

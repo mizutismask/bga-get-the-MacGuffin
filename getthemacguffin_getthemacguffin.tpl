@@ -36,9 +36,6 @@
         </div>
     </div>
 </div>
-<div id="wrapper" class="wrapper">
-    <div id="animationDiv" class="animation_background"></div>
-</div>
 <div id="secret_zone_wrap" class="whiteblock gtm_white_block">
     <h3 class="gtm_block_title" style="display: inline;">{SECRET_CARDS_FROM}</h3>
     <h3 id="secret_zone_title" style="display: inline-block;"></h3>
@@ -77,6 +74,8 @@
             <hr/>\
             <div class="gtm-tooltip-description">${cardDescription}</div>\
         </div>';
+
+    var jstpl_animation = '<div class="animationDiv animation_background animation ${background_class}" id="animationDiv"></div>';
 </script>
 
 {OVERALL_GAME_FOOTER}

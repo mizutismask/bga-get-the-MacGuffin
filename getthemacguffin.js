@@ -660,13 +660,20 @@ define([
                             });
     */
                             if (playedCard.type == "HIPPIE" || playedCard.type == "SHRUGMASTER" || playedCard.type == "MARSHALL") {
-                                dojo.addClass("animationDiv", "background_" + playedCard.type);
-                                dojo.addClass("animationDiv", "animation");
-                                dojo.style("wrapper", "display", "block");
+
+                                dojo.place(this.format_block('jstpl_animation', {
+                                    background_class: "background_" + playedCard.type,
+                                }), document.getElementById('discard_pile').firstChild);
+
+                                function callback() {
+                                    dojo.destroy("animationDiv");
+                                }
+                                var node = document.getElementById('discard_pile').firstChild;
+                                node.addEventListener("webkitAnimationEnd", callback, false);
+                                node.addEventListener("animationend", callback, false);
                             }
                         });
                 }
-
             },
 
             onDiscard: function (evt) {
