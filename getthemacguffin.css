@@ -78,10 +78,26 @@
     -webkit-box-shadow: 5px 5px 5px 0px rgba(0,0,0,0.4);
     -o-box-shadow: 5px 5px 5px 0px rgba(0,0,0,0.4);
     box-shadow: 5px 5px 5px 0px rgba(0,0,0,0.4);
-    filter:progid:DXImageTransform.Microsoft.Shadow(color=#656565, Direction=134, Strength=30);   
+    filter:progid:DXImageTransform.Microsoft.Shadow(color=#656565, Direction=134, Strength=30);  
+    border: 1px solid rgb(13, 158, 177); 
+    cursor:default;
 }
 .stockitem_selected {
 	border: 2px solid rgb(140, 67, 182) ! important;
+}
+
+.stockitem:hover {
+  transform: scale(1.05);
+  z-index: 150 !important;
+}
+
+.unselectable {
+  cursor: not-allowed;
+  filter: opacity(0.6);
+}
+
+.selectable {
+  cursor: pointer;
 }
 
 .spectatorMode #myhand_wrap{

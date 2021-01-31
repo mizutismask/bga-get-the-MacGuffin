@@ -201,6 +201,9 @@ define([
                         var mandatorCardId = args.args.mandatory_card_id;
                         if (this.isCurrentPlayerActive()) {
                             this.inPlayStocksByPlayerId[this.player_id].setSelectionMode(0);
+                            dojo.query("#myhand .stockitem").removeClass('selectable').addClass('unselectable');
+                            dojo.removeClass("myhand_item_" + mandatorCardId, 'unselectable');
+                            dojo.addClass("myhand_item_" + mandatorCardId, 'selectable');
                             break;
                         }
                     case 'nextPlayer':
