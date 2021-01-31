@@ -197,6 +197,22 @@ define([
                 console.log('args', args);
 
                 switch (stateName) {
+                    case 'playerTurn':
+                        if (this.isCurrentPlayerActive()) {
+                            var mcgfnId = this.getStockCardIdOfType(this.inPlayStocksByPlayerId[this.player_id], "MACGUFFIN");
+                            if (mcgfnId && (this.inPlayStocksByPlayerId[this.player_id].count() > 1 || this.playerHand.count() > 0)) {
+                                var htmlId = "cards_in_play_" + this.player_id + "_item_" + mcgfnId;
+                                dojo.removeClass(htmlId, 'selectable');
+                                dojo.addClass(htmlId, 'unselectable');
+                            }
+                            var mcgfnId = this.getStockCardIdOfType(this.inPlayStocksByPlayerId[this.player_id], "BACKUP_MACGUFFIN");
+                            if (mcgfnId && (this.inPlayStocksByPlayerId[this.player_id].count() > 1 || this.playerHand.count() > 0)) {
+                                var htmlId = "cards_in_play_" + this.player_id + "_item_" + mcgfnId;
+                                dojo.removeClass(htmlId, 'selectable');
+                                dojo.addClass(htmlId, 'unselectable');
+                            }
+                        }
+                        break;
                     case 'mandatoryCard':
                         var mandatorCardId = args.args.mandatory_card_id;
                         if (this.isCurrentPlayerActive()) {
@@ -226,6 +242,12 @@ define([
                     case 'mandatoryCard':
                         if (this.isCurrentPlayerActive()) {
                             this.inPlayStocksByPlayerId[this.player_id].setSelectionMode(1);
+                            dojo.query(".stockitem").removeClass('unselectable').addClass('selectable');
+                            break;
+                        }
+                    case 'playerTurn':
+                        if (this.isCurrentPlayerActive()) {
+                            dojo.query(".stockitem").removeClass('unselectable').addClass('selectable');
                             break;
                         }
                 }
@@ -320,6 +342,20 @@ define([
                     cardDescription: this.cardsAvailable[card_type_id].description,
                 }), delay);
 
+            },
+
+            getKeyByValue: function (object, value) {
+                return Object.keys(object).find(key => object[key] === value);
+            },
+
+            getStockCardIdOfType: function (stock, cardType) {
+                for (var idAndType of stock.getAllItems()) {
+                    console.log("idAndType", idAndType);
+                    if (idAndType.type === cardType) {
+                        return idAndType.id;
+                    }
+                }
+                return undefined;
             },
 
             ///////////////////////////////////////////////////
