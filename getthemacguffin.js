@@ -714,19 +714,6 @@ define([
                                 this.playerHand.removeFromStockById(removed.id);
                             });
     */
-                            if (playedCard.type == "HIPPIE" || playedCard.type == "SHRUGMASTER" || playedCard.type == "MARSHALL") {
-
-                                dojo.place(this.format_block('jstpl_animation', {
-                                    background_class: "background_" + playedCard.type,
-                                }), document.getElementById('discard_pile').firstChild);
-
-                                function callback() {
-                                    dojo.destroy("animationDiv");
-                                }
-                                var node = document.getElementById('discard_pile').firstChild;
-                                node.addEventListener("webkitAnimationEnd", callback, false);
-                                node.addEventListener("animationend", callback, false);
-                            }
                         });
                 }
             },
@@ -874,6 +861,21 @@ define([
                 }
                 if (notif.args.discarded) {
                     this.inPlayStocksByPlayerId[notif.args.player_id].removeFromStockById(card.id);
+                }
+
+                //animates void cards
+                if (card.type == "HIPPIE" || card.type == "SHRUGMASTER" || card.type == "MARSHALL") {
+
+                    dojo.place(this.format_block('jstpl_animation', {
+                        background_class: "background_" + card.type,
+                    }), document.getElementById('discard_pile').firstChild);
+
+                    function callback() {
+                        dojo.destroy("animationDiv");
+                    }
+                    var node = document.getElementById('discard_pile').firstChild;
+                    node.addEventListener("webkitAnimationEnd", callback, false);
+                    node.addEventListener("animationend", callback, false);
                 }
             },
 
