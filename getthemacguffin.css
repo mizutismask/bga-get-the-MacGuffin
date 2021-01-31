@@ -91,9 +91,15 @@
   z-index: 150 !important;
 }
 
-.unselectable {
+
+.unselectable, .stockitem_unselectable {
   cursor: not-allowed;
   filter: opacity(0.6);
+}
+
+#discard_pile .stockitem_unselectable {
+  cursor: default;
+  filter: opacity(1);
 }
 
 .selectable {
@@ -143,7 +149,7 @@
     color: 	#70c4cf;
     position: relative;
     top: 41px;
-    left: 17px;
+    left: 18px;
     z-index: 1;
 }
 

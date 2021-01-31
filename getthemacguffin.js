@@ -124,6 +124,8 @@ define([
                         stock.setSelectionMode(1);
                         stock.create(this, $('options_' + player_id), 50, 50);
                         stock.image_items_per_row = 2;
+                        stock.apparenceBorderWidth = '2px';
+                        stock.setSelectionAppearance('class');
 
                         stock.addItemType("hand", 0, g_gamethemeurl + this.icons_img, 0);
                         stock.addToStockWithId("hand", 0);
@@ -197,6 +199,12 @@ define([
                 console.log('args', args);
 
                 switch (stateName) {
+                    case 'seeSecretCards':
+                        if (this.isCurrentPlayerActive()) {
+                            this.playerHand.setSelectionMode(0);
+                            this.makeInPlayPanelsSelectable(false);
+                        }
+                        break;
                     case 'playerTurn':
                         if (this.isCurrentPlayerActive()) {
                             var mcgfnId = this.getStockCardIdOfType(this.inPlayStocksByPlayerId[this.player_id], "MACGUFFIN");
@@ -238,6 +246,8 @@ define([
                     case 'seeSecretCards':
                         this.secretZone.removeAll();
                         dojo.style("secret_zone_wrap", "display", "none");
+                        this.playerHand.setSelectionMode(1);
+                        this.makeInPlayPanelsSelectable(true);
                         break;
                     case 'mandatoryCard':
                         if (this.isCurrentPlayerActive()) {
@@ -271,7 +281,7 @@ define([
                         case "seeSecretCards":
                             var selectionRequired = args.selection_required;
                             if (selectionRequired) {
-                                this.addActionButton('button_confirm_card', _('Select a card'), 'onSelectSecretCard');
+                                this.addActionButton('button_confirm_card', _('Take a card'), 'onSelectSecretCard');
                             } else {
                                 this.addActionButton('button_confirm_viewed', _('Done'), 'onDoneViewing');
                             }
@@ -300,6 +310,12 @@ define([
                 script.
             
             */
+            makeInPlayPanelsSelectable(selectable) {
+                for (var player_id in this.inPlayStocksByPlayerId) {
+                    this.inPlayStocksByPlayerId[player_id].setSelectionMode(selectable ? 1 : 0);
+                }
+            },
+
             getSelectedPlayer: function () {
                 for (var player_id in this.optionsByPlayerId) {
                     var stock = this.optionsByPlayerId[player_id];
