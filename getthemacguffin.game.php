@@ -506,6 +506,9 @@ class GetTheMacGuffin extends Table
             if (!$effect_on_card && !$effect_on_player_id)
                 throw new BgaUserException("When the crown is not in play, you have to choose an object in play or a player’s hand to use the assassin");
 
+            if ($effect_on_card && $effect_on_player_id)
+                throw new BgaUserException("You have to choose an object in play OR a player’s hand");
+
             if ($effect_on_card) {
                 $this->discardInPlayObject($effect_on_card);
             }
@@ -530,17 +533,33 @@ class GetTheMacGuffin extends Table
     function playNotDeadYet($player_id, $effect_on_card, $effect_on_player_id)
     {
         if ($this->hasNoCardsInHand($player_id) && $this->hasNoCardsInPlay($player_id)) {
+
             if ($effect_on_player_id && !$this->hasNoCardsInHand($effect_on_player_id)) {
                 $this->stealCardFromHand($effect_on_player_id, $player_id);
             } else if ($this->no_one_has_a_hand_other_than($player_id) && $effect_on_card) {
-                if (($effect_on_card["type"] === MACGUFFIN) || ($effect_on_card["type"] === BACKUP_MACGUFFIN)) {
-                    throw new BgaUserException("You can NOT steal a sort of MacGuffin");
+                if ($this->inPlayObjectsAreMacGuffins()) {
+                } else {
+                    if (($effect_on_card["type"] === MACGUFFIN) || ($effect_on_card["type"] === BACKUP_MACGUFFIN)) {
+                        throw new BgaUserException("You can NOT steal a sort of MacGuffin");
+                    }
+                    $this->stealObjectInPlay($player_id, $effect_on_card);
                 }
-                $this->stealObjectInPlay($player_id, $effect_on_card);
             } else {
                 throw new BgaUserException("Select a player to steal a card from his hand. If no one has a hand, you can steal an object.");
             }
         }
+    }
+
+    function inPlayObjectsAreMacGuffins()
+    {
+        $cards = $this->deck->getCardsInLocation(DECK_LOC_IN_PLAY);
+        $macguffins = true;
+        foreach ($cards as $card) {
+            if ($card["type"] != MACGUFFIN && $card["type"] != BACKUP_MACGUFFIN) {
+                return false;
+            }
+        }
+        return $macguffins;
     }
 
     function no_one_has_a_hand_other_than($other_than_player_id)
@@ -554,6 +573,34 @@ class GetTheMacGuffin extends Table
             }
         }
         return $noone;
+    }
+
+    function someone_has_a_hand_other_than($other_than_player_id)
+    {
+        $players = self::loadPlayersBasicInfos();
+        $someone = false;
+        foreach ($players as $player) {
+            $player_id = $player["player_id"];
+            if ($player_id != $other_than_player_id && !$this->hasNoCardsInHand($player_id)) {
+                $someone = true;
+                break;
+            }
+        }
+        return $someone;
+    }
+
+    function someone_has_in_play_cards_other_than($other_than_player_id)
+    {
+        $players = self::loadPlayersBasicInfos();
+        $someone = false;
+        foreach ($players as $player) {
+            $player_id = $player["player_id"];
+            if ($player_id != $other_than_player_id && !$this->hasNoCardsInPlay($player_id)) {
+                $someone = true;
+                break;
+            }
+        }
+        return $someone;
     }
 
     function playSpy($player_id, $effect_on_player_id)
@@ -720,6 +767,9 @@ class GetTheMacGuffin extends Table
                 $this->playInterrogator();
                 break;
             case THIEF:
+                if (!$effect_on_player_id && !$effect_on_card && ($this->someone_has_a_hand_other_than($player_id) || $this->someone_has_in_play_cards_other_than($player_id))) {
+                    throw new BgaUserException("You have to select an object in play or someone else’s hand.");
+                }
                 if ($effect_on_card) {
                     $this->stealObjectInPlay($player_id, $effect_on_card);
                 } else if ($effect_on_player_id) {
