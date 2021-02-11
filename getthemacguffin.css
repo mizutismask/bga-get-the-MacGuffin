@@ -167,6 +167,7 @@
     -webkit-animation-delay: 0s;
     animation: zoominout 3s linear;
     animation-delay: 0s;
+    z-index: 99;
 }
 
 .animation_background{
@@ -175,6 +176,12 @@
     height: 175px;
 }
 
+.background_MACGUFFIN{
+    background-position: 0px 0px;
+}
+.background_BACKUP_MACGUFFIN{
+    background-position: -175px 0px;
+}
 .background_HIPPIE{
     background-position: -350px 0px;
 }

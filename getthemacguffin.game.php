@@ -291,13 +291,16 @@ class GetTheMacGuffin extends Table
     function stealCardFromHand($player_from, $player_to)
     {
         $cards = $this->deck->getCardsInLocation(DECK_LOC_HAND, $player_from);
-        $card_id = array_rand($cards);
-        $card = $this->deck->getCard($card_id);
-        $this->deck->moveCard($card_id, DECK_LOC_HAND, $player_to);
-        // Notify players about changes
-        self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, '', array('added' => [$card]));
-        self::notifyPlayer($player_from, NOTIF_HAND_CHANGE, '', array('removed' => [$card]));
-        return $this->deck->getCard($card_id);
+        if ($cards) {
+            $card_id = array_rand($cards);
+            $card = $this->deck->getCard($card_id);
+            $this->deck->moveCard($card_id, DECK_LOC_HAND, $player_to);
+            // Notify players about changes
+            self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, '', array('added' => [$card]));
+            self::notifyPlayer($player_from, NOTIF_HAND_CHANGE, '', array('removed' => [$card]));
+            return $this->deck->getCard($card_id);
+        }
+        return null;
     }
 
     function stealCardFromDiscard($card_id, $player_to)
@@ -401,6 +404,8 @@ class GetTheMacGuffin extends Table
         $msg_args = array(
             'card_name' => $this->cards_description[$macGuffinType]["name"],
             'i18n' => array('card_name'),
+            'type' => $macGuffinType,
+            'ownerId' => 0,
         );
 
         if ($mcGuffin["location"] == DECK_LOC_DECK || $mcGuffin["location_arg"] == $player_id) {
@@ -410,13 +415,16 @@ class GetTheMacGuffin extends Table
             $seen = true;
             $message = '${player_name} reveals ${card_name}';
             $msg_args['player_name'] = $this->getPlayerName($mcGuffin["location_arg"]);
+            $msg_args['ownerId'] = $mcGuffin["location_arg"];
         } else if ($mcGuffin["location"] == DECK_LOC_IN_PLAY) {
             $seen = true;
             $message = '${player_name} already played ${card_name}';
             $msg_args['player_name'] = $this->getPlayerName($mcGuffin["location_arg"]);
+            $msg_args['ownerId'] = $mcGuffin["location_arg"];
         } else if ($mcGuffin["location"] == DECK_LOC_DISCARD) {
             $seen = true;
             $message = '${card_name} is in the playing zone';
+            $msg_args['inDiscard'] = true;
         }
 
         self::notifyAllPlayers(NOTIF_REVELATION, clienttranslate($message), $msg_args);
@@ -742,14 +750,16 @@ class GetTheMacGuffin extends Table
             throw new BgaUserException("You have to select a player to take a card from.");
         }
         $card = $this->stealCardFromHand($effect_on_player_id, $player_id);
-        self::setGameStateValue(GS_MANDATORY_CARD, $card["id"]);
+        if ($card) {
+            self::setGameStateValue(GS_MANDATORY_CARD, $card["id"]);
 
-        self::notifyAllPlayers("msg", '${player_name} takes the ${card_name}', array(
-            'player_name' => $this->getPlayerName($player_id),
-            'card_name' => $this->cards_description[$card["type"]]["name"],
-            'i18n' => array('card_name'),
-        ));
-        return TRANSITION_MANDATORY_CARD;
+            self::notifyAllPlayers("msg", '${player_name} takes the ${card_name}', array(
+                'player_name' => $this->getPlayerName($player_id),
+                'card_name' => $this->cards_description[$card["type"]]["name"],
+                'i18n' => array('card_name'),
+            ));
+            return TRANSITION_MANDATORY_CARD;
+        }
     }
 
     function playActionCard($played_card, $description, $effect_on_card = null, $effect_on_player_id = null)

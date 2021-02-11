@@ -782,6 +782,9 @@ define([
 
                 dojo.subscribe('cardPlayed', this, "notif_cardPlayed");
                 dojo.subscribe('secretCards', this, "notif_secretCards");
+                dojo.subscribe('revelation', this, "notif_revelation");
+
+
                 dojo.subscribe('gtmplayerEliminated', this, "notif_playerEliminated");
 
                 dojo.connect(this.playerHand, 'onChangeSelection', this, 'onSelectCard');
@@ -865,22 +868,41 @@ define([
 
                 //animates void cards
                 if (card.type == "HIPPIE" || card.type == "SHRUGMASTER" || card.type == "MARSHALL") {
-
-                    dojo.place(this.format_block('jstpl_animation', {
-                        background_class: "background_" + card.type,
-                    }), document.getElementById('discard_pile').firstChild);
-
-                    function callback() {
-                        dojo.destroy("animationDiv");
-                    }
-                    var node = document.getElementById('discard_pile').firstChild;
-                    node.addEventListener("webkitAnimationEnd", callback, false);
-                    node.addEventListener("animationend", callback, false);
+                    this.animate(card.type, 'discard_pile');
                 }
             },
 
             notif_secretCards: function (notif) {
                 this.displaySecretCards(notif.args.args);
+            },
+
+            notif_revelation: function (notif) {
+                console.log('notif_cardPlayed', notif);
+                if (notif.args.inDiscard || notif.args.ownerId) {
+                    if (notif.args.inDiscard) {
+                        var divFrom = "player_boards";
+                        var divTo = "discard_pile";
+                    } else if (notif.args.ownerId) {
+                        var divFrom = "player_board_" + notif.args.ownerId;
+                        var divTo = "in_play_" + notif.args.ownerId;
+                    }
+                    this.slideTemporaryObject(this.format_block('jstpl_animation', {
+                        background_class: "background_" + notif.args.type,
+                    }), "game_play_area", divFrom, divTo, 4500, 0);
+                }
+            },
+
+            animate: function (cardType, animationLocationDiv) {
+                dojo.place(this.format_block('jstpl_animation', {
+                    background_class: "background_" + cardType,
+                }), document.getElementById(animationLocationDiv));
+
+                function callback() {
+                    dojo.destroy("animationDiv");
+                }
+                var node = document.getElementById(animationLocationDiv);
+                node.addEventListener("webkitAnimationEnd", callback, false);
+                node.addEventListener("animationend", callback, false);
             },
 
             notif_playerEliminated: function (notif) {
