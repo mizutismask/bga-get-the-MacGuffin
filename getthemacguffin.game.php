@@ -354,7 +354,7 @@ class GetTheMacGuffin extends Table
         $card_id = array_rand($cards);
         $this->discardCardFromHand($card_id);
 
-        self::notifyAllPlayers('msg', '${player_name} looses a random card from his hand', array(
+        self::notifyAllPlayers('msg', '${player_name} loses a random card from his hand', array(
             'player_name' => $this->getPlayerName($player_id),
         ));
     }
@@ -363,7 +363,7 @@ class GetTheMacGuffin extends Table
     {
         $toDiscard = $this->deck->getCard($object_card["id"]);
         $this->deck->playCard($object_card["id"]);
-        self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '${player_name} looses ${card_name}', array(
+        self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '${player_name} loses ${card_name}', array(
             'removed' => [$toDiscard],
             "player_id" => $toDiscard["location_arg"],
             'player_name' => $this->getPlayerName($toDiscard["location_arg"]),
@@ -484,7 +484,7 @@ class GetTheMacGuffin extends Table
         $toDiscard = array_pop($cards);
         if ($toDiscard["location"] === DECK_LOC_IN_PLAY && $toDiscard["location_arg"] != $player_id) {
             $this->deck->playCard($toDiscard["id"]);
-            self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '${player_name} looses ${card_name}', array(
+            self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '${player_name} loses ${card_name}', array(
                 'removed' => [$toDiscard],
                 "player_id" => $toDiscard["location_arg"],
                 'player_name' => $this->getPlayerName($toDiscard["location_arg"]),
@@ -502,7 +502,7 @@ class GetTheMacGuffin extends Table
         $toDiscard = array_pop($cards);
         if ($toDiscard["location"] === DECK_LOC_IN_PLAY) {
             $this->deck->playCard($toDiscard["id"]);
-            self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '${player_name} looses ${card_name}', array(
+            self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '${player_name} loses ${card_name}', array(
                 'removed' => [$toDiscard],
                 "player_id" => $toDiscard["location_arg"],
                 'player_name' => $this->getPlayerName($toDiscard["location_arg"]),
