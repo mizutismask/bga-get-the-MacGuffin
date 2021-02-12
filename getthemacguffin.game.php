@@ -296,8 +296,16 @@ class GetTheMacGuffin extends Table
             $card = $this->deck->getCard($card_id);
             $this->deck->moveCard($card_id, DECK_LOC_HAND, $player_to);
             // Notify players about changes
-            self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, '', array('added' => [$card]));
-            self::notifyPlayer($player_from, NOTIF_HAND_CHANGE, '', array('removed' => [$card]));
+            self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, 'You stole ${card_name}', array(
+                'added' => [$card],
+                'card_name' => $this->cards_description[$card["type"]]["name"],
+                'i18n' => array('card_name'),
+            ));
+            self::notifyPlayer($player_from, NOTIF_HAND_CHANGE, 'You’ve been stolen ${card_name}', array(
+                'removed' => [$card],
+                'card_name' => $this->cards_description[$card["type"]]["name"],
+                'i18n' => array('card_name'),
+            ));
             return $this->deck->getCard($card_id);
         }
         return null;
@@ -308,7 +316,11 @@ class GetTheMacGuffin extends Table
         $card = $this->deck->getCard($card_id);
         $this->deck->moveCard($card_id, DECK_LOC_HAND, $player_to);
         // Notify player about change
-        self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, '', array('added' => [$card]));
+        self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, 'You took ${card_name} from the discard', array(
+            'added' => [$card],
+            'card_name' => $this->cards_description[$card["type"]]["name"],
+            'i18n' => array('card_name'),
+        ));
     }
 
     /** MUST NOT be called with location HAND */
@@ -320,7 +332,11 @@ class GetTheMacGuffin extends Table
             $card = $this->deck->getCard($card_id);
             $this->deck->moveCard($card_id, DECK_LOC_HAND, $player_to);
             // Notify player about change
-            self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, '', array('added' => [$card]));
+            self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, 'You got ${card_name}', array(
+                'added' => [$card],
+                'card_name' => $this->cards_description[$card["type"]]["name"],
+                'i18n' => array('card_name'),
+            ));
         } else {
             self::notifyAllPlayers('msg', 'There is no card left', array());
         }
@@ -332,7 +348,11 @@ class GetTheMacGuffin extends Table
         $this->deck->moveCard($object_card["id"], DECK_LOC_HAND, $player_to);
         self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '', array("player_id" => $from, 'removed' => [$object_card]));
         // Notify players about changes
-        self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, '', array('added' => [$object_card]));
+        self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, 'You stole ${card_name}', array(
+            'added' => [$object_card],
+            'card_name' => $this->cards_description[$object_card["type"]]["name"],
+            'i18n' => array('card_name'),
+        ));
     }
 
     function discardCardFromHand($card_id)
@@ -353,9 +373,15 @@ class GetTheMacGuffin extends Table
         $cards = $this->deck->getCardsInLocation(DECK_LOC_HAND, $player_id);
         $card_id = array_rand($cards);
         $this->discardCardFromHand($card_id);
+        $card = $this->deck->getCard($card_id);
 
         self::notifyAllPlayers('msg', '${player_name} loses a random card from his hand', array(
             'player_name' => $this->getPlayerName($player_id),
+        ));
+
+        self::notifyPlayer($player_id, 'msg', 'You’ve been discarded ${card_name}', array(
+            'card_name' => $this->cards_description[$card["type"]]["name"],
+            'i18n' => array('card_name'),
         ));
     }
 
@@ -381,6 +407,10 @@ class GetTheMacGuffin extends Table
         $this->deck->moveCards($this->concatenateFieldValues($to_cards, "id"), DECK_LOC_HAND, $player_from);
 
         // Notify players about changes
+        self::notifyAllPlayers('msg', '${player_name_from} swaps hands with ${player_name_to}', array(
+            'player_name_from' => $this->getPlayerName($player_from),
+            'player_name_to' => $this->getPlayerName($player_to),
+        ));
         self::notifyPlayer($player_from, NOTIF_HAND_CHANGE, '', array('added' => $this->deck->getCardsInLocation(DECK_LOC_HAND, $player_from), 'reset' => true));
         self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, '', array('added' => $this->deck->getCardsInLocation(DECK_LOC_HAND, $player_to), 'reset' => true));
     }
