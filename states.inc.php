@@ -131,7 +131,7 @@ $machinestates = array(
     STATE_CLOCKWISE_OR_NOT => array(
         "name" => "specifyClockwise",
         "description" => clienttranslate('${actplayer} is choosing clockwise or counterclockwise'),
-        "descriptionmyturn" => clienttranslate('${you} must give your hand clockwise or counterclockwise'),
+        "descriptionmyturn" => clienttranslate('${you} must give your hand to the next player or the previous one'),
         "type" => "activeplayer",
         "possibleactions" => array("clockwise", "counterclockwise"),
         "transitions" => array(TRANSITION_NEXT_PLAYER => STATE_NEXT_PLAYER,)

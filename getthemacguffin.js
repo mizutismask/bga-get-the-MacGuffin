@@ -287,8 +287,8 @@ define([
                             }
                             break;
                         case "specifyClockwise":
-                            this.addActionButton('button_confirm_card_clockwise', _('Clockwise'), 'onClockwise');
-                            this.addActionButton('button_confirm_card_counterclockwise', _('Counterclockwise'), 'onCounterclockwise');
+                            this.addActionButton('button_confirm_card_clockwise', _('Next player'), 'onClockwise');
+                            this.addActionButton('button_confirm_card_counterclockwise', _('Previous player'), 'onCounterclockwise');
                             break;
                         case "specifyObjectToTake":
                             this.addActionButton('button_take_object', _('Take'), 'onTakeObject');
