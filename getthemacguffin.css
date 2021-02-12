@@ -143,14 +143,18 @@
 .gtmPlayerName{
     text-align: center;
 }
-.gtm_cards_count{
+
+.gtm_cards_counter{
     font-weight: bold;
     font-size: 28px;
     color: 	#70c4cf;
+    z-index: 1;
+}
+
+.gtm_cards_count{
     position: relative;
     top: 41px;
     left: 18px;
-    z-index: 1;
 }
 
 @keyframes zoominout {

@@ -24,6 +24,7 @@
     
     Please REMOVE this comment before publishing your game on BGA
 -->
+<div id="help_line">{TOMB_COUNT}<span id="tomb_count" class="gtm_cards_counter"></span></div>
 <div id="mainLine">
     <div id="discard_pile_wrap" class="whiteblock gtm_white_block">
         <h3 class="gtm_block_title">{PLAYING_ZONE}</h3>
@@ -51,7 +52,7 @@
         </div>
         <div class="cardsInPlay" id="cards_in_play_{PLAYER_ID}">
         </div>
-        <span id="cards_count_{PLAYER_ID}" class="gtm_cards_count"></span>
+        <span id="cards_count_{PLAYER_ID}" class="gtm_cards_counter gtm_cards_count"></span>
         <div id="options_{PLAYER_ID}">
         </div>
     </div>

@@ -1140,6 +1140,10 @@ class GetTheMacGuffin extends Table
         foreach ($cards_in_hand as $player_id => $cards_nbr) {
             $counters['cards_count_' . $player_id]['counter_value'] = $cards_nbr;
         }
+
+        $counters['tomb_count']['counter_name'] = 'tomb_count';
+        $counters['tomb_count']['counter_value'] = $this->deck->countCardInLocation(DECK_LOC_DECK);
+
         return $counters;
     }
 
