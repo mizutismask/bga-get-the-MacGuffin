@@ -91,13 +91,16 @@
   z-index: 150 !important;
 }
 
+.stockitem_unselectable:hover {
+    transform: none;
+  }
 
 .unselectable, .stockitem_unselectable {
   cursor: not-allowed;
   filter: opacity(0.6);
 }
 
-#discard_pile .stockitem_unselectable {
+#discard_pile .stockitem_unselectable, #playing_zone_detail .stockitem_unselectable {
   cursor: default;
   filter: opacity(1);
 }

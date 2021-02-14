@@ -178,6 +178,29 @@ define([
 
                 this.displaySecretCards(gamedatas.secretCards);
 
+                //playingZoneDetail
+                this.playingZoneDetail = new ebg.stock(); // new stock object for seeing secret cards
+                this.playingZoneDetail.create(this, $('playing_zone_detail'), this.cardwidth, this.cardheight);//playing_zone is the div where the card is going
+                this.playingZoneDetail.image_items_per_row = this.image_items_per_row;
+                this.playingZoneDetail.setSelectionMode(0);
+                this.playingZoneDetail.setSelectionAppearance('class');
+                this.playingZoneDetail.onItemCreate = dojo.hitch(this, 'createTooltip');
+
+                // Create cards types:
+                var i = 0;
+                for (var name in this.cardsAvailable) {
+                    var card = this.cardsAvailable[name];
+                    i++;
+                    // Build card type id
+                    this.playingZoneDetail.addItemType(name, 0, g_gamethemeurl + this.cards_img, i);
+                }
+                //adds already played objects
+                var cards = gamedatas.playingZoneDetail;
+                for (var card_id in cards) {
+                    var card = cards[card_id];
+                    this.playingZoneDetail.addToStockWithId(card.type, card.id);
+                }
+
                 dojo.style("cards_count_" + this.player_id, "display", "none");//do not display my counter
                 this.updateCounters(gamedatas.counters);
 
@@ -842,6 +865,13 @@ define([
                         var card = notif.args.removed[i];
                         console.log("notif_inPlayChange remove card id/type :" + card.id + " " + card.type);
                         this.inPlayStocksByPlayerId[$player_id].removeFromStockById(card.id);
+
+                    }
+                }
+                if (notif.args.discarded) {
+                    for (var i in notif.args.removed) {
+                        var card = notif.args.removed[i];
+                        this.playingZoneDetail.addToStockWithId(card.type, card.id);
                     }
                 }
             },
@@ -857,6 +887,7 @@ define([
                 else {
                     this.discard.removeAll();
                     this.discard.addToStockWithId(card.type, card.id);
+                    this.playingZoneDetail.addToStockWithId(card.type, card.id);
                 }
 
                 if (this.player_id == notif.args.player_id) {
@@ -870,6 +901,8 @@ define([
                 if (card.type == "HIPPIE" || card.type == "SHRUGMASTER" || card.type == "MARSHALL") {
                     this.animate(card.type, 'discard_pile');
                 }
+
+
             },
 
             notif_secretCards: function (notif) {

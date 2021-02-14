@@ -66,6 +66,11 @@
 
 </div>
 
+<div id="playing_zone_detail_wrap" class="whiteblock gtm_white_block">
+    <h3 class="gtm_block_title">{PLAYING_ZONE_DETAIL}</h3>
+    <div id="playing_zone_detail"></div>
+</div>
+
 <script type="text/javascript">
 
     // Javascript HTML templates

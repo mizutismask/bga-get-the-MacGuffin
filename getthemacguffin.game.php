@@ -34,6 +34,7 @@ if (!defined('DECK_LOC_DECK')) {
     define("NOTIF_IN_PLAY_CHANGE", "inPlayChange");
     define("NOTIF_REVELATION", "revelation");
     define("NOTIF_SEE_SECRET_CARDS", "secretCards");
+    define("NOTIF_PLAYING_ZONE_DETAIL_CHANGE", "playingZoneDetailChange");
     define("NOTIF_PLAYER_ELIMINATED", "gtmplayerEliminated");
 
 
@@ -175,6 +176,7 @@ class GetTheMacGuffin extends Table
         $result['topOfDiscard'] = $this->deck->getCardOnTop(DECK_LOC_DISCARD);
         $result['secretCards'] = $this->getSecretCardsProperties();
         $result['counters'] = $this->argCardsCounters();
+        $result['playingZoneDetail'] = $this->deck->getCardsInLocation(DECK_LOC_DISCARD);
 
         return $result;
     }
@@ -363,6 +365,7 @@ class GetTheMacGuffin extends Table
             $this->deck->playCard($card_id);
             // Notify players about change
             self::notifyPlayer($owner, NOTIF_HAND_CHANGE, '', array('removed' => [$card]));
+            self::notifyAllPlayers(NOTIF_PLAYING_ZONE_DETAIL_CHANGE, '', array('added' => [$card]));
         } else {
             throw new BgaUserException(self::_("This card is not part of the hand of any player"));
         }
@@ -375,8 +378,9 @@ class GetTheMacGuffin extends Table
         $this->discardCardFromHand($card_id);
         $card = $this->deck->getCard($card_id);
 
-        self::notifyAllPlayers('msg', '${player_name} loses a random card from his hand', array(
+        self::notifyAllPlayers(NOTIF_PLAYING_ZONE_DETAIL_CHANGE, '${player_name} loses a random card from his hand', array(
             'player_name' => $this->getPlayerName($player_id),
+            'added' => [$card],
         ));
 
         self::notifyPlayer($player_id, 'msg', 'You’ve been discarded ${card_name}', array(
@@ -391,6 +395,7 @@ class GetTheMacGuffin extends Table
         $this->deck->playCard($object_card["id"]);
         self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '${player_name} loses ${card_name}', array(
             'removed' => [$toDiscard],
+            'discarded' => [$toDiscard],
             "player_id" => $toDiscard["location_arg"],
             'player_name' => $this->getPlayerName($toDiscard["location_arg"]),
             'card_name' => $this->cards_description[$toDiscard["type"]]["name"],
@@ -516,6 +521,7 @@ class GetTheMacGuffin extends Table
             $this->deck->playCard($toDiscard["id"]);
             self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '${player_name} loses ${card_name}', array(
                 'removed' => [$toDiscard],
+                'discarded' => [$toDiscard],
                 "player_id" => $toDiscard["location_arg"],
                 'player_name' => $this->getPlayerName($toDiscard["location_arg"]),
                 'card_name' => $this->cards_description[$weakCard]["name"],
@@ -534,6 +540,7 @@ class GetTheMacGuffin extends Table
             $this->deck->playCard($toDiscard["id"]);
             self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '${player_name} loses ${card_name}', array(
                 'removed' => [$toDiscard],
+                'discarded' => [$toDiscard],
                 "player_id" => $toDiscard["location_arg"],
                 'player_name' => $this->getPlayerName($toDiscard["location_arg"]),
                 'card_name' => $this->cards_description[CROWN]["name"],
