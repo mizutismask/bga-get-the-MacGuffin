@@ -230,6 +230,7 @@ define([
                         break;
                     case 'playerTurn':
                         if (this.isCurrentPlayerActive()) {
+                            this.resetHelpMessage();
                             this.deselectAll();
                             var mcgfnId = this.getStockCardIdOfType(this.inPlayStocksByPlayerId[this.player_id], "MACGUFFIN");
                             if (mcgfnId && (this.inPlayStocksByPlayerId[this.player_id].count() > 1 || this.playerHand.count() > 0)) {
@@ -286,6 +287,7 @@ define([
                         if (this.isCurrentPlayerActive()) {
                             dojo.query(".stockitem").removeClass('unselectable').addClass('selectable');
                             this.playingZoneDetail.setSelectionMode(0);
+                            this.resetHelpMessage();
                             break;
                         }
                 }
@@ -376,6 +378,14 @@ define([
                 }
             },
 
+            displayHelpMessage: function (msg, addSuffix = true) {
+                this.changeInnerHtml("help_msg", addSuffix ? msg + _(" and then press play") : msg);
+            },
+
+            resetHelpMessage: function () {
+                this.changeInnerHtml("help_msg", "");
+            },
+
             createTooltip: function (card_div, card_type_id, card_id) {
                 console.log("tooltip card_type_id" + card_type_id);
                 console.log("tooltip card_id" + card_id);
@@ -403,6 +413,7 @@ define([
             },
 
             deselectAll: function () {
+                this.playerHand.unselectAll();
                 for (var player_id in this.optionsByPlayerId) {
                     this.optionsByPlayerId[player_id].unselectAll();
                     this.inPlayStocksByPlayerId[player_id].unselectAll;
@@ -468,13 +479,33 @@ define([
 
                         switch (card.type) {
                             case "GARBAGE_COLLECTR":
+                                this.displayHelpMessage(_("Now, select a card from the discard"));
                                 this.playingZoneDetail.setSelectionMode(1);
                                 dojo.query("#playing_zone_detail .stockitem").removeClass('unselectable').removeClass('stockitem_unselectable').addClass('selectable');
                                 break;
 
+                            case "FIST_OF_DOOM":
+                                this.displayHelpMessage(_("Now, select an object in play or another player’s hand"));
+                                break;
+                            case "THIEF":
+                                this.displayHelpMessage(_("Now, select another player’s hand or object in play"));
+                                break;
+                            case "SWITCHEROO":
+                            case "SPY":
+                            case "CAN_I_USE_THAT":
+                                this.displayHelpMessage(_("Now, select another player’s hand"));
+                                break;
+                            case "MERCHANT":
+                                this.displayHelpMessage(_("Now, select an object in play from another player if only one player has objects in play. Press play this card otherwise."), false);
+                                break;
+                            case "":
+                                this.displayHelpMessage(_("Now, select an object in play or another player’s hand"));
+                                break;
                             default:
-
+                                this.resetHelpMessage();
                         }
+                    } else {
+                        this.resetHelpMessage();
                     }
                 };
             },
