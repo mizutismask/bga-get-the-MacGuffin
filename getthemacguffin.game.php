@@ -44,7 +44,6 @@ if (!defined('DECK_LOC_DECK')) {
     define('GS_SECRET_CARDS_LOCATION_ARG', "secretCardsLocationArg");
     define('GS_SECRET_CARDS_SELECTION', "secretCardsSelection");
     define('GS_SECRET_CARDS_SHOW_SELECTED', "showSelectedSecretCard");
-    define('GS_SECRET_CARDS_GARBAGE_ID', "removeGarbageWithId");
     define('GS_MANDATORY_CARD', "mandatory_card_id");
 
     define('GS_SECRET_CARDS_LOCATION_DISCARD', "1");
@@ -69,7 +68,6 @@ class GetTheMacGuffin extends Table
             GS_SECRET_CARDS_SELECTION => 12,
             GS_SECRET_CARDS_SHOW_SELECTED => 13,
             GS_MANDATORY_CARD => 14,
-            GS_SECRET_CARDS_GARBAGE_ID => 15,
         ));
 
         $this->deck = self::getNew("module.common.deck");
@@ -118,7 +116,6 @@ class GetTheMacGuffin extends Table
         self::setGameStateInitialValue(GS_SECRET_CARDS_SELECTION, 0);
         self::setGameStateInitialValue(GS_SECRET_CARDS_SHOW_SELECTED, 0);
         self::setGameStateInitialValue(GS_MANDATORY_CARD, 0);
-        self::setGameStateInitialValue(GS_SECRET_CARDS_GARBAGE_ID, 0);
 
         // Init game statistics
         // (note: statistics used in this file must be defined in your stats.inc.php file)
@@ -204,12 +201,6 @@ class GetTheMacGuffin extends Table
             }
             $cards = $this->deck->getCardsInLocation($location, $id_from_player ? $id_from_player : null);
             $location_desc = $location === DECK_LOC_DISCARD ? self::_("discard") : $this->getPlayerName($id_from_player);
-
-            $garbage_id = self::getGameStateValue(GS_SECRET_CARDS_GARBAGE_ID);
-            if ($garbage_id) {
-                //garbage collector cant be chosen
-                unset($cards[$garbage_id]);
-            }
 
             $secretCardsAction['cards'] = $cards;
             $secretCardsAction['selection_required'] = (bool)self::getGameStateValue(GS_SECRET_CARDS_SELECTION);
@@ -313,15 +304,19 @@ class GetTheMacGuffin extends Table
         return null;
     }
 
-    function stealCardFromDiscard($card_id, $player_to)
+    function stealCardFromDiscard($card, $player_to)
     {
-        $card = $this->deck->getCard($card_id);
-        $this->deck->moveCard($card_id, DECK_LOC_HAND, $player_to);
+        $this->deck->moveCard($card['id'], DECK_LOC_HAND, $player_to);
         // Notify player about change
-        self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, 'You took ${card_name} from the discard', array(
+        self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, '', array(
             'added' => [$card],
+
+        ));
+        self::notifyAllPlayers(NOTIF_PLAYING_ZONE_DETAIL_CHANGE, '${player_name} takes ${card_name} from the discard', array(
+            'removed' => [$card],
             'card_name' => $this->cards_description[$card["type"]]["name"],
             'i18n' => array('card_name'),
+            'player_name' => $this->getPlayerName($player_to),
         ));
     }
 
@@ -670,19 +665,9 @@ class GetTheMacGuffin extends Table
         return TRANSITION_SEE_SECRET_CARDS;
     }
 
-    function playGarbageCollector($played_card, $player_id)
+    function playGarbageCollector($player_id, $effect_on_card)
     {
-        self::setGameStateValue(GS_SECRET_CARDS_LOCATION, GS_SECRET_CARDS_LOCATION_DISCARD);
-        self::setGameStateValue(GS_SECRET_CARDS_LOCATION_ARG, 0);
-        self::setGameStateValue(GS_SECRET_CARDS_SELECTION, 1);
-        self::setGameStateValue(GS_SECRET_CARDS_SHOW_SELECTED, 1);
-        self::setGameStateValue(GS_SECRET_CARDS_GARBAGE_ID, $played_card["id"]);
-
-        self::notifyPlayer($player_id, NOTIF_SEE_SECRET_CARDS, '', array(
-            'args' => $this->getSecretCardsProperties(),
-        ));
-
-        return TRANSITION_SEE_SECRET_CARDS;
+        $this->stealCardFromDiscard($effect_on_card, $player_id);
     }
 
     function playMerchant($player_id)
@@ -843,8 +828,14 @@ class GetTheMacGuffin extends Table
                 $this->playFistOfDoom($effect_on_card, $effect_on_player_id);
                 break;
             case GARBAGE_COLLECTR:
-                if ($this->deck->countCardInLocation(DECK_LOC_DISCARD) > 0) {
-                    return $this->playGarbageCollector($played_card, $player_id);
+                if (!$effect_on_card && $this->deck->countCardInLocation(DECK_LOC_DISCARD) > 0) {
+                    throw new BgaUserException("You have to select one card from the discard.");
+                }
+                if ($effect_on_card["location"] != DECK_LOC_DISCARD) {
+                    throw new BgaUserException("You can take a card from the discard only.");
+                }
+                if ($effect_on_card) {
+                    $this->playGarbageCollector($player_id, $effect_on_card);
                 }
                 break;
             case CAN_I_USE_THAT:
@@ -1122,8 +1113,6 @@ class GetTheMacGuffin extends Table
             $player_id = self::getActivePlayerId();
             if ($location === GS_SECRET_CARDS_LOCATION_HAND) {
                 $this->stealCardFromHand(self::getGameStateValue(GS_SECRET_CARDS_LOCATION_ARG), $player_id);
-            } else if ($location === GS_SECRET_CARDS_LOCATION_DISCARD) {
-                $this->stealCardFromDiscard($selected_card_id, $player_id);
             } else {
                 throw new BgaVisibleSystemException("this kind of location is not supposed to be found when seeing secret cards");
             }
@@ -1141,7 +1130,6 @@ class GetTheMacGuffin extends Table
         self::setGameStateValue(GS_SECRET_CARDS_LOCATION_ARG, 0);
         self::setGameStateValue(GS_SECRET_CARDS_SELECTION, 0);
         self::setGameStateValue(GS_SECRET_CARDS_SHOW_SELECTED, 0);
-        self::setGameStateValue(GS_SECRET_CARDS_GARBAGE_ID, 0);
         $this->gamestate->nextState(TRANSITION_NEXT_PLAYER);
     }
 

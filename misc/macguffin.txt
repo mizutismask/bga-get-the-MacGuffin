@@ -7,3 +7,6 @@ magick montage  `ls -v D:/workspaces/bga-get-the-MacGuffin/img/icons/*` -tile 2 
 magick montage  `ls -v D:/workspaces/bga-get-the-MacGuffin/img/animations/*.jpg` -tile 5 -geometry 200x200+0+0 animations200x200.jpg
 
 magick montage  `ls -v D:/workspaces/bga/GTManimations/*.jpg` -tile 5 -geometry 175x175+0+0 animations175x175.jpg
+
+Rules from Looney labs
+https://www.looneylabs.com/sites/default/files/literature/GettheMacGuffinRules.pdf
