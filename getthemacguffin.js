@@ -341,12 +341,11 @@ define([
             ///////////////////////////////////////////////////
             //// Utility methods
 
-            /*
-            
-                Here, you can defines some utility methods that you can use everywhere in your javascript
-                script.
-            
-            */
+            showMessageAndResetSelection(msg) {
+                this.showMessage(msg, 'error');
+                this.deselectAll();
+            },
+
             makeInPlayPanelsSelectable(selectable) {
                 for (var player_id in this.inPlayStocksByPlayerId) {
                     this.inPlayStocksByPlayerId[player_id].setSelectionMode(selectable ? 1 : 0);
@@ -421,9 +420,11 @@ define([
 
             deselectAll: function () {
                 this.playerHand.unselectAll();
-                for (var player_id in this.optionsByPlayerId) {
-                    this.optionsByPlayerId[player_id].unselectAll();
-                    this.inPlayStocksByPlayerId[player_id].unselectAll;
+                for (var player_id in this.inPlayStocksByPlayerId) {
+                    this.inPlayStocksByPlayerId[player_id].unselectAll();
+                    if (this.optionsByPlayerId.hasOwnProperty(player_id)) {
+                        this.optionsByPlayerId[player_id].unselectAll();
+                    }
                 }
             },
 
@@ -476,6 +477,15 @@ define([
             */
             onSelectCard: function (control_name, item_id) {
                 // This method is called when myStockControl selected items changed
+
+                if (item_id == undefined)
+                    return;
+
+                // Check if item is selectable
+                if (dojo.hasClass(control_name + "_item_" + item_id, "unselectable")) {
+                    this.playerHand.unselectItem(item_id);
+                }
+
                 if (this.isCurrentPlayerActive()) {
                     //get selected card
                     var itemsFromHand = this.playerHand.getSelectedItems();
@@ -518,6 +528,14 @@ define([
             },
 
             onSelectInPlayCard: function (control_name, item_id) {
+                if (item_id == undefined)
+                    return;
+
+                // Check if item is selectable
+                if (dojo.hasClass(control_name + "_item_" + item_id, "unselectable")) {
+                    this.inPlayStocksByPlayerId[this.player_id].unselectItem(item_id);
+                }
+
                 // This method is called when myStockControl selected items changed
                 if (this.isCurrentPlayerActive()) {
                     //get selected card
@@ -586,7 +604,7 @@ define([
                             function (result) { });
 
                     } else {
-                        this.showMessage(_('You have to select one card'), 'error');
+                        this.showMessageAndResetSelection(_('You have to select one card'));
                     }
                 };
             },
@@ -679,7 +697,7 @@ define([
                             function (result) { });
 
                     } else {
-                        this.showMessage(_('You have to select one card'), 'error');
+                        this.showMessageAndResetSelection(_('You have to select one card'));
                     }
                 }
             },
@@ -718,7 +736,7 @@ define([
                             function (result) { });
 
                     } else {
-                        this.showMessage(_('You have to select 2 cards from different players'), 'error');
+                        this.showMessageAndResetSelection(_('You have to select 2 cards from different players'));
                     }
                 }
             },
@@ -752,7 +770,7 @@ define([
                 var cardFromOtherPlayer = this.getSelectedInPlayCard();
                 if ((itemsFromHand.length == 0 && itemsFromInPlayZone.length == 0)
                     || (itemsFromHand.length == 1 && itemsFromInPlayZone.length == 1)) {
-                    this.showMessage(_('You have to select one card to play'), 'error');
+                    this.showMessageAndResetSelection(_('You have to select one card to play'));
                 }
                 else {
                     var playedCard;
@@ -769,7 +787,7 @@ define([
                         case "GARBAGE_COLLECTR":
                             var itemsFromDiscard = this.playingZoneDetail.getSelectedItems();
                             if (itemsFromDiscard.length != 1) {
-                                this.showMessage(_('You have to select one card from the discard'), 'error');
+                                this.showMessageAndResetSelection(_('You have to select one card from the discard'));
                                 error = true;
                             }
                             cardFromOtherPlayer = this.playingZoneDetail.getSelectedItems()[0];
@@ -827,7 +845,7 @@ define([
                         });
 
                 } else {
-                    this.showMessage(_('You have to select an Object in play to discard'), 'error');
+                    this.showMessageAndResetSelection(_('You have to select an Object in play to discard'));
                 }
             },
 
