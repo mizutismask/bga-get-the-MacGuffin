@@ -132,6 +132,7 @@ define([
                         dojo.connect(stock, 'onChangeSelection', this, 'onSelectOption');
 
                         this.optionsByPlayerId[player_id] = stock;
+                        this.addTooltip('options_' + player_id + "_item_0", _("Cards in hand for this player"), "");
                     }
                 }
 
@@ -204,6 +205,9 @@ define([
                 dojo.style("cards_count_" + this.player_id, "display", "none");//do not display my counter
                 this.updateCounters(gamedatas.counters);
 
+                this.addTooltipToClass("gtm_cards_counter", _("Cards in the tomb"), "");
+
+
                 // Setup game notifications to handle (see "setupNotifications" method below)
                 this.setupNotifications();
 
@@ -249,10 +253,13 @@ define([
                     case 'mandatoryCard':
                         var mandatorCardId = args.args.mandatory_card_id;
                         if (this.isCurrentPlayerActive()) {
+                            this.deselectAll();
                             this.inPlayStocksByPlayerId[this.player_id].setSelectionMode(0);
                             dojo.query("#myhand .stockitem").removeClass('selectable').addClass('unselectable').addClass('stockitem_unselectable');
                             dojo.removeClass("myhand_item_" + mandatorCardId, 'unselectable');
+                            dojo.removeClass("myhand_item_" + mandatorCardId, 'stockitem_unselectable');
                             dojo.addClass("myhand_item_" + mandatorCardId, 'selectable');
+                            this.playerHand.selectItem(mandatorCardId);
                             break;
                         }
                     case 'nextPlayer':

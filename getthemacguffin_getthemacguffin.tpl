@@ -26,7 +26,7 @@
 -->
 <div id="help_line" class="whiteblock gtm_white_block">
     <div>
-        <img src="{GAMETHEMEURL}/img/icons/tomb.jpg" style="vertical-align: text-bottom;" />
+        <img src="{GAMETHEMEURL}/img/icons/tomb.jpg" style="vertical-align: text-bottom;" class="gtm_cards_counter" />
         <span class="gtm_cards_counter">x</span>
         <span id="tomb_count" class="gtm_cards_counter"></span>
         <div id="help_msg_wrapper">

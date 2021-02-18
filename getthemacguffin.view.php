@@ -44,11 +44,11 @@ class view_getthemacguffin_getthemacguffin extends game_view
     /*********** Place your code below:  ************/
 
     $this->tpl['MY_HAND'] = self::_("My hand");
-    $this->tpl['PLAYING_ZONE'] = self::_("Playing zone");
+    $this->tpl['PLAYING_ZONE'] = self::_("Discard");
     $this->tpl['HAND_COUNT'] = self::_("Cards in hand number");
     $this->tpl['SECRET_CARDS_FROM'] = self::_("Secret cards from ");
     $this->tpl['TOMB_COUNT'] = self::_("Cards in the tomb:");
-    $this->tpl['PLAYING_ZONE_DETAIL'] = self::_("Playing zone detail");
+    $this->tpl['PLAYING_ZONE_DETAIL'] = self::_("Discard detail");
 
     /*
         
