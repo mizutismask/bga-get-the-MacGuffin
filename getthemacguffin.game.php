@@ -869,7 +869,14 @@ class GetTheMacGuffin extends Table
                 }
                 break;
             case MONEY:
-                throw new BgaUserException("This card must be discarded to activate its effect.");
+                if ((!$effect_on_card && !$effect_on_player_id) || $effect_on_card && $effect_on_player_id) {
+                    throw new BgaUserException("You have to select an object to steal or a player’s hand.");
+                }
+                if ($effect_on_card) {
+                    $this->stealObjectInPlay($player_id, $effect_on_card);
+                } else if ($effect_on_player_id) {
+                    $this->stealCardFromHand($effect_on_player_id, $player_id);
+                }
                 break;
             case CROWN:
                 if ($this->isTypeInPlay(MACGUFFIN) || $this->isTypeInPlay(BACKUP_MACGUFFIN)) {
@@ -1041,25 +1048,7 @@ class GetTheMacGuffin extends Table
         $played_card = $this->deck->getCard($played_card_id);
         $description = $this->cards_description[$played_card["type"]];
 
-        $effect_on_card = null;
-        if ($effect_on_card_id) {
-            $effect_on_card = $this->deck->getCard($effect_on_card_id);
-        }
-
-        if ($played_card["type"] == MONEY) {
-
-            if (!$effect_on_card && !$effect_on_player_id) {
-                throw new BgaUserException("You have to select an object to steal or a player");
-            }
-            if ($effect_on_card) {
-                $this->stealObjectInPlay($player_id, $effect_on_card);
-            } else if ($effect_on_player_id) {
-                $this->stealCardFromHand($effect_on_player_id, $player_id);
-            }
-        }
-
         $this->deck->playCard($played_card_id);
-
 
         // Notify all players about the card discarded
         self::notifyAllPlayers("cardPlayed", clienttranslate('${player_name} discards ${card_name}'), array(
