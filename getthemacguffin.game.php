@@ -480,6 +480,12 @@ class GetTheMacGuffin extends Table
             $player_id = $next_player[$player_id];
         }
 
+        //Need to remove eliminated players
+        $eliminated = array_keys(array_filter($players, function ($player) {
+            return $player["player_eliminated"];
+        }));
+        $result = array_diff($result, $eliminated);
+
         return $result;
     }
 
@@ -1073,10 +1079,12 @@ class GetTheMacGuffin extends Table
 
         $previous = null;
         $first_hand = null;
+        $first_hand_player = null;
         foreach ($order as $player) {
             if (!$previous) {
                 //save first player hand
                 $first_hand = $this->deck->getCardsInLocation(DECK_LOC_HAND, $player);
+                $first_hand_player = $player;
             } else {
                 //player gives his hand to the previous
                 $this->swapHands($player, $previous);
@@ -1088,6 +1096,10 @@ class GetTheMacGuffin extends Table
             $this->deck->moveCard($card["id"], DECK_LOC_HAND, $player);
         }
         self::notifyPlayer($player, NOTIF_HAND_CHANGE, '', array('added' => $this->deck->getCardsInLocation(DECK_LOC_HAND, $player), 'reset' => true));
+        self::notifyAllPlayers('msg', '${player_name_from} swaps hands with ${player_name_to}', array(
+            'player_name_from' => $this->getPlayerName($first_hand_player),
+            'player_name_to' => $this->getPlayerName($player),
+        ));
         $this->gamestate->nextState(TRANSITION_NEXT_PLAYER);
     }
 
