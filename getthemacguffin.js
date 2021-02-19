@@ -538,34 +538,42 @@ define([
                                 this.changeInnerHtml("button_confirm_card", _("Pass"));
                                 break;
                             case "MACGUFFIN":
-                                var mcgfnId = this.getStockCardIdOfType(this.inPlayStocksByPlayerId[this.player_id], "MACGUFFIN");
-                                if (mcgfnId && (this.inPlayStocksByPlayerId[this.player_id].count() > 1 || this.playerHand.count() > 0)) {
-                                    dojo.removeClass('button_confirm_card', 'bgabutton_blue');
-                                    dojo.addClass('button_confirm_card', 'bgabutton_gray');
-                                    dojo.setAttr('button_confirm_card', 'disabled', 'true');
+                                if (dojo.byId("button_confirm_card")) {
+                                    var mcgfnId = this.getStockCardIdOfType(this.inPlayStocksByPlayerId[this.player_id], "MACGUFFIN");
+                                    if (mcgfnId && (this.inPlayStocksByPlayerId[this.player_id].count() > 1 || this.playerHand.count() > 0)) {
+                                        dojo.removeClass('button_confirm_card', 'bgabutton_blue');
+                                        dojo.addClass('button_confirm_card', 'bgabutton_gray');
+                                        dojo.setAttr('button_confirm_card', 'disabled', 'true');
+                                    }
                                 }
                                 break;
                             case "BACKUP_MACGUFFIN":
-                                var mcgfnId = this.getStockCardIdOfType(this.inPlayStocksByPlayerId[this.player_id], "BACKUP_MACGUFFIN");
-                                if (mcgfnId && (this.inPlayStocksByPlayerId[this.player_id].count() > 1 || this.playerHand.count() > 0)) {
-                                    dojo.removeClass('button_confirm_card', 'bgabutton_blue');
-                                    dojo.addClass('button_confirm_card', 'bgabutton_gray');
-                                    dojo.setAttr('button_confirm_card', 'disabled', 'true');
+                                if (dojo.byId("button_confirm_card")) {
+                                    var mcgfnId = this.getStockCardIdOfType(this.inPlayStocksByPlayerId[this.player_id], "BACKUP_MACGUFFIN");
+                                    if (mcgfnId && (this.inPlayStocksByPlayerId[this.player_id].count() > 1 || this.playerHand.count() > 0)) {
+                                        dojo.removeClass('button_confirm_card', 'bgabutton_blue');
+                                        dojo.addClass('button_confirm_card', 'bgabutton_gray');
+                                        dojo.setAttr('button_confirm_card', 'disabled', 'true');
+                                    }
                                 }
                                 break;
                             default:
-                                this.changeInnerHtml("button_confirm_card", _("Play selected card"));
-                                dojo.removeClass('button_confirm_card', 'bgabutton_gray');
-                                dojo.addClass('button_confirm_card', 'bgabutton_blue');
-                                dojo.removeAttr('button_confirm_card', 'disabled');
+                                if (dojo.byId("button_confirm_card")) {
+                                    this.changeInnerHtml("button_confirm_card", _("Play selected card"));
+                                    dojo.removeClass('button_confirm_card', 'bgabutton_gray');
+                                    dojo.addClass('button_confirm_card', 'bgabutton_blue');
+                                    dojo.removeAttr('button_confirm_card', 'disabled');
+                                }
 
                         }
                     }
                     else {
-                        this.changeInnerHtml("button_confirm_card", _("Play selected card"));
-                        dojo.removeClass('button_confirm_card', 'bgabutton_gray');
-                        dojo.addClass('button_confirm_card', 'bgabutton_blue');
-                        dojo.removeAttr('button_confirm_card', 'disabled');
+                        if (dojo.byId("button_confirm_card")) {
+                            this.changeInnerHtml("button_confirm_card", _("Play selected card"));
+                            dojo.removeClass('button_confirm_card', 'bgabutton_gray');
+                            dojo.addClass('button_confirm_card', 'bgabutton_blue');
+                            dojo.removeAttr('button_confirm_card', 'disabled');
+                        }
                     }
                 };
             },

@@ -162,6 +162,7 @@
     font-weight: bold;
     font-size: 28px;
     color: 	#70c4cf;
+    z-index: 1;
 }
 
 .gtm_cards_count{
