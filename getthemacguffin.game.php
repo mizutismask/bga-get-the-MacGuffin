@@ -661,8 +661,8 @@ class GetTheMacGuffin extends Table
                 'args' => $this->getSecretCardsProperties(),
             ));
 
-            self::notifyAllPlayers("msg", clienttranslate('${player_name1} spies on ${player_name2}'), array(
-                'player_name1' => self::getPlayerName($player_id),
+            self::notifyAllPlayers("msg", clienttranslate('${player_name} spies on ${player_name2}'), array(
+                'player_name' => self::getPlayerName($player_id),
                 'player_name2' => self::getPlayerName($effect_on_player_id),
             ));
         } else {
@@ -694,9 +694,9 @@ class GetTheMacGuffin extends Table
                 $this->deck->moveCard($card["id"], DECK_LOC_IN_PLAY, $player_id);
                 self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '', array("player_id" => $from, 'removed' => [$card]));
 
-                self::notifyAllPlayers("cardPlayed", clienttranslate('${player_name1} trades ${card_name} from ${player_name2}'), array(
+                self::notifyAllPlayers("cardPlayed", clienttranslate('${player_name} trades ${card_name} from ${player_name2}'), array(
                     'player_id' => $player_id,
-                    'player_name1' => self::getActivePlayerName(),
+                    'player_name' => self::getActivePlayerName(),
                     'player_name2' => self::getPlayerName($from),
                     'card_name' =>  $this->cards_description[$card["type"]]["name"],
                     'card' => $card,
@@ -722,9 +722,9 @@ class GetTheMacGuffin extends Table
         $from = $card["location_arg"];
         $this->deck->moveCard($object_id, DECK_LOC_IN_PLAY, $player_id);
         self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '', array("player_id" => $from, 'removed' => [$card]));
-        self::notifyAllPlayers("cardPlayed", clienttranslate('${player_name1} trades ${card_name} from ${player_name2}'), array(
+        self::notifyAllPlayers("cardPlayed", clienttranslate('${player_name} trades ${card_name} from ${player_name2}'), array(
             'player_id' => $player_id,
-            'player_name1' => self::getActivePlayerName(),
+            'player_name' => self::getActivePlayerName(),
             'player_name2' => self::getPlayerName($from),
             'card_name' =>  $this->cards_description[$card["type"]]["name"],
             'card' => $card,
@@ -749,9 +749,9 @@ class GetTheMacGuffin extends Table
 
         self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '', array("player_id" => $from1, 'removed' => [$card1]));
         self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '', array("player_id" => $from2, 'removed' => [$card2]));
-        self::notifyAllPlayers("cardPlayed", clienttranslate('${player_name1} and ${player_name2} swap ${card_name1} and ${card_name2}'), array(
+        self::notifyAllPlayers("cardPlayed", clienttranslate('${player_name} and ${player_name2} swap ${card_name1} and ${card_name2}'), array(
             'player_id' => $from2,
-            'player_name1' => self::getPlayerName($from1),
+            'player_name' => self::getPlayerName($from1),
             'player_name2' => self::getPlayerName($from2),
             'card_name1' =>  $this->cards_description[$card1["type"]]["name"],
             'card_name2' =>  $this->cards_description[$card2["type"]]["name"],
@@ -1096,9 +1096,9 @@ class GetTheMacGuffin extends Table
             $this->deck->moveCard($card["id"], DECK_LOC_HAND, $player);
         }
         self::notifyPlayer($player, NOTIF_HAND_CHANGE, '', array('added' => $this->deck->getCardsInLocation(DECK_LOC_HAND, $player), 'reset' => true));
-        self::notifyAllPlayers('msg', '${player_name_from} swaps hands with ${player_name_to}', array(
-            'player_name_from' => $this->getPlayerName($first_hand_player),
-            'player_name_to' => $this->getPlayerName($player),
+        self::notifyAllPlayers('msg', '${player_name} swaps hands with ${player_name2}', array(
+            'player_name' => $this->getPlayerName($first_hand_player),
+            'player_name2' => $this->getPlayerName($player),
         ));
         $this->gamestate->nextState(TRANSITION_NEXT_PLAYER);
     }

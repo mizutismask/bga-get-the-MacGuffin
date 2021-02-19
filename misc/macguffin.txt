@@ -10,3 +10,7 @@ magick montage  `ls -v D:/workspaces/bga/GTManimations/*.jpg` -tile 5 -geometry 
 
 Rules from Looney labs
 https://www.looneylabs.com/sites/default/files/literature/GettheMacGuffinRules.pdf
+
+git log --pretty=format:%s
+
+player_name and player_name2 are colored by the framework in the game log while playername is not.
