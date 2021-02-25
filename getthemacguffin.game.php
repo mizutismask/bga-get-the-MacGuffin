@@ -89,26 +89,7 @@ class GetTheMacGuffin extends Table
     */
     protected function setupNewGame($players, $options = array())
     {
-        // Set the colors of the players with HTML color code
-        // The default below is red/green/blue/orange/brown
-        // The number of colors defined here must correspond to the maximum number of players allowed for the gams
-        $gameinfos = self::getGameinfos();
-        $default_colors = $gameinfos['player_colors'];
-
-        // Create players
-        // Note: if you added some extra field on "player" table in the database (dbmodel.sql), you can initialize it there.
-        $sql = "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar) VALUES ";
-        $values = array();
-        foreach ($players as $player_id => $player) {
-            $color = array_shift($default_colors);
-            $values[] = "('" . $player_id . "','$color','" . $player['player_canal'] . "','" . addslashes($player['player_name']) . "','" . addslashes($player['player_avatar']) . "')";
-        }
-        $sql .= implode($values, ',');
-        self::DbQuery($sql);
-        self::reattributeColorsBasedOnPreferences($players, $gameinfos['player_colors']);
-        self::reloadPlayersBasicInfos();
-
-        /************ Start the game initialization *****/
+        $this->setColorsBasedOnPreferences($players);
 
         // Init global values with their initial values
         self::setGameStateInitialValue(GS_SECRET_CARDS_LOCATION, 0);
@@ -122,23 +103,17 @@ class GetTheMacGuffin extends Table
         //self::initStat( 'table', 'table_teststat1', 0 );    // Init a table statistics
         //self::initStat( 'player', 'player_teststat1', 0 );  // Init a player statistics (for all players)
 
-        // TODO: setup the initial game situation here
+        // setup the deck and deal card
         $cards = array();
         foreach ($this->getCardsAvailable() as $name => $card) {
             $cards[] = array('type' => $name, 'type_arg' => $card["type"] === OBJ, 'nbr' => 1);
         }
         $this->deck->createCards($cards, DECK_LOC_DECK);
         $this->deck->shuffle(DECK_LOC_DECK);
-        $number = min(5, round(23 / count($players), 0, PHP_ROUND_HALF_DOWN));
+        $this->dealCards();
 
-        foreach ($players as $player_id => $player) {
-            $this->pickCardsAndNotifyPlayer($number, $player_id);
-        }
-
-        // Activate first player (which is in general a good idea :) )
+        // Activate first player
         $this->activeNextPlayer();
-
-        /************ End of the game initialization *****/
     }
 
     /*
@@ -176,6 +151,37 @@ class GetTheMacGuffin extends Table
         $result['playingZoneDetail'] = $this->deck->getCardsInLocation(DECK_LOC_DISCARD);
 
         return $result;
+    }
+
+    function dealCards()
+    {
+        $players = self::loadPlayersBasicInfos();
+        $number = min(5, floor(23 / count($players)));
+        foreach ($players as $player_id => $player) {
+            $this->pickCardsAndNotifyPlayer($number, $player_id);
+        }
+    }
+
+    function setColorsBasedOnPreferences($players)
+    {
+        // Set the colors of the players with HTML color code
+        // The default below is red/green/blue/orange/brown
+        // The number of colors defined here must correspond to the maximum number of players allowed for the gams
+        $gameinfos = self::getGameinfos();
+        $default_colors = $gameinfos['player_colors'];
+
+        // Create players
+        // Note: if you added some extra field on "player" table in the database (dbmodel.sql), you can initialize it there.
+        $sql = "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar) VALUES ";
+        $values = array();
+        foreach ($players as $player_id => $player) {
+            $color = array_shift($default_colors);
+            $values[] = "('" . $player_id . "','$color','" . $player['player_canal'] . "','" . addslashes($player['player_name']) . "','" . addslashes($player['player_avatar']) . "')";
+        }
+        $sql .= implode($values, ',');
+        self::DbQuery($sql);
+        self::reattributeColorsBasedOnPreferences($players, $gameinfos['player_colors']);
+        self::reloadPlayersBasicInfos();
     }
 
     function getSecretCardsProperties()
