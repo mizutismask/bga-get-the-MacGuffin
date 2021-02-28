@@ -35,9 +35,9 @@ class view_getthemacguffin_getthemacguffin extends game_view
   }
   function build_page($viewArgs)
   {
-    // Get players & players number
+    // Get players
     $players = $this->game->loadPlayersBasicInfos();
-    $players_nbr = count($players);
+    $players_in_order = $this->game->getPlayersInOrder(false);
     $active_player_id = $this->game->publicGetCurrentPlayerId();
     $template = self::getGameName() . "_" . self::getGameName();
 
@@ -50,35 +50,11 @@ class view_getthemacguffin_getthemacguffin extends game_view
     $this->tpl['TOMB_COUNT'] = self::_("Cards in the tomb:");
     $this->tpl['PLAYING_ZONE_DETAIL'] = self::_("Discard detail");
 
-    /*
-        
-        // Examples: set the value of some element defined in your tpl file like this: {MY_VARIABLE_ELEMENT}
 
-        // Display a specific number / string
-        $this->tpl['MY_VARIABLE_ELEMENT'] = $number_to_display;
-
-        // Display a string to be translated in all languages: 
-        $this->tpl['MY_VARIABLE_ELEMENT'] = self::_("A string to be translated");
-
-        // Display some HTML content of your own:
-        $this->tpl['MY_VARIABLE_ELEMENT'] = self::raw( $some_html_code );
-        
-        */
     $this->page->begin_block($template, "player");
 
-    //starting with the active player if he’s not a spectator
-    if (key_exists($active_player_id, $players)) {
-      $this->page->insert_block("player", array(
-        "PLAYER_ID" => $active_player_id,
-        "PLAYER_NAME" => $players[$active_player_id]['player_name'],
-        "PLAYER_COLOR" => $players[$active_player_id]['player_color'],
-        "PLAYER_NAME" => $players[$active_player_id]['player_name'],
-      ));
-    }
-
-    //then the other players
-    foreach ($players as $player_id => $info) {
-      if ($player_id != $active_player_id) {
+    foreach ($players_in_order  as $player_id) {
+      if (key_exists($active_player_id, $players)) {
         $this->page->insert_block("player", array(
           "PLAYER_ID" => $player_id,
           "PLAYER_NAME" => $players[$player_id]['player_name'],
@@ -87,28 +63,6 @@ class view_getthemacguffin_getthemacguffin extends game_view
         ));
       }
     }
-    /*
-        
-        // Example: display a specific HTML block for each player in this game.
-        // (note: the block is defined in your .tpl file like this:
-        //      <!-- BEGIN myblock --> 
-        //          ... my HTML code ...
-        //      <!-- END myblock --> 
-        
-
-        $this->page->begin_block( "getthemacguffin_getthemacguffin", "myblock" );
-        foreach( $players as $player )
-        {
-            $this->page->insert_block( "myblock", array( 
-                                                    "PLAYER_NAME" => $player['player_name'],
-                                                    "SOME_VARIABLE" => $some_value
-                                                    ...
-                                                     ) );
-        }
-        
-        */
-
-
 
     /*********** Do not change anything below this line  ************/
   }

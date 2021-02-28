@@ -86,13 +86,12 @@ define([
                     this.playerHand.addToStockWithId(card.type, card.id);
                 }
 
-
-
                 //-----------cards in play setup + options setup for each player
                 this.inPlayStocksByPlayerId = [];
                 this.optionsByPlayerId = [];
-                for (var player_id in gamedatas.inPlay) {
 
+                for (var player_id of gamedatas.playerorder) {
+                    console.log("gamedatas.playerorder " + player_id);
                     var playerInPlayCards = new ebg.stock();
                     playerInPlayCards.setSelectionMode(1);
                     playerInPlayCards.setSelectionAppearance('class');

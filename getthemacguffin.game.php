@@ -136,7 +136,8 @@ class GetTheMacGuffin extends Table
         $sql = "SELECT player_id id, player_score score FROM player ";
         $result['players'] = self::getCollectionFromDb($sql);
 
-        // TODO: Gather all information about current game situation (visible by player $current_player_id).
+        // Gather all information about current game situation (visible by player $current_player_id)
+
         //in play cards for each player
         $players = self::loadPlayersBasicInfos();
         foreach ($players as $player) {
@@ -469,7 +470,7 @@ class GetTheMacGuffin extends Table
         return $seen;
     }
 
-    function getPlayersInOrder()
+    function getPlayersInOrder($removeEliminated = true)
     {
         $result = array();
 
@@ -488,11 +489,13 @@ class GetTheMacGuffin extends Table
             $player_id = $next_player[$player_id];
         }
 
-        //Need to remove eliminated players
-        $eliminated = array_keys(array_filter($players, function ($player) {
-            return $player["player_eliminated"];
-        }));
-        $result = array_diff($result, $eliminated);
+        if ($removeEliminated) {
+            //Need to remove eliminated players
+            $eliminated = array_keys(array_filter($players, function ($player) {
+                return $player["player_eliminated"];
+            }));
+            $result = array_diff($result, $eliminated);
+        }
 
         return $result;
     }
