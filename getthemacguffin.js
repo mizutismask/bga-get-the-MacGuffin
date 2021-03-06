@@ -385,10 +385,17 @@ define([
                 // Note that "card_type_id" contains the type of the item, so you can do special actions depending on the item type
                 delay = 200;
                 this.addTooltipHtml(card_id, this.format_block('jstpl_card_tooltip', {
-                    cardName: this.cardsAvailable[card_type_id].name,
-                    cardDescription: this.cardsAvailable[card_type_id].description,
+                    cardName: _(this.cardsAvailable[card_type_id].name),
+                    cardDescription: _(this.cardsAvailable[card_type_id].description),
                 }), delay);
+                var classe = this.getSizeTextClass(_(this.cardsAvailable[card_type_id].description));
+                dojo.place("<div class='gtm_translated_desc " + classe + "'>" + _(this.cardsAvailable[card_type_id].description) + " </div> ", card_div, 1);
+            },
 
+            getSizeTextClass: function (text) {
+                if (text.length > 220) return "gtm_translated_x_small";
+                if (text.length > 139) return "gtm_translated_small";
+                return "gtm_translated_normal";
             },
 
             getKeyByValue: function (object, value) {

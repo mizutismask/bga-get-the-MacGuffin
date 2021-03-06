@@ -230,6 +230,32 @@ a[disabled] {
     pointer-events: none;
 }
 
+.gtm_translated_desc{
+    font-family: "calibri", Arial, sans-serif;
+    background-color: rgb(243, 243, 243);
+    color: black;
+    border-radius: 10px;
+    position: relative;
+    padding: 1px 12px 0 12px;
+    top: 77%;
+    width: 85%;
+    left: 1%;
+    min-height: 21%;
+}
+
+.gtm_translated_normal{
+    font-size: 0.75em;
+}
+
+.gtm_translated_small{
+    font-size: 0.6em;
+}
+
+.gtm_translated_x_small{
+    font-family: Arial, sans-serif;
+    font-size: 0.46em;
+}
+
 
 
 
