@@ -938,6 +938,8 @@ define([
                         console.log("notif_handChange add card id/type :" + card.id + " " + card.type);
                         if (card.location === "deck") {
                             from = "tomb_count";
+                        } else if (card.location === "discard") {
+                            from = "discard_pile";
                         } else if (card.location_arg) {
                             from = "cards_in_play_" + card.location_arg;
                         }

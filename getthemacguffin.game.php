@@ -320,7 +320,7 @@ class GetTheMacGuffin extends Table
             'added' => [$card],
 
         ));
-        self::notifyAllPlayers(NOTIF_PLAYING_ZONE_DETAIL_CHANGE, '${player_name} takes ${card_name} from the discard', array(
+        self::notifyAllPlayers(NOTIF_PLAYING_ZONE_DETAIL_CHANGE, clienttranslate('${player_name} takes ${card_name} from the discard'), array(
             'removed' => [$card],
             'card_name' => $this->cards_description[$card["type"]]["name"],
             'i18n' => array('card_name'),
@@ -337,13 +337,13 @@ class GetTheMacGuffin extends Table
             $card = $this->deck->getCard($card_id);
             $this->deck->moveCard($card_id, DECK_LOC_HAND, $player_to);
             // Notify player about change
-            self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, 'You got ${card_name}', array(
+            self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, clienttranslate('You got ${card_name}'), array(
                 'added' => [$card],
                 'card_name' => $this->cards_description[$card["type"]]["name"],
                 'i18n' => array('card_name'),
             ));
         } else {
-            self::notifyAllPlayers('msg', 'There is no card left', array());
+            self::notifyAllPlayers('msg', clienttranslate('There is no card left'), array());
         }
     }
 
@@ -353,7 +353,7 @@ class GetTheMacGuffin extends Table
         $this->deck->moveCard($object_card["id"], DECK_LOC_HAND, $player_to);
         self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '', array("player_id" => $from, 'removed' => [$object_card]));
         // Notify players about changes
-        self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, 'You stole ${card_name}', array(
+        self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, clienttranslate('You stole ${card_name}'), array(
             'added' => [$object_card],
             'card_name' => $this->cards_description[$object_card["type"]]["name"],
             'i18n' => array('card_name'),
@@ -381,7 +381,7 @@ class GetTheMacGuffin extends Table
         $this->discardCardFromHand($card_id);
         $card = $this->deck->getCard($card_id);
 
-        self::notifyAllPlayers("msg", '${player_name} loses ${card_name} from his hand', array(
+        self::notifyAllPlayers("msg", clienttranslate('${player_name} loses ${card_name} from their hand'), array(
             'player_name' => $this->getPlayerName($player_id),
             'card_name' => $this->cards_description[$card["type"]]["name"],
             'i18n' => array('card_name'),
@@ -392,7 +392,7 @@ class GetTheMacGuffin extends Table
     {
         $toDiscard = $this->deck->getCard($object_card["id"]);
         $this->deck->playCard($object_card["id"]);
-        self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '${player_name} loses ${card_name}', array(
+        self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, clienttranslate('${player_name} loses ${card_name}'), array(
             'discarded' => [$toDiscard],
             "player_id" => $toDiscard["location_arg"],
             'player_name' => $this->getPlayerName($toDiscard["location_arg"]),
@@ -411,7 +411,7 @@ class GetTheMacGuffin extends Table
 
         // Notify players about changes
         if ($notifySwap) {
-            self::notifyAllPlayers('msg', '${player_name} swaps hands with ${player_name2}', array(
+            self::notifyAllPlayers('msg', clienttranslate('${player_name} swaps hands with ${player_name2}'), array(
                 'player_name' => $this->getPlayerName($player_from),
                 'player_name2' => $this->getPlayerName($player_to),
             ));
@@ -444,7 +444,7 @@ class GetTheMacGuffin extends Table
         );
 
         if ($mcGuffin["location"] == DECK_LOC_DECK || $mcGuffin["location_arg"] == $player_id) {
-            $message = 'No one knows where ${card_name} is…';
+            $message = clienttranslate('No one knows where ${card_name} is…');
         } else if ($mcGuffin["location"] == DECK_LOC_HAND && $mcGuffin["location_arg"] != $player_id) {
             //in the hand of someone else
             $seen = true;
@@ -513,7 +513,7 @@ class GetTheMacGuffin extends Table
 
         $playersIterator->rewind();
         while ($playersIterator->valid()) {
-            self::notifyPlayer($playersIterator->current(), NOTIF_HAND_CHANGE, 'Cards have been reshuffled', array(
+            self::notifyPlayer($playersIterator->current(), NOTIF_HAND_CHANGE, clienttranslate('Cards have been reshuffled'), array(
                 'reset' => true,
                 'added' => $this->deck->getCardsInLocation(DECK_LOC_HAND, $playersIterator->current())
             ));
@@ -526,7 +526,7 @@ class GetTheMacGuffin extends Table
         $cards = array_values($this->deck->getCardsOfType($weakCard));
         $toDiscard = array_pop($cards);
         if ($toDiscard["location"] != DECK_LOC_IN_PLAY || $toDiscard["location_arg"] == $player_id) {
-            return new BgaUserException("You can NOT use this card if the weaker shifumi card has not been played by another player");
+            return new BgaUserException(self::_("You can NOT use this card if the weaker shifumi card has not been played by another player"));
         }
     }
     function playShifumi($player_id, $weakCard)
@@ -534,7 +534,7 @@ class GetTheMacGuffin extends Table
         $cards = array_values($this->deck->getCardsOfType($weakCard));
         $toDiscard = array_pop($cards);
         $this->deck->playCard($toDiscard["id"]);
-        self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '${player_name} loses ${card_name}', array(
+        self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, clienttranslate('${player_name} loses ${card_name}'), array(
             'discarded' => [$toDiscard],
             "player_id" => $toDiscard["location_arg"],
             'player_name' => $this->getPlayerName($toDiscard["location_arg"]),
@@ -565,7 +565,7 @@ class GetTheMacGuffin extends Table
         $toDiscard = array_pop($cards);
         if ($toDiscard["location"] === DECK_LOC_IN_PLAY) {
             $this->deck->playCard($toDiscard["id"]);
-            self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '${player_name} loses ${card_name}', array(
+            self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, clienttranslate('${player_name} loses ${card_name}'), array(
                 'discarded' => [$toDiscard],
                 "player_id" => $toDiscard["location_arg"],
                 'player_name' => $this->getPlayerName($toDiscard["location_arg"]),
@@ -787,7 +787,7 @@ class GetTheMacGuffin extends Table
         if ($card) {
             self::setGameStateValue(GS_MANDATORY_CARD, $card["id"]);
 
-            self::notifyAllPlayers("msg", '${player_name} takes the ${card_name}', array(
+            self::notifyAllPlayers("msg", clienttranslate('${player_name} takes the ${card_name}'), array(
                 'player_name' => $this->getPlayerName($player_id),
                 'card_name' => $this->cards_description[$card["type"]]["name"],
                 'i18n' => array('card_name'),
@@ -812,7 +812,7 @@ class GetTheMacGuffin extends Table
                 break;
             case THIEF:
                 if (!$effect_on_player_id && !$effect_on_card && ($this->someone_has_a_hand_other_than($player_id) || $this->someone_has_in_play_cards_other_than($player_id))) {
-                    throw new BgaUserException("You have to select an object in play or someone else’s hand.");
+                    throw new BgaUserException(self::_("You have to select an object in play or someone else’s hand."));
                 }
                 if ($effect_on_card) {
                     $this->stealObjectInPlay($player_id, $effect_on_card);
@@ -828,7 +828,7 @@ class GetTheMacGuffin extends Table
                 return TRANSITION_SPECIFY_CLOCKWISE;
             case SWITCHEROO:
                 if (!$effect_on_player_id) {
-                    throw new BgaUserException("You have to select a player to switch hand with.");
+                    throw new BgaUserException(self::_("You have to select a player to switch hand with."));
                 }
                 $this->swapHands($player_id, $effect_on_player_id);
                 break;
@@ -841,10 +841,10 @@ class GetTheMacGuffin extends Table
                 break;
             case GARBAGE_COLLECTR:
                 if (!$effect_on_card && $this->deck->countCardInLocation(DECK_LOC_DISCARD) > 0) {
-                    throw new BgaUserException("You have to select one card from the discard.");
+                    throw new BgaUserException(self::_("You have to select one card from the discard."));
                 }
                 if ($effect_on_card["location"] != DECK_LOC_DISCARD) {
-                    throw new BgaUserException("You can take a card from the discard only.");
+                    throw new BgaUserException(self::_("You can take a card from the discard only."));
                 }
                 if ($effect_on_card) {
                     $this->playGarbageCollector($player_id, $effect_on_card);
@@ -878,40 +878,40 @@ class GetTheMacGuffin extends Table
         switch ($played_card["type"]) {
             case THIEF:
                 if (!$effect_on_player_id && !$effect_on_card && ($this->someone_has_a_hand_other_than($player_id) || $this->someone_has_in_play_cards_other_than($player_id))) {
-                    return new BgaUserException("You have to select an object in play or someone else’s hand.");
+                    return new BgaUserException(self::_("You have to select an object in play or someone else’s hand."));
                 }
                 break;
 
             case SWITCHEROO:
                 if (!$effect_on_player_id) {
-                    return new BgaUserException("You have to select a player to switch hand with.");
+                    return new BgaUserException(self::_("You have to select a player to switch hand with."));
                 }
                 break;
 
             case SPY:
                 if (!$effect_on_player_id) {
-                    return new BgaUserException("You have to select a player to apply this effect on him");
+                    return new BgaUserException(self::_("You have to select a player to apply this effect on him"));
                 }
                 break;
             case FIST_OF_DOOM:
                 if ($effect_on_card && $effect_on_card["location"] === DECK_LOC_IN_PLAY) {
                 } else if ($effect_on_player_id && $this->deck->countCardInLocation(DECK_LOC_IN_PLAY) == 0) {
                 } else {
-                    return new BgaUserException("You can discard a card from another player’s hand only if no objects are in play. To play this card, select an object instead.");
+                    return new BgaUserException(self::_("You can discard a card from another player’s hand only if no objects are in play. To play this card, select an object instead."));
                 }
                 break;
             case GARBAGE_COLLECTR:
                 if (!$effect_on_card && $this->deck->countCardInLocation(DECK_LOC_DISCARD) > 0) {
-                    return new BgaUserException("You have to select one card from the discard.");
+                    return new BgaUserException(self::_("You have to select one card from the discard."));
                 }
                 if ($effect_on_card["location"] != DECK_LOC_DISCARD) {
-                    return new BgaUserException("You can take a card from the discard only.");
+                    return new BgaUserException(self::_("You can take a card from the discard only."));
                 }
                 break;
             case CAN_I_USE_THAT:
                 if ($this->someone_has_a_hand_other_than($player_id)) {
                     if (!$effect_on_player_id) {
-                        return new BgaUserException("You have to select a player to take a card from.");
+                        return new BgaUserException(self::_("You have to select a player to take a card from."));
                     }
                 }
                 break;
@@ -922,10 +922,10 @@ class GetTheMacGuffin extends Table
 
                     //discards an object in play or a random card from hand
                     if (!$effect_on_card && !$effect_on_player_id)
-                        return new BgaUserException("When the crown is not in play, you have to choose an object in play or a player’s hand to use the assassin");
+                        return new BgaUserException(self::_("When the crown is not in play, you have to choose an object in play or a player’s hand to use the assassin"));
 
                     if ($effect_on_card && $effect_on_player_id)
-                        return new BgaUserException("You have to choose an object in play OR a player’s hand");
+                        return new BgaUserException(self::_("You have to choose an object in play OR a player’s hand"));
                 }
                 break;
             case NOT_DEAD_YET:
@@ -938,11 +938,11 @@ class GetTheMacGuffin extends Table
                             //nothing happens
                         } else {
                             if (($effect_on_card["type"] === MACGUFFIN) || ($effect_on_card["type"] === BACKUP_MACGUFFIN)) {
-                                return new BgaUserException("You can NOT steal a sort of MacGuffin");
+                                return new BgaUserException(self::_("You can NOT steal a sort of MacGuffin"));
                             }
                         }
                     } else {
-                        return new BgaUserException("Select a player to steal a card from his hand. If no one has a hand, you can steal an object.");
+                        return new BgaUserException(self::_("Select a player to steal a card from his hand. If no one has a hand, you can steal an object."));
                     }
                 }
                 break;
@@ -959,17 +959,17 @@ class GetTheMacGuffin extends Table
         switch ($played_card["type"]) {
             case MACGUFFIN:
                 if (!$this->hasNoCardsInHand($player_id) || count($this->deck->getCardsInLocation(DECK_LOC_IN_PLAY, $player_id)) > 1) {
-                    return new BgaUserException("You can NOT use the MacGuffin if you have cards in your hand or other Objects to play");
+                    return new BgaUserException(self::_("You can NOT use the MacGuffin if you have cards in your hand or other Objects to play"));
                 }
                 break;
             case MONEY:
                 if ((!$effect_on_card && !$effect_on_player_id) || $effect_on_card && $effect_on_player_id) {
-                    return new BgaUserException("You have to select an object to steal or a player’s hand.");
+                    return new BgaUserException(self::_("You have to select an object to steal or a player’s hand."));
                 }
                 break;
             case BACKUP_MACGUFFIN:
                 if ($this->isTypeInPlay(MACGUFFIN) || !$this->hasNoCardsInHand($player_id) || count($this->deck->getCardsInLocation(DECK_LOC_IN_PLAY, $player_id)) > 1) {
-                    return new BgaUserException("You can NOT use the MacGuffin if the real MacGuffin is in play, or if you have cards in your hand or other Objects to play");
+                    return new BgaUserException(self::_("You can NOT use the MacGuffin if the real MacGuffin is in play, or if you have cards in your hand or other Objects to play"));
                 }
                 break;
             case SCISSORS:
@@ -993,7 +993,7 @@ class GetTheMacGuffin extends Table
         switch ($played_card["type"]) {
             case MACGUFFIN:
                 if (!$this->hasNoCardsInHand($player_id) || count($this->deck->getCardsInLocation(DECK_LOC_IN_PLAY, $player_id)) > 1) {
-                    throw new BgaUserException("You can NOT use the MacGuffin if you have cards in your hand or other Objects to play");
+                    throw new BgaUserException(self::_("You can NOT use the MacGuffin if you have cards in your hand or other Objects to play"));
                 }
                 break;
             case MONEY:
@@ -1001,12 +1001,12 @@ class GetTheMacGuffin extends Table
                 break;
             case CROWN:
                 if ($this->isTypeInPlay(MACGUFFIN) || $this->isTypeInPlay(BACKUP_MACGUFFIN)) {
-                    throw new BgaUserException("You can NOT pass if a MacGuffin is in play");
+                    throw new BgaUserException(self::_("You can NOT pass if a MacGuffin is in play"));
                 }
                 break;
             case BACKUP_MACGUFFIN:
                 if ($this->isTypeInPlay(MACGUFFIN) || !$this->hasNoCardsInHand($player_id) || count($this->deck->getCardsInLocation(DECK_LOC_IN_PLAY, $player_id)) > 1) {
-                    throw new BgaUserException("You can NOT use the MacGuffin if the real MacGuffin is in play, or if you have cards in your hand or other Objects to play");
+                    throw new BgaUserException(self::_("You can NOT use the MacGuffin if the real MacGuffin is in play, or if you have cards in your hand or other Objects to play"));
                 }
                 break;
             case SCISSORS:
@@ -1113,7 +1113,7 @@ class GetTheMacGuffin extends Table
         self::checkAction('playCard');
         $mandatory_id = self::getGameStateValue(GS_MANDATORY_CARD);
         if ($mandatory_id && $played_card_id != $mandatory_id) {
-            throw new BgaUserException("You have to play the card you’ve just stolen");
+            throw new BgaUserException(self::_("You have to play the card you’ve just stolen"));
         }
 
         $player_id = self::getActivePlayerId();
@@ -1209,7 +1209,7 @@ class GetTheMacGuffin extends Table
         if ($clockwise) {
             $order = array_reverse($order);
         }
-        self::notifyAllPlayers('msg', 'Hands are passed ${clockwise}', array(
+        self::notifyAllPlayers('msg', clienttranslate('Hands are passed ${clockwise}'), array(
             'clockwise' => $clockwise ? 'clockwise' : 'counterclockwise',
             'i18n' => array('clockwise'),
         ));
@@ -1225,7 +1225,7 @@ class GetTheMacGuffin extends Table
             } else {
                 //player gives his hand to the previous
                 $this->swapHands($player, $previous, false);
-                self::notifyAllPlayers('msg', '${player_name} gives their hand to ${player_name2}', array(
+                self::notifyAllPlayers('msg', clienttranslate('${player_name} gives their hand to ${player_name2}'), array(
                     'player_name' => $this->getPlayerName($player),
                     'player_name2' => $this->getPlayerName($previous),
                 ));
@@ -1237,7 +1237,7 @@ class GetTheMacGuffin extends Table
             $this->deck->moveCard($card["id"], DECK_LOC_HAND, $player);
         }
         self::notifyPlayer($player, NOTIF_HAND_CHANGE, '', array('added' => $this->deck->getCardsInLocation(DECK_LOC_HAND, $player), 'reset' => true));
-        self::notifyAllPlayers('msg', '${player_name} gives their hand to ${player_name2}', array(
+        self::notifyAllPlayers('msg', clienttranslate('${player_name} gives their hand to ${player_name2}'), array(
             'player_name' => $this->getPlayerName($first_hand_player),
             'player_name2' => $this->getPlayerName($player),
         ));
@@ -1247,7 +1247,7 @@ class GetTheMacGuffin extends Table
     function seenSecretCardsAction($selected_card_id)
     {
         if (self::getGameStateValue(GS_SECRET_CARDS_SELECTION) && !$selected_card_id) {
-            throw new BgaUserException("You have to select a card");
+            throw new BgaUserException(self::_("You have to select a card"));
         };
         $location = self::getGameStateValue(GS_SECRET_CARDS_LOCATION);
         if ($selected_card_id) {
