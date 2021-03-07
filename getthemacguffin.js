@@ -936,7 +936,12 @@ define([
                     for (var i in notif.args.added) {
                         var card = notif.args.added[i];
                         console.log("notif_handChange add card id/type :" + card.id + " " + card.type);
-                        this.playerHand.addToStockWithId(card.type, card.id);
+                        if (card.location === "deck") {
+                            from = "tomb_count";
+                        } else if (card.location_arg) {
+                            from = "cards_in_play_" + card.location_arg;
+                        }
+                        this.playerHand.addToStockWithId(card.type, card.id, from);
                     }
                 }
                 if (notif.args.removed) {
@@ -966,9 +971,10 @@ define([
                     }
                 }
                 if (notif.args.discarded) {
-                    for (var i in notif.args.removed) {
-                        var card = notif.args.removed[i];
-                        this.playingZoneDetail.addToStockWithId(card.type, card.id);
+                    for (var i in notif.args.discarded) {
+                        var card = notif.args.discarded[i];
+                        this.playingZoneDetail.addToStockWithId(card.type, card.id, "cards_in_play_" + card["location_arg"]);
+                        this.inPlayStocksByPlayerId[$player_id].removeFromStockById(card.id);
                     }
                 }
             },
@@ -979,11 +985,37 @@ define([
                 var card = notif.args.card;
 
                 if (notif.args.toInPlay) {
-                    this.inPlayStocksByPlayerId[notif.args.player_id].addToStockWithId(card.type, card.id);
+                    if (!notif.args.uses) {
+                        if (card.location === "inPlay" && card.location_arg != notif.args.player_id) {
+                            from = "cards_in_play_" + card.location_arg;//swaps (money)
+                        } else if (this.player_id == notif.args.player_id) {
+                            from = "myhand";
+                        }
+                        else {
+                            from = "overall_player_board_" + notif.args.player_id;
+                        }
+                        this.inPlayStocksByPlayerId[notif.args.player_id].addToStockWithId(card.type, card.id, from);
+                    }
                 }
                 else {
+
+                    if (card.location === "inPlay") {
+                        from = "cards_in_play_" + notif.args.player_id;
+                    }
+                    else if (card.location === "hand") {
+                        if (this.player_id == notif.args.player_id) {
+                            from = "myhand";
+                        }
+                        else {
+                            from = "overall_player_board_" + notif.args.player_id;
+                        }
+                    } else if (this.player_id == notif.args.player_id) {
+                        from = "myhand";
+                    } else {
+                        from = "cards_in_play_" + notif.args.player_id;
+                    }
                     this.discard.removeAll();
-                    this.discard.addToStockWithId(card.type, card.id);
+                    this.discard.addToStockWithId(card.type, card.id, from);
                     this.playingZoneDetail.addToStockWithId(card.type, card.id);
                 }
 
@@ -998,8 +1030,6 @@ define([
                 if (card.type == "HIPPIE" || card.type == "SHRUGMASTER" || card.type == "MARSHALL") {
                     this.animate(card.type, 'discard_pile');
                 }
-
-
             },
 
             notif_playingZoneDetailChange: function (notif) {
@@ -1009,8 +1039,13 @@ define([
                         this.playingZoneDetail.removeFromStockById(card.id);
                     }
                 }
+                if (notif.args.added) {
+                    for (var i in notif.args.added) {
+                        var card = notif.args.added[i];
+                        this.playingZoneDetail.addToStockWithId(card.type, card.id);
+                    }
+                }
             },
-
 
             notif_secretCards: function (notif) {
                 this.displaySecretCards(notif.args.args);

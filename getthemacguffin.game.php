@@ -28,6 +28,7 @@ if (!defined('DECK_LOC_DECK')) {
     define("DECK_LOC_HAND", "hand");
 
     // constants for notifications
+    define("NOTIF_CARD_PLAYED", "cardPlayed");
     define("NOTIF_PLAYER_TURN", "playerTurn");
     define("NOTIF_UPDATE_SCORE", "updateScore");
     define("NOTIF_HAND_CHANGE", "handChange");
@@ -380,12 +381,8 @@ class GetTheMacGuffin extends Table
         $this->discardCardFromHand($card_id);
         $card = $this->deck->getCard($card_id);
 
-        self::notifyAllPlayers(NOTIF_PLAYING_ZONE_DETAIL_CHANGE, '${player_name} loses a random card from his hand', array(
+        self::notifyAllPlayers("msg", '${player_name} loses ${card_name} from his hand', array(
             'player_name' => $this->getPlayerName($player_id),
-            'added' => [$card],
-        ));
-
-        self::notifyPlayer($player_id, 'msg', 'You’ve been discarded ${card_name}', array(
             'card_name' => $this->cards_description[$card["type"]]["name"],
             'i18n' => array('card_name'),
         ));
@@ -396,7 +393,6 @@ class GetTheMacGuffin extends Table
         $toDiscard = $this->deck->getCard($object_card["id"]);
         $this->deck->playCard($object_card["id"]);
         self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '${player_name} loses ${card_name}', array(
-            'removed' => [$toDiscard],
             'discarded' => [$toDiscard],
             "player_id" => $toDiscard["location_arg"],
             'player_name' => $this->getPlayerName($toDiscard["location_arg"]),
@@ -539,7 +535,6 @@ class GetTheMacGuffin extends Table
         $toDiscard = array_pop($cards);
         $this->deck->playCard($toDiscard["id"]);
         self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '${player_name} loses ${card_name}', array(
-            'removed' => [$toDiscard],
             'discarded' => [$toDiscard],
             "player_id" => $toDiscard["location_arg"],
             'player_name' => $this->getPlayerName($toDiscard["location_arg"]),
@@ -557,7 +552,6 @@ class GetTheMacGuffin extends Table
         }
 
         self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, "", array(
-            'removed' => [$played_card],
             'discarded' => [$played_card],
             "player_id" => $player_id,
         ));
@@ -572,7 +566,6 @@ class GetTheMacGuffin extends Table
         if ($toDiscard["location"] === DECK_LOC_IN_PLAY) {
             $this->deck->playCard($toDiscard["id"]);
             self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '${player_name} loses ${card_name}', array(
-                'removed' => [$toDiscard],
                 'discarded' => [$toDiscard],
                 "player_id" => $toDiscard["location_arg"],
                 'player_name' => $this->getPlayerName($toDiscard["location_arg"]),
@@ -710,7 +703,7 @@ class GetTheMacGuffin extends Table
                 $this->deck->moveCard($card["id"], DECK_LOC_IN_PLAY, $player_id);
                 self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '', array("player_id" => $from, 'removed' => [$card]));
 
-                self::notifyAllPlayers("cardPlayed", clienttranslate('${player_name} trades ${card_name} from ${player_name2}'), array(
+                self::notifyAllPlayers(NOTIF_CARD_PLAYED, clienttranslate('${player_name} trades ${card_name} from ${player_name2}'), array(
                     'player_id' => $player_id,
                     'player_name' => self::getActivePlayerName(),
                     'player_name2' => self::getPlayerName($from),
@@ -738,7 +731,7 @@ class GetTheMacGuffin extends Table
         $from = $card["location_arg"];
         $this->deck->moveCard($object_id, DECK_LOC_IN_PLAY, $player_id);
         self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '', array("player_id" => $from, 'removed' => [$card]));
-        self::notifyAllPlayers("cardPlayed", clienttranslate('${player_name} trades ${card_name} from ${player_name2}'), array(
+        self::notifyAllPlayers(NOTIF_CARD_PLAYED, clienttranslate('${player_name} trades ${card_name} from ${player_name2}'), array(
             'player_id' => $player_id,
             'player_name' => self::getActivePlayerName(),
             'player_name2' => self::getPlayerName($from),
@@ -765,7 +758,7 @@ class GetTheMacGuffin extends Table
 
         self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '', array("player_id" => $from1, 'removed' => [$card1]));
         self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '', array("player_id" => $from2, 'removed' => [$card2]));
-        self::notifyAllPlayers("cardPlayed", clienttranslate('${player_name} and ${player_name2} swap ${card_name1} and ${card_name2}'), array(
+        self::notifyAllPlayers(NOTIF_CARD_PLAYED, clienttranslate('${player_name} and ${player_name2} swap ${card_name1} and ${card_name2}'), array(
             'player_id' => $from2,
             'player_name' => self::getPlayerName($from1),
             'player_name2' => self::getPlayerName($from2),
@@ -775,7 +768,7 @@ class GetTheMacGuffin extends Table
             'toInPlay' => true,
             'i18n' => array('card_name1', 'card_name2'),
         ));
-        self::notifyAllPlayers("cardPlayed", "", array(
+        self::notifyAllPlayers(NOTIF_CARD_PLAYED, "", array(
             'player_id' => $from1,
             'player_name1' => self::getPlayerName($from1),
             'player_name2' => self::getPlayerName($from2),
@@ -1172,11 +1165,12 @@ class GetTheMacGuffin extends Table
     function sendPlayedCardNotif($player_id, $description, $played_card, $uses)
     {
         // Notify all players about the card played
-        self::notifyAllPlayers("cardPlayed", clienttranslate('${player_name} ${plays} ${card_name}'), array(
+        self::notifyAllPlayers(NOTIF_CARD_PLAYED, clienttranslate('${player_name} ${plays} ${card_name}'), array(
             'player_id' => $player_id,
             'player_name' => self::getActivePlayerName(),
             'card_name' => $description["name"],
             'card' => $played_card,
+            'uses' => $uses,
             'plays' => $uses ? self::_("uses") : self::_("plays"),
             'toInPlay' => $description["type"] === OBJ && !($played_card["type"] === MONEY && $uses), //objects all go to inplay except for money who is discarded after its first use
             'i18n' => array('card_name', 'plays'),
@@ -1196,7 +1190,7 @@ class GetTheMacGuffin extends Table
         $this->deck->playCard($played_card_id);
 
         // Notify all players about the card discarded
-        self::notifyAllPlayers("cardPlayed", clienttranslate('${player_name} discards ${card_name}'), array(
+        self::notifyAllPlayers(NOTIF_CARD_PLAYED, clienttranslate('${player_name} discards ${card_name}'), array(
             'player_id' => $player_id,
             'discarded' => true,
             'player_name' => self::getActivePlayerName(),
