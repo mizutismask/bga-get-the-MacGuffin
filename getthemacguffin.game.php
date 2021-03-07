@@ -899,6 +899,7 @@ class GetTheMacGuffin extends Table
                 if (!$effect_on_player_id) {
                     return new BgaUserException("You have to select a player to apply this effect on him");
                 }
+                break;
             case FIST_OF_DOOM:
                 if ($effect_on_card && $effect_on_card["location"] === DECK_LOC_IN_PLAY) {
                 } else if ($effect_on_player_id && $this->deck->countCardInLocation(DECK_LOC_IN_PLAY) == 0) {
@@ -920,6 +921,7 @@ class GetTheMacGuffin extends Table
                         return new BgaUserException("You have to select a player to take a card from.");
                     }
                 }
+                break;
             case ASSASSIN:
                 $cards = array_values($this->deck->getCardsOfType(CROWN));
                 $toDiscard = array_pop($cards);
