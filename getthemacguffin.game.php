@@ -843,7 +843,7 @@ class GetTheMacGuffin extends Table
                 if (!$effect_on_card && $this->deck->countCardInLocation(DECK_LOC_DISCARD) > 0) {
                     throw new BgaUserException(self::_("You have to select one card from the discard."));
                 }
-                if ($effect_on_card["location"] != DECK_LOC_DISCARD) {
+                if ($effect_on_card && $effect_on_card["location"] != DECK_LOC_DISCARD) {
                     throw new BgaUserException(self::_("You can take a card from the discard only."));
                 }
                 if ($effect_on_card) {

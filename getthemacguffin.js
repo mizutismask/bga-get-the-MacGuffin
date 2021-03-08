@@ -233,7 +233,7 @@ define([
                         break;
                     case 'playerTurn':
                         if (this.isCurrentPlayerActive()) {
-                            this.resetHelpMessage();
+                            // this.resetHelpMessage();
                             this.deselectAll();
                         }
                         break;
@@ -252,6 +252,18 @@ define([
                     case 'nextPlayer':
                         this.updateCounters(args.args);
                         break;
+                    case 'client_choose_target':
+                        switch (this.clientStateArgsCardType) {
+                            case "GARBAGE_COLLECTR":
+                                this.playingZoneDetail.setSelectionMode(1);
+                                dojo.query("#playing_zone_detail .stockitem").removeClass('unselectable').removeClass('stockitem_unselectable').addClass('selectable');
+                                break;
+
+                            default:
+                                break;
+                        }
+
+
                     default:
 
                 }
@@ -281,7 +293,7 @@ define([
                         if (this.isCurrentPlayerActive()) {
                             dojo.query(".stockitem").removeClass('unselectable').addClass('selectable');
                             this.playingZoneDetail.setSelectionMode(0);
-                            this.resetHelpMessage();
+                            //this.resetHelpMessage();
                             break;
                         }
                 }
@@ -320,6 +332,10 @@ define([
                         case "specifyObjectsToSwap":
                             this.addActionButton('button_swap_objects', _('Swap'), 'onSwapObjects');
                             break;
+                        case "client_choose_target":
+                            this.addActionButton('button_confirm_card', _('Confirm'), 'onPlayCard');
+                            this.addActionButton('button_cancel', _('Annuler'), 'gtmRestoreServerGameState', null, false, 'red');
+                            break;
 
                     }
                 }
@@ -327,6 +343,12 @@ define([
 
             ///////////////////////////////////////////////////
             //// Utility methods
+
+            gtmRestoreServerGameState() {
+                console.log("gtmRestoreServerGameState");
+                this.restoreServerGameState();
+                this.deselectAll();
+            },
 
             showMessageAndResetSelection(msg) {
                 this.showMessage(msg, 'error');
@@ -369,14 +391,6 @@ define([
                 if (dojo.byId(id)) {
                     dojo.byId(id).innerHTML = text;
                 }
-            },
-
-            displayHelpMessage: function (msg, addSuffix = true) {
-                this.changeInnerHtml("help_msg", addSuffix ? msg + _(" and then press play") : msg);
-            },
-
-            resetHelpMessage: function () {
-                this.changeInnerHtml("help_msg", "");
             },
 
             createTooltip: function (card_div, card_type_id, card_id) {
@@ -472,8 +486,10 @@ define([
             onSelectCard: function (control_name, item_id) {
                 // This method is called when myStockControl selected items changed
 
-                if (item_id == undefined)
+                if (item_id == undefined) {
+                    this.restoreServerGameState();
                     return;
+                }
 
                 // Check if item is selectable
                 if (dojo.hasClass(control_name + "_item_" + item_id, "unselectable")) {
@@ -486,41 +502,43 @@ define([
                     if (itemsFromHand.length == 1) {
                         var card = itemsFromHand[0];
                         console.log("selection of ", card.type);
-
+                        this.clientStateArgsCardType = card.type;
 
                         switch (card.type) {
                             case "GARBAGE_COLLECTR":
-                                this.displayHelpMessage(_("Now, select a card from the discard"));
-                                this.playingZoneDetail.setSelectionMode(1);
-                                dojo.query("#playing_zone_detail .stockitem").removeClass('unselectable').removeClass('stockitem_unselectable').addClass('selectable');
+                                if (this.playingZoneDetail.count() > 0) {
+                                    this.chooseEffectTarget(_("Now, select a card from the discard"));
+                                }
                                 break;
-
                             case "FIST_OF_DOOM":
-                                this.displayHelpMessage(_("Now, select an object in play or another player’s hand"));
+                                this.chooseEffectTarget(_("Now, select an object in play or another player’s hand"));
                                 break;
                             case "THIEF":
-                                this.displayHelpMessage(_("Now, select another player’s hand or object in play"));
+                                this.chooseEffectTarget(_("Now, select another player’s hand or object in play"));
                                 break;
                             case "SWITCHEROO":
                             case "SPY":
                             case "CAN_I_USE_THAT":
-                                this.displayHelpMessage(_("Now, select another player’s hand"));
+                                this.chooseEffectTarget(_("Now, select another player’s hand"));
                                 break;
                             case "MERCHANT":
-                                this.displayHelpMessage(_("Now, select an object in play from another player if only one player has objects in play. Press play this card otherwise."), false);
+                                this.chooseEffectTarget(_("Now, select an object in play from another player if only one player has objects in play. Confirm otherwise."));
                                 break;
                             case "":
-                                this.displayHelpMessage(_("Now, select an object in play or another player’s hand"));
+                                this.chooseEffectTarget(_("Now, select an object in play or another player’s hand"));
                                 break;
                             default:
-                                this.resetHelpMessage();
+                                this.clientStateArgsCardTypeteArgs = undefined;
+                            // this.gtmRestoreServerGameState();
                         }
                     } else {
-                        this.resetHelpMessage();
+                        this.gtmRestoreServerGameState();
                     }
                 };
             },
-
+            chooseEffectTarget: function (helpText) {
+                this.setClientState("client_choose_target", { descriptionmyturn: helpText, });
+            },
             onSelectInPlayCard: function (control_name, item_id) {
                 if (item_id == undefined)
                     return;
@@ -537,40 +555,44 @@ define([
                     if (itemsFromInPlayZone.length == 1) {
                         var card = itemsFromInPlayZone[0];
                         console.log("selection of in play ", card.type);
-
+                        this.clientStateArgsCardType = card.type;
 
                         switch (card.type) {
                             case "CROWN":
                                 this.changeInnerHtml("button_confirm_card", _("Pass"));
                                 break;
-                            case "MACGUFFIN":
-                                if (dojo.byId("button_confirm_card")) {
-                                    var mcgfnId = this.getStockCardIdOfType(this.inPlayStocksByPlayerId[this.player_id], "MACGUFFIN");
-                                    if (mcgfnId && (this.inPlayStocksByPlayerId[this.player_id].count() > 1 || this.playerHand.count() > 0)) {
-                                        dojo.removeClass('button_confirm_card', 'bgabutton_blue');
-                                        dojo.addClass('button_confirm_card', 'bgabutton_gray');
-                                        dojo.setAttr('button_confirm_card', 'disabled', 'true');
-                                    }
-                                }
+                            case "MONEY":
+                                this.chooseEffectTarget(_("Now, select an object in play or another player’s hand"));
                                 break;
-                            case "BACKUP_MACGUFFIN":
-                                if (dojo.byId("button_confirm_card")) {
-                                    var mcgfnId = this.getStockCardIdOfType(this.inPlayStocksByPlayerId[this.player_id], "BACKUP_MACGUFFIN");
-                                    if (mcgfnId && (this.inPlayStocksByPlayerId[this.player_id].count() > 1 || this.playerHand.count() > 0)) {
-                                        dojo.removeClass('button_confirm_card', 'bgabutton_blue');
-                                        dojo.addClass('button_confirm_card', 'bgabutton_gray');
-                                        dojo.setAttr('button_confirm_card', 'disabled', 'true');
-                                    }
-                                }
-                                break;
-                            default:
-                                if (dojo.byId("button_confirm_card")) {
-                                    this.changeInnerHtml("button_confirm_card", _("Play selected card"));
-                                    dojo.removeClass('button_confirm_card', 'bgabutton_gray');
-                                    dojo.addClass('button_confirm_card', 'bgabutton_blue');
-                                    dojo.removeAttr('button_confirm_card', 'disabled');
-                                }
 
+                            /* case "MACGUFFIN":
+                                 if (dojo.byId("button_confirm_card")) {
+                                     var mcgfnId = this.getStockCardIdOfType(this.inPlayStocksByPlayerId[this.player_id], "MACGUFFIN");
+                                     if (mcgfnId && (this.inPlayStocksByPlayerId[this.player_id].count() > 1 || this.playerHand.count() > 0)) {
+                                         dojo.removeClass('button_confirm_card', 'bgabutton_blue');
+                                         dojo.addClass('button_confirm_card', 'bgabutton_gray');
+                                         dojo.setAttr('button_confirm_card', 'disabled', 'true');
+                                     }
+                                 }
+                                 break;
+                             case "BACKUP_MACGUFFIN":
+                                 if (dojo.byId("button_confirm_card")) {
+                                     var mcgfnId = this.getStockCardIdOfType(this.inPlayStocksByPlayerId[this.player_id], "BACKUP_MACGUFFIN");
+                                     if (mcgfnId && (this.inPlayStocksByPlayerId[this.player_id].count() > 1 || this.playerHand.count() > 0)) {
+                                         dojo.removeClass('button_confirm_card', 'bgabutton_blue');
+                                         dojo.addClass('button_confirm_card', 'bgabutton_gray');
+                                         dojo.setAttr('button_confirm_card', 'disabled', 'true');
+                                     }
+                                 }
+                                 break;
+                             default:
+                                 if (dojo.byId("button_confirm_card")) {
+                                     this.changeInnerHtml("button_confirm_card", _("Play selected card"));
+                                     dojo.removeClass('button_confirm_card', 'bgabutton_gray');
+                                     dojo.addClass('button_confirm_card', 'bgabutton_blue');
+                                     dojo.removeAttr('button_confirm_card', 'disabled');
+                                 }
+ */
                         }
                     }
                     else {
@@ -809,11 +831,13 @@ define([
                     switch (playedCard.type) {
                         case "GARBAGE_COLLECTR":
                             var itemsFromDiscard = this.playingZoneDetail.getSelectedItems();
-                            if (itemsFromDiscard.length != 1) {
+                            if (itemsFromDiscard.length != 1 && this.playingZoneDetail.count() > 0) {
                                 this.showMessageAndResetSelection(_('You have to select one card from the discard'));
                                 error = true;
                             }
-                            cardFromOtherPlayer = this.playingZoneDetail.getSelectedItems()[0];
+                            if (this.playingZoneDetail.getSelectedItems()) {
+                                cardFromOtherPlayer = this.playingZoneDetail.getSelectedItems()[0];
+                            }
 
                         default:
 

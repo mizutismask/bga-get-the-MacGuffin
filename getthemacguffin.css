@@ -109,17 +109,6 @@
   cursor: pointer;
 }
 
-#help_msg_wrapper{
-    text-align: center;
-    display: inline-block;
-    width: 80%;
-}
-
-.gtm_help{
-    font-size: 22px;
-    font-weight: bold;
-}
-
 .spectatorMode #myhand_wrap{
     display: none;
 }
