@@ -59,6 +59,7 @@
     border: 2px solid #70c4cf;
     color: rgb(13, 158, 177);
     font-family: "Parisish", "Broadway", "Roboto", Arial, sans-serif;
+    margin-top: 0;
 }
 
 .gtm-tooltip-name{
@@ -124,8 +125,8 @@
 }
 
 .gtmInPlayZone{
-    min-width: 220px;
-    margin-right: 3px;
+    min-width: 202px;
+    margin-right: 6px;
 }
 
 #discard_pile_wrap{
