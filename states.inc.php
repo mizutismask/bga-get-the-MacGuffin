@@ -89,6 +89,7 @@ $machinestates = array(
         "description" => clienttranslate('${actplayer} must play a card'),
         "descriptionmyturn" => clienttranslate('${you} must play a card from your hand or play/discard an Object in play'),
         "type" => "activeplayer",
+        "args" => "argPossibleTargetsInfo",
         "possibleactions" => array("playCard", "discard", "pass"),
         "transitions" => array(
             "playCard" => STATE_PLAYER_TURN, TRANSITION_DISCARD => STATE_PLAYER_TURN,

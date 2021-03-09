@@ -660,6 +660,26 @@ class GetTheMacGuffin extends Table
         return $someone;
     }
 
+    function count_players_with_in_play_cards()
+    {
+        return count($this->deck->countCardsByLocationArgs(DECK_LOC_IN_PLAY));
+    }
+
+    function count_players_with_in_play_cards_other_than($other_than_player_id)
+    {
+        $players = self::loadPlayersBasicInfos();
+        $count = 0;
+        foreach ($players as $player) {
+            $player_id = $player["player_id"];
+            if ($player_id != $other_than_player_id && !$this->hasNoCardsInPlay($player_id)) {
+                $count++;
+                break;
+            }
+        }
+        return $count;
+    }
+
+
     function playSpy($player_id, $effect_on_player_id)
     {
 
@@ -1094,9 +1114,6 @@ class GetTheMacGuffin extends Table
         return $card["location"] === DECK_LOC_IN_PLAY;
     }
 
-
-
-
     //////////////////////////////////////////////////////////////////////////////
     //////////// Player actions
     //////////// 
@@ -1293,6 +1310,18 @@ class GetTheMacGuffin extends Table
     {
         return array(
             'mandatory_card_id' => self::getGameStateValue(GS_MANDATORY_CARD),
+        );
+    }
+
+    public function argPossibleTargetsInfo()
+    {
+        $player_id = self::getActivePlayerId();
+        return array(
+            'no_one_has_objects' => $this->deck->countCardInLocation(DECK_LOC_IN_PLAY) == 0,
+            'one_other_has_objects' => $this->count_players_with_in_play_cards_other_than($player_id) == 1,
+            'two_players_have_objects' => $this->count_players_with_in_play_cards() >= 2,
+            'no_other_cards' => $this->deck->countCardInLocation(DECK_LOC_IN_PLAY, $player_id) == 0 && $this->deck->countCardInLocation(DECK_LOC_HAND, $player_id) == 1,
+            'no_one_else_has_hand' => $this->no_one_has_a_hand_other_than($player_id),
         );
     }
 

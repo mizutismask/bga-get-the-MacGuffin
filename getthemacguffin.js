@@ -235,6 +235,7 @@ define([
                         if (this.isCurrentPlayerActive()) {
                             // this.resetHelpMessage();
                             this.deselectAll();
+                            this.argPossibleTargetsInfo = args.args;
                         }
                         break;
                     case 'mandatoryCard':
@@ -258,6 +259,7 @@ define([
                                 this.playingZoneDetail.setSelectionMode(1);
                                 dojo.query("#playing_zone_detail .stockitem").removeClass('unselectable').removeClass('stockitem_unselectable').addClass('selectable');
                                 break;
+
 
                             default:
                                 break;
@@ -538,12 +540,23 @@ define([
                             case "CAN_I_USE_THAT":
                                 this.chooseEffectTarget(_("Now, select another player’s hand"));
                                 break;
-                            case "MERCHANT":
-                                this.chooseEffectTarget(_("Now, select an object in play from another player if only one player has objects in play. Confirm otherwise."));
-                                break;
                             case "":
                                 this.chooseEffectTarget(_("Now, select an object in play or another player’s hand"));
                                 break;
+                            case "NOT_DEAD_YET":
+                                if (this.argPossibleTargetsInfo.no_other_cards) {
+                                    if (this.argPossibleTargetsInfo.no_one_else_has_hand) {
+                                        this.chooseEffectTarget(_("Now, select an object in play"));
+                                    } else {
+                                        this.chooseEffectTarget(_("Now, select another player’s hand"));
+                                    }
+                                }
+                                break;
+                            //case "MERCHANT":
+                            //if (!this.argPossibleTargetsInfo.two_players_have_objects && this.argPossibleTargetsInfo.one_other_has_objects) {
+                            //    this.chooseEffectTarget(_("Now, select an object to take"));
+                            //    break;
+                            // }
                             default:
                                 this.clientStateArgsCardTypeteArgs = undefined;
                             // this.gtmRestoreServerGameState();
@@ -607,7 +620,7 @@ define([
                                      dojo.addClass('button_confirm_card', 'bgabutton_blue');
                                      dojo.removeAttr('button_confirm_card', 'disabled');
                                  }
- */
+            */
                         }
                     }
                     else {
