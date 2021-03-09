@@ -436,6 +436,23 @@ define([
                 }
             },
 
+            animate: function (cardType, animationLocationDiv) {
+                dojo.place(this.format_block('jstpl_animation', {
+                    background_class: "background_" + cardType,
+                }), document.getElementById(animationLocationDiv));
+
+                function callback() {
+                    dojo.destroy("animationDiv");
+                }
+                var node = document.getElementById(animationLocationDiv);
+                node.addEventListener("webkitAnimationEnd", callback, false);
+                node.addEventListener("animationend", callback, false);
+            },
+
+            chooseEffectTarget: function (helpText) {
+                this.setClientState("client_choose_target", { descriptionmyturn: helpText, });
+            },
+
             ///////////////////////////////////////////////////
             //// Player's action
 
@@ -536,9 +553,7 @@ define([
                     }
                 };
             },
-            chooseEffectTarget: function (helpText) {
-                this.setClientState("client_choose_target", { descriptionmyturn: helpText, });
-            },
+
             onSelectInPlayCard: function (control_name, item_id) {
                 if (item_id == undefined)
                     return;
@@ -1093,22 +1108,10 @@ define([
                 }
             },
 
-            animate: function (cardType, animationLocationDiv) {
-                dojo.place(this.format_block('jstpl_animation', {
-                    background_class: "background_" + cardType,
-                }), document.getElementById(animationLocationDiv));
-
-                function callback() {
-                    dojo.destroy("animationDiv");
-                }
-                var node = document.getElementById(animationLocationDiv);
-                node.addEventListener("webkitAnimationEnd", callback, false);
-                node.addEventListener("animationend", callback, false);
-            },
-
             notif_playerEliminated: function (notif) {
                 var player_id = notif.args.player_id;
                 this.disablePlayerPanel(player_id);
             },
+
         });
     });
