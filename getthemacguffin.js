@@ -184,6 +184,7 @@ define([
                 this.playingZoneDetail.image_items_per_row = this.image_items_per_row;
                 this.playingZoneDetail.setSelectionMode(0);
                 this.playingZoneDetail.setSelectionAppearance('class');
+                //this.playingZoneDetail.autowidth = true;
                 this.playingZoneDetail.onItemCreate = dojo.hitch(this, 'createTooltip');
 
                 // Create cards types:

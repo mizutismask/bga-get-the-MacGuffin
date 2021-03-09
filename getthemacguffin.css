@@ -125,7 +125,7 @@
 
 .gtmInPlayZone{
     min-width: 220px;
-    margin: 3px;
+    margin-right: 3px;
 }
 
 #discard_pile_wrap{
@@ -150,7 +150,7 @@
 .gtm_cards_counter{
     font-weight: bold;
     font-size: 28px;
-    color: 	#70c4cf;
+    color:  rgb(13, 158, 177);
     z-index: 1;
 }
 

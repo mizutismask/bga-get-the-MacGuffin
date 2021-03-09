@@ -24,13 +24,6 @@
     
     Please REMOVE this comment before publishing your game on BGA
 -->
-<div id="help_line" class="whiteblock gtm_white_block">
-    <div>
-        <img src="{GAMETHEMEURL}/img/icons/tomb.jpg" style="vertical-align: text-bottom;" class="gtm_cards_counter" />
-        <span class="gtm_cards_counter">x</span>
-        <span id="tomb_count" class="gtm_cards_counter"></span>
-    </div>
-</div>
 <div id="mainLine">
     <div id="discard_pile_wrap" class="whiteblock gtm_white_block">
         <h3 class="gtm_block_title">{PLAYING_ZONE}</h3>
@@ -70,7 +63,13 @@
     <h3 class="gtm_block_title">{PLAYING_ZONE_DETAIL}</h3>
     <div id="playing_zone_detail"></div>
 </div>
-
+<div id="help_line" class="gtm_white_block">
+    <div id="tomb">
+        <img src="{GAMETHEMEURL}/img/icons/tomb.jpg" style="vertical-align: text-bottom;" class="gtm_cards_counter" />
+        <span class="gtm_cards_counter">x</span>
+        <span id="tomb_count" class="gtm_cards_counter"></span>
+    </div>
+</div>
 <script type="text/javascript">
 
     // Javascript HTML templates
