@@ -86,7 +86,7 @@
             <div class="gtm-tooltip-description">${cardDescription}</div>\
         </div>';
 
-    var jstpl_animation = '<div class="animationDiv animation_background animation ${background_class}" id="animationDiv"></div>';
+    var jstpl_animation = '<div class="gtm_animation_background gtm_animation ${background_class}" id="animationDiv"></div>';
 </script>
 
 {OVERALL_GAME_FOOTER}

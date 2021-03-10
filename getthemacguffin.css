@@ -179,7 +179,7 @@
     100% { transform: scale(1,1);}
 }
 
-.animation{
+.gtm_animation{
     position: absolute;
     top: 19%;
     left: 7%;
@@ -190,7 +190,7 @@
     z-index: 99;
 }
 
-.animation_background{
+.gtm_animation_background{
     background-image: url("./img/animations175x175.jpg");
     width: 174px;
     height: 175px;

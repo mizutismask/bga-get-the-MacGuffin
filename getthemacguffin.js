@@ -24,8 +24,6 @@ define([
     function (dojo, declare) {
         return declare("bgagame.getthemacguffin", ebg.core.gamegui, {
             constructor: function () {
-                console.log('getthemacguffin constructor');
-
                 // Here, you can init the global variables of your user interface
                 // Example:
                 // this.myGlobalValue = 0;
@@ -51,15 +49,9 @@ define([
             */
 
             setup: function (gamedatas) {
-                console.log("gamedatas ", gamedatas);
+                //console.log("gamedatas ", gamedatas);
 
                 this.cardsAvailable = gamedatas.cardsAvailable;
-                // Setting up player boards
-                for (var player_id in gamedatas.players) {
-                    var player = gamedatas.players[player_id];
-
-                    // TODO: Setting up players boards if needed
-                }
 
                 //---------- Player hand setup
                 this.playerHand = new ebg.stock(); // new stock object for hand
@@ -82,7 +74,6 @@ define([
 
                 for (var card_id in gamedatas.hand) {
                     var card = gamedatas.hand[card_id];
-                    //console.log("ajout dans la main de la carte id/type/type arg :" + card.id + " " + card.type + " " + card.type_arg);
                     this.playerHand.addToStockWithId(card.type, card.id);
                 }
 
@@ -91,7 +82,6 @@ define([
                 this.optionsByPlayerId = [];
 
                 for (var player_id of gamedatas.playerorder) {
-                    console.log("gamedatas.playerorder " + player_id);
                     var playerInPlayCards = new ebg.stock();
                     playerInPlayCards.setSelectionMode(1);
                     playerInPlayCards.setSelectionAppearance('class');
@@ -211,7 +201,7 @@ define([
                 // Setup game notifications to handle (see "setupNotifications" method below)
                 this.setupNotifications();
 
-                console.log("Ending game setup");
+                //console.log("Ending game setup");
             },
 
 
@@ -222,8 +212,8 @@ define([
             //                  You can use this method to perform some user interface changes at this moment.
             //
             onEnteringState: function (stateName, args) {
-                console.log('Entering state: ' + stateName);
-                console.log('args', args);
+                //console.log('Entering state: ' + stateName);
+                // console.log('args', args);
                 dojo.query("#playing_zone_detail .stockitem").removeClass('selectable').addClass('unselectable').addClass('stockitem_unselectable');
                 switch (stateName) {
                     case 'seeSecretCards':
@@ -276,8 +266,7 @@ define([
             //                 You can use this method to perform some user interface changes at this moment.
             //
             onLeavingState: function (stateName) {
-                console.log('Leaving state: ' + stateName);
-
+                //console.log('Leaving state: ' + stateName);
 
                 switch (stateName) {
                     case 'seeSecretCards':
@@ -306,13 +295,13 @@ define([
             //                        action status bar (ie: the HTML links in the status bar).
             //        
             onUpdateActionButtons: function (stateName, args) {
-                console.log('onUpdateActionButtons: ' + stateName, args);
+                //console.log('onUpdateActionButtons: ' + stateName, args);
 
                 if (this.isCurrentPlayerActive()) {
                     switch (stateName) {
                         case "playerTurn":
                             this.addActionButton('button_confirm_card', _('Play selected card'), 'onPlayCard');
-                            this.addActionButton('button_discard', _('Discard an Object'), 'onDiscard');
+                            this.addActionButton('button_discard', _('Discard an object'), 'onDiscard');
                             break;
                         case "mandatoryCard":
                             this.addActionButton('button_confirm_card', _('Play selected card'), 'onPlayCard');
@@ -330,7 +319,7 @@ define([
                             this.addActionButton('button_confirm_card_counterclockwise', _('Previous player'), 'onCounterclockwise');
                             break;
                         case "specifyObjectToTake":
-                            this.addActionButton('button_take_object', _('Take'), 'onTakeObject');
+                            this.addActionButton('button_take_object', _('Take a card'), 'onTakeObject');
                             break;
                         case "specifyObjectsToSwap":
                             this.addActionButton('button_swap_objects', _('Swap'), 'onSwapObjects');
@@ -348,7 +337,6 @@ define([
             //// Utility methods
 
             gtmRestoreServerGameState() {
-                console.log("gtmRestoreServerGameState");
                 this.restoreServerGameState();
                 this.deselectAll();
             },
@@ -397,8 +385,6 @@ define([
             },
 
             createTooltip: function (card_div, card_type_id, card_id) {
-                console.log("tooltip card_type_id" + card_type_id);
-                console.log("tooltip card_id" + card_id);
                 // Note that "card_type_id" contains the type of the item, so you can do special actions depending on the item type
                 delay = 200;
                 this.addTooltipHtml(card_id, this.format_block('jstpl_card_tooltip', {
@@ -421,7 +407,6 @@ define([
 
             getStockCardIdOfType: function (stock, cardType) {
                 for (var idAndType of stock.getAllItems()) {
-                    console.log("idAndType", idAndType);
                     if (idAndType.type === cardType) {
                         return idAndType.id;
                     }
@@ -469,40 +454,6 @@ define([
                 _ make a call to the game server
             
             */
-
-            /* Example:
-            
-            onMyMethodToCall1: function( evt )
-            {
-                console.log( 'onMyMethodToCall1' );
-                
-                // Preventing default browser reaction
-                dojo.stopEvent( evt );
-         
-                // Check that this action is possible (see "possibleactions" in states.inc.php)
-                if( ! this.checkAction( 'myAction' ) )
-                {   return; }
-         
-                this.ajaxcall( "/getthemacguffin/getthemacguffin/myAction.html", { 
-                                                                        lock: true, 
-                                                                        myArgument1: arg1, 
-                                                                        myArgument2: arg2,
-                                                                        ...
-                                                                     }, 
-                             this, function( result ) {
-                                
-                                // What to do after the server call if it succeeded
-                                // (most of the time: nothing)
-                                
-                             }, function( is_error) {
-         
-                                // What to do after the server call in anyway (success or failure)
-                                // (most of the time: nothing)
-         
-                             } );        
-            },        
-            
-            */
             onSelectCard: function (control_name, item_id) {
                 // This method is called when myStockControl selected items changed
 
@@ -521,7 +472,7 @@ define([
                     var itemsFromHand = this.playerHand.getSelectedItems();
                     if (itemsFromHand.length == 1) {
                         var card = itemsFromHand[0];
-                        console.log("selection of ", card.type);
+                        //console.log("selection of ", card.type);
                         this.clientStateArgsCardType = card.type;
 
                         switch (card.type) {
@@ -534,7 +485,7 @@ define([
                                 this.chooseEffectTarget(_("Now, select an object in play or another player’s hand"));
                                 break;
                             case "THIEF":
-                                this.chooseEffectTarget(_("Now, select another player’s hand or object in play"));
+                                this.chooseEffectTarget(_("Now, select an object in play or another player’s hand"));
                                 break;
                             case "SWITCHEROO":
                             case "SPY":
@@ -583,7 +534,7 @@ define([
                     var itemsFromInPlayZone = this.inPlayStocksByPlayerId[this.player_id].getSelectedItems();
                     if (itemsFromInPlayZone.length == 1) {
                         var card = itemsFromInPlayZone[0];
-                        console.log("selection of in play ", card.type);
+                        //console.log("selection of in play ", card.type);
                         this.clientStateArgsCardType = card.type;
 
                         switch (card.type) {
@@ -656,7 +607,6 @@ define([
             },
 
             onSelectSecretCard: function (evt) {
-                console.log('onSelectSecretCard');
 
                 // Preventing default browser reaction
                 dojo.stopEvent(evt);
@@ -668,7 +618,6 @@ define([
                     var items = this.secretZone.getSelectedItems();
                     if (items.length == 1) {
                         var card = items[0];
-                        console.log("selection of secret ", card.type);
                         this.ajaxcall('/getthemacguffin/getthemacguffin/seenSecretCardsAction.html',
                             {
                                 lock: true,
@@ -684,8 +633,6 @@ define([
             },
 
             onDoneViewing: function (evt) {
-                console.log('onDoneViewing');
-
                 // Preventing default browser reaction
                 dojo.stopEvent(evt);
 
@@ -703,8 +650,6 @@ define([
             },
 
             onClockwise: function (evt) {
-                console.log('onClockwise');
-
                 // Preventing default browser reaction
                 dojo.stopEvent(evt);
 
@@ -723,8 +668,6 @@ define([
             },
 
             onCounterclockwise: function (evt) {
-                console.log('onClockonCounterclockwisewise');
-
                 // Preventing default browser reaction
                 dojo.stopEvent(evt);
 
@@ -743,7 +686,7 @@ define([
             },
 
             onTakeObject: function (evt) {
-                console.log('onTakeObject');
+                //console.log('onTakeObject');
 
                 // Preventing default browser reaction
                 dojo.stopEvent(evt);
@@ -756,7 +699,7 @@ define([
                             var selected = this.inPlayStocksByPlayerId[player_id].getSelectedItems();
                             if (selected.length == 1) {
                                 cardFromOtherPlayer = selected[0];
-                                console.log("selection from other player ", cardFromOtherPlayer.type);
+                                //console.log("selection from other player ", cardFromOtherPlayer.type);
                             }
                         }
                     }
@@ -777,7 +720,7 @@ define([
             },
 
             onSwapObjects: function (evt) {
-                console.log('onSwapObjects');
+                //console.log('onSwapObjects');
 
                 // Preventing default browser reaction
                 dojo.stopEvent(evt);
@@ -791,10 +734,10 @@ define([
                         if (selected.length == 1) {
                             if (!card1) {
                                 card1 = selected[0];
-                                console.log("selection from other player ", card1.type);
+                                //console.log("selection from other player ", card1.type);
                             } else {
                                 card2 = selected[0];
-                                console.log("selection from other player ", card2.type);
+                                //console.log("selection from other player ", card2.type);
                             }
                         }
                     }
@@ -822,7 +765,7 @@ define([
                         var selected = this.inPlayStocksByPlayerId[player_id].getSelectedItems();
                         if (selected.length == 1) {
                             cardFromOtherPlayer = selected[0];
-                            console.log("selection from other player ", cardFromOtherPlayer.type);
+                            // console.log("selection from other player ", cardFromOtherPlayer.type);
                         }
                     }
                 }
@@ -830,7 +773,7 @@ define([
             },
 
             onPlayCard: function (evt) {
-                console.log('onPlayCard');
+                //console.log('onPlayCard');
 
                 // Preventing default browser reaction
                 dojo.stopEvent(evt);
@@ -894,7 +837,7 @@ define([
             },
 
             onDiscard: function (evt) {
-                console.log('onDiscard');
+                //console.log('onDiscard');
                 this.checkAction('discard');
 
                 // Preventing default browser reaction
@@ -921,7 +864,7 @@ define([
                         });
 
                 } else {
-                    this.showMessageAndResetSelection(_('You have to select an Object in play to discard'));
+                    this.showMessageAndResetSelection(_('You have to select an object in play to discard'));
                 }
             },
 
@@ -938,9 +881,7 @@ define([
              
             */
             setupNotifications: function () {
-                console.log('notifications subscriptions setup');
-
-                // TODO: here, associate your game notifications with local methods
+                //console.log('notifications subscriptions setup');
 
                 // Example 1: standard notification handling
                 // dojo.subscribe( 'cardPlayed', this, "notif_cardPlayed" );
@@ -963,32 +904,15 @@ define([
                 dojo.connect(this.playerHand, 'onChangeSelection', this, 'onSelectCard');
             },
 
-            // TODO: from this point and below, you can write your game notifications handling methods
-
-            /*
-            Example:
-             
-            notif_cardPlayed: function( notif )
-            {
-                console.log( 'notif_cardPlayed' );
-                console.log( notif );
-                
-                // Note: notif.args contains the arguments specified during you "notifyAllPlayers" / "notifyPlayer" PHP call
-                
-                // TODO: play the card in the user interface.
-            },    
-             
-            */
-
             notif_handChange: function (notif) {
-                console.log('notif_handChange', notif.args);
+                //console.log('notif_handChange', notif.args);
                 if (notif.args.reset) {
                     this.playerHand.removeAll();
                 }
                 if (notif.args.added) {
                     for (var i in notif.args.added) {
                         var card = notif.args.added[i];
-                        console.log("notif_handChange add card id/type :" + card.id + " " + card.type);
+                        //console.log("notif_handChange add card id/type :" + card.id + " " + card.type);
                         if (card.location === "deck") {
                             from = "tomb_count";
                         } else if (card.location === "discard") {
@@ -1002,7 +926,7 @@ define([
                 if (notif.args.removed) {
                     for (var i in notif.args.removed) {
                         var card = notif.args.removed[i];
-                        console.log("notif_handChange remove card id/type :" + card.id + " " + card.type);
+                        //console.log("notif_handChange remove card id/type :" + card.id + " " + card.type);
                         this.playerHand.removeFromStockById(card.id);
                     }
                 }
@@ -1013,14 +937,14 @@ define([
                 if (notif.args.added) {
                     for (var i in notif.args.added) {
                         var card = notif.args.added[i];
-                        console.log("notif_inPlayChange add card id/type :" + card.id + " " + card.type);
+                        //console.log("notif_inPlayChange add card id/type :" + card.id + " " + card.type);
                         this.inPlayStocksByPlayerId[$player_id].addToStockWithId(card.type, card.id);
                     }
                 }
                 if (notif.args.removed) {
                     for (var i in notif.args.removed) {
                         var card = notif.args.removed[i];
-                        console.log("notif_inPlayChange remove card id/type :" + card.id + " " + card.type);
+                        //console.log("notif_inPlayChange remove card id/type :" + card.id + " " + card.type);
                         this.inPlayStocksByPlayerId[$player_id].removeFromStockById(card.id);
 
                     }
@@ -1035,8 +959,7 @@ define([
             },
 
             notif_cardPlayed: function (notif) {
-                console.log('notif_cardPlayed', notif);
-                //console.log(notif);
+                //console.log('notif_cardPlayed', notif);
                 var card = notif.args.card;
 
                 if (notif.args.toInPlay) {
@@ -1111,7 +1034,7 @@ define([
             },
 
             notif_revelation: function (notif) {
-                console.log('notif_cardPlayed', notif);
+                //console.log('notif_cardPlayed', notif);
                 if (notif.args.inDiscard || notif.args.ownerId) {
                     if (notif.args.inDiscard) {
                         var divFrom = "player_boards";
