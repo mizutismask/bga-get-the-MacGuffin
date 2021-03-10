@@ -246,6 +246,11 @@ a[disabled] {
     font-size: 0.46em;
 }
 
+.gtm_dead_player{
+    background: url("./img/skull.svg") no-repeat center;
+    filter: grayscale(1);
+}
+
 
 
 

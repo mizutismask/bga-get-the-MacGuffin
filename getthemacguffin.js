@@ -32,7 +32,7 @@ define([
                 this.cardheight = 311;
                 this.image_items_per_row = 10;
                 this.cards_img = 'img/cards/cards200x311.jpg';
-                this.icons_img = 'img/icons_50.png';
+                this.icons_img = 'img/icons/cards.png';
             },
 
             /*
@@ -122,6 +122,12 @@ define([
 
                         this.optionsByPlayerId[player_id] = stock;
                         this.addTooltip('options_' + player_id + "_item_0", _("Cards in hand for this player"), "");
+                    }
+
+                    //show dead players
+                    if (gamedatas.players[player_id].zombie || gamedatas.players[player_id].eliminated) {
+                        dojo.addClass("in_play_" + player_id, "gtm_dead_player");
+                        this.optionsByPlayerId[player_id].setSelectionMode(0);
                     }
                 }
 
@@ -1052,6 +1058,7 @@ define([
             notif_playerEliminated: function (notif) {
                 var player_id = notif.args.player_id;
                 this.disablePlayerPanel(player_id);
+                dojo.addClass("in_play_" + player_id, "gtm_dead_player");
             },
 
         });
