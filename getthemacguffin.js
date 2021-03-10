@@ -1100,6 +1100,10 @@ define([
                         this.playingZoneDetail.addToStockWithId(card.type, card.id);
                     }
                 }
+                if (notif.args.reset_in_play_player_id) {
+                    this.inPlayStocksByPlayerId[notif.args.reset_in_play_player_id].removeAll();//zombie clean
+                }
+
             },
 
             notif_secretCards: function (notif) {

@@ -21,6 +21,8 @@
 require_once(APP_GAMEMODULE_PATH . 'module/table/table.game.php');
 
 if (!defined('DECK_LOC_DECK')) {
+    define("CARDS_NUMBER", 23);
+
     // constants for deck locations
     define("DECK_LOC_DECK", "deck");
     define("DECK_LOC_IN_PLAY", "inPlay");
@@ -158,7 +160,7 @@ class GetTheMacGuffin extends Table
     function dealCards()
     {
         $players = self::loadPlayersBasicInfos();
-        $number = min(5, floor(23 / count($players)));
+        $number = min(5, floor(CARDS_NUMBER / count($players)));
         foreach ($players as $player_id => $player) {
             $this->pickCardsAndNotifyPlayer($number, $player_id);
         }
@@ -229,7 +231,7 @@ class GetTheMacGuffin extends Table
     */
     function getGameProgression()
     {
-        $dealt = 23 - $this->deck->countCardInLocation(DECK_LOC_DECK);
+        $dealt = CARDS_NUMBER - $this->deck->countCardInLocation(DECK_LOC_DECK);
         $played = $this->deck->countCardInLocation(DECK_LOC_DISCARD) + $this->deck->countCardInLocation(DECK_LOC_IN_PLAY) / 2;
         return $this->isEndOfGame() ? 100 : $played * 100 / $dealt;
     }
@@ -1054,13 +1056,17 @@ class GetTheMacGuffin extends Table
         return count($this->deck->getCardsInLocation(DECK_LOC_IN_PLAY, $player_id)) == 0;
     }
 
+    /**
+     * Zombies won’t be eliminated, but they won’t play and won’t have a positive score.
+     */
     function eliminatePlayersIfNeeded()
     {
         $players = self::loadPlayersBasicInfos();
         $newEliminated = array();
+
         foreach ($players as $player) {
             $player_id = $player["player_id"];
-            if (!$player["player_eliminated"]) {
+            if (!$player["player_eliminated"] && !$this->isZombie($player_id)) {
                 if ($this->hasNoCardsInHand($player_id) && $this->hasNoCardsInPlay($player_id)) {
                     $newEliminated[] = $player_id;
                     self::eliminatePlayer($player_id);
@@ -1068,6 +1074,7 @@ class GetTheMacGuffin extends Table
                 }
             }
         }
+        //zombies don’t matter, only real people can win
         $stillAlivePlayers = $this->getStillAlivePlayers();
         $stillAliveCount = count($stillAlivePlayers);
         if ($stillAliveCount == 1) {
@@ -1085,7 +1092,7 @@ class GetTheMacGuffin extends Table
     {
         $players = self::loadPlayersBasicInfos();
         $stillAlivePlayers = array_filter($players, function ($p) {
-            return !$p["player_eliminated"];
+            return !$p["player_eliminated"] && !$p["player_zombie"];
         });
         return $stillAlivePlayers;
     }
@@ -1354,6 +1361,7 @@ class GetTheMacGuffin extends Table
     public function stNextPlayer()
     {
         $player_id = $this->activeNextPlayer();
+
         self::setGameStateValue(GS_MANDATORY_CARD, 0);
 
         $endOfGame = $this->eliminatePlayersIfNeeded();
@@ -1394,16 +1402,21 @@ class GetTheMacGuffin extends Table
         $statename = $state['name'];
 
         if ($state['type'] === "activeplayer") {
+            if (!$this->hasNoCardsInHand($active_player) && !$this->hasNoCardsInPlay($active_player)) {
 
-            switch ($statename) {
-                case "playerTurn":
-                    $this->gamestate->nextState(TRANSITION_NEXT_PLAYER);
-                    break;
+                $hand = $this->deck->getCardsInLocation(DECK_LOC_HAND, $active_player);
+                $objects = $this->deck->getCardsInLocation(DECK_LOC_IN_PLAY, $active_player);
+                $this->deck->moveAllCardsInLocation(DECK_LOC_HAND, DECK_LOC_DISCARD, $active_player);
+                $this->deck->moveAllCardsInLocation(DECK_LOC_IN_PLAY, DECK_LOC_DISCARD, $active_player);
+
+                self::notifyAllPlayers(NOTIF_PLAYING_ZONE_DETAIL_CHANGE, clienttranslate('${player_name} has left the game, all their cards are going to the discard'), array(
+                    'added' => array_merge($hand, $objects),
+                    'player_name' => $this->getPlayerName($active_player),
+                    'reset_in_play_player_id' => $active_player,
+                ));
             }
-            return;
+            $this->gamestate->nextState(TRANSITION_NEXT_PLAYER);
         }
-
-        throw new BgaUserException("Zombie mode not supported at this game state: " . $statename);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////:
