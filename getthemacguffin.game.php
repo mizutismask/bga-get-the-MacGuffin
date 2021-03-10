@@ -1216,7 +1216,7 @@ class GetTheMacGuffin extends Table
             'i18n' => array('card_name'),
         ));
 
-        self::incStat(1, "discarded_objects", $player_to);
+        self::incStat(1, "discarded_objects", $player_id);
         $this->gamestate->nextState(TRANSITION_NEXT_PLAYER);
     }
 
