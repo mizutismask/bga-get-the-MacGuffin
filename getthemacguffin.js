@@ -241,9 +241,7 @@ define([
                             this.deselectAll();
                             this.inPlayStocksByPlayerId[this.player_id].setSelectionMode(0);
                             dojo.query("#myhand .stockitem").removeClass('selectable').addClass('unselectable').addClass('stockitem_unselectable');
-                            dojo.removeClass("myhand_item_" + mandatorCardId, 'unselectable');
-                            dojo.removeClass("myhand_item_" + mandatorCardId, 'stockitem_unselectable');
-                            dojo.addClass("myhand_item_" + mandatorCardId, 'selectable');
+                            dojo.query("#myhand_item_" + mandatorCardId).removeClass('unselectable').removeClass('stockitem_unselectable').addClass('selectable');
                             this.playerHand.selectItem(mandatorCardId);
                             break;
                         }
@@ -284,7 +282,7 @@ define([
                     case 'mandatoryCard':
                         if (this.isCurrentPlayerActive()) {
                             this.inPlayStocksByPlayerId[this.player_id].setSelectionMode(1);
-                            dojo.query(".stockitem").removeClass('unselectable').addClass('selectable');
+                            dojo.query("#myhand .stockitem").removeClass('unselectable').removeClass('stockitem_unselectable').addClass('selectable');
                             break;
                         }
                     case 'playerTurn':
@@ -332,7 +330,7 @@ define([
                             break;
                         case "client_choose_target":
                             this.addActionButton('button_confirm_card', _('Confirm'), 'onPlayCard');
-                            this.addActionButton('button_cancel', _('Annuler'), 'gtmRestoreServerGameState', null, false, 'red');
+                            this.addActionButton('button_cancel', _('Cancel'), 'gtmRestoreServerGameState', null, false, 'red');
                             break;
 
                     }

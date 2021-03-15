@@ -84,7 +84,7 @@
     cursor:default;
 }
 .stockitem_selected {
-	border: 2px solid rgb(140, 67, 182) ! important;
+	border: 3px solid rgb(76, 5, 207) ! important;
 }
 
 .stockitem:hover {
