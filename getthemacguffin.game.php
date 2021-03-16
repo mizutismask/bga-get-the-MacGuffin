@@ -532,10 +532,20 @@ class GetTheMacGuffin extends Table
 
     function canShifumiCardBeUsed($player_id, $weakCard)
     {
+        $can = true;
         $cards = array_values($this->deck->getCardsOfType($weakCard));
         $toDiscard = array_pop($cards);
         if ($toDiscard["location"] != DECK_LOC_IN_PLAY || $toDiscard["location_arg"] == $player_id) {
-            return new BgaUserException(self::_("You can NOT use this card if the weaker shifumi card has not been played by another player"));
+            $can = false;
+        }
+        return $can;
+    }
+
+    function checkShifumiCardCanBeUsed($player_id, $weakCard)
+    {
+        $can =  $this->canShifumiCardBeUsed($player_id, $weakCard);
+        if (!$can) {
+            return new BgaUserException(self::_("You can NOT use this card if the weaker paper/rock/scissors card has not been played by another player"));
         }
     }
     function playShifumi($player_id, $weakCard)
@@ -991,13 +1001,13 @@ class GetTheMacGuffin extends Table
                 }
                 break;
             case SCISSORS:
-                return $this->canShifumiCardBeUsed($player_id, PAPER);
+                return $this->checkShifumiCardCanBeUsed($player_id, PAPER);
                 break;
             case ROCK:
-                return  $this->canShifumiCardBeUsed($player_id, SCISSORS);
+                return  $this->checkShifumiCardCanBeUsed($player_id, SCISSORS);
                 break;
             case PAPER:
-                return $this->canShifumiCardBeUsed($player_id, ROCK);
+                return $this->checkShifumiCardCanBeUsed($player_id, ROCK);
                 break;
             default:
                 # code...
@@ -1322,6 +1332,10 @@ class GetTheMacGuffin extends Table
             'two_players_have_objects' => $this->count_players_with_in_play_cards() >= 2,
             'no_other_cards' => $this->deck->countCardInLocation(DECK_LOC_IN_PLAY, $player_id) == 0 && $this->deck->countCardInLocation(DECK_LOC_HAND, $player_id) == 1,
             'no_one_else_has_hand' => $this->no_one_has_a_hand_other_than($player_id),
+            'is_a_mac_guffin_in_play' => $this->isTypeInPlay(MACGUFFIN) || $this->isTypeInPlay(BACKUP_MACGUFFIN),
+            'can_paper_be_used' =>  $this->canShifumiCardBeUsed($player_id, ROCK),
+            'can_rock_be_used' =>  $this->canShifumiCardBeUsed($player_id, SCISSORS),
+            'can_scissors_be_used' =>  $this->canShifumiCardBeUsed($player_id, PAPER),
         );
     }
 

@@ -218,8 +218,8 @@ define([
             //                  You can use this method to perform some user interface changes at this moment.
             //
             onEnteringState: function (stateName, args) {
-                //console.log('Entering state: ' + stateName);
-                // console.log('args', args);
+                console.log('Entering state: ' + stateName);
+                console.log('args', args);
                 dojo.query("#playing_zone_detail .stockitem").removeClass('selectable').addClass('unselectable').addClass('stockitem_unselectable');
                 switch (stateName) {
                     case 'seeSecretCards':
@@ -305,7 +305,8 @@ define([
                     switch (stateName) {
                         case "playerTurn":
                             this.addActionButton('button_confirm_card', _('Play selected card'), 'onPlayCard');
-                            this.addActionButton('button_discard', _('Discard an object'), 'onDiscard');
+                            if (this.inPlayStocksByPlayerId[this.player_id].count() > 0)
+                                this.addActionButton('button_discard', _('Discard an object'), 'onDiscard');
                             break;
                         case "mandatoryCard":
                             this.addActionButton('button_confirm_card', _('Play selected card'), 'onPlayCard');
@@ -508,6 +509,12 @@ define([
                                     }
                                 }
                                 break;
+                            case "HIPPIE":
+                            case "SHRUGMASTER":
+                            case "MARSHALL":
+                            case "INTERROGATOR":
+                                this.onPlayCard();
+
                             //case "MERCHANT":
                             //if (!this.argPossibleTargetsInfo.two_players_have_objects && this.argPossibleTargetsInfo.one_other_has_objects) {
                             //    this.chooseEffectTarget(_("Now, select an object to take"));
@@ -543,10 +550,34 @@ define([
 
                         switch (card.type) {
                             case "CROWN":
-                                this.changeInnerHtml("button_confirm_card", _("Pass"));
+                                if (!this.argPossibleTargetsInfo.is_a_mac_guffin_in_play) {
+                                    this.onPlayCard();
+                                } else {
+                                    this.changeInnerHtml("button_confirm_card", _("Pass"));
+                                    dojo.query("#button_confirm_card").removeClass("bgabutton_blue").addClass("bgabutton_gray");
+                                    dojo.setAttr("button_confirm_card", 'disabled', 'true');
+                                }
                                 break;
                             case "MONEY":
                                 this.chooseEffectTarget(_("Now, select an object in play or another player’s hand"));
+                                break;
+                            case "PAPER":
+                                if (!this.argPossibleTargetsInfo.can_paper_be_used) {
+                                    dojo.query("#button_confirm_card").removeClass("bgabutton_blue").addClass("bgabutton_gray");
+                                    dojo.setAttr("button_confirm_card", 'disabled', 'true');
+                                }
+                                break;
+                            case "ROCK":
+                                if (!this.argPossibleTargetsInfo.can_rock_be_used) {
+                                    dojo.query("#button_confirm_card").removeClass("bgabutton_blue").addClass("bgabutton_gray");
+                                    dojo.setAttr("button_confirm_card", 'disabled', 'true');
+                                }
+                                break;
+                            case "SCISSORS":
+                                if (!this.argPossibleTargetsInfo.can_scissors_be_used) {
+                                    dojo.query("#button_confirm_card").removeClass("bgabutton_blue").addClass("bgabutton_gray");
+                                    dojo.setAttr("button_confirm_card", 'disabled', 'true');
+                                }
                                 break;
 
                             /* case "MACGUFFIN":
@@ -780,7 +811,8 @@ define([
                 //console.log('onPlayCard');
 
                 // Preventing default browser reaction
-                dojo.stopEvent(evt);
+                if (evt)
+                    dojo.stopEvent(evt);
 
                 this.checkAction('playCard');
 
@@ -814,7 +846,7 @@ define([
                             if (this.playingZoneDetail.getSelectedItems()) {
                                 cardFromOtherPlayer = this.playingZoneDetail.getSelectedItems()[0];
                             }
-
+                            break;
                         default:
 
                     }
