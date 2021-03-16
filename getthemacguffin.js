@@ -218,8 +218,8 @@ define([
             //                  You can use this method to perform some user interface changes at this moment.
             //
             onEnteringState: function (stateName, args) {
-                console.log('Entering state: ' + stateName);
-                console.log('args', args);
+                //console.log('Entering state: ' + stateName);
+                //console.log('args', args);
                 dojo.query("#playing_zone_detail .stockitem").removeClass('selectable').addClass('unselectable').addClass('stockitem_unselectable');
                 switch (stateName) {
                     case 'seeSecretCards':
@@ -320,8 +320,8 @@ define([
                             }
                             break;
                         case "specifyClockwise":
-                            this.addActionButton('button_confirm_card_clockwise', _('Next player'), 'onClockwise');
-                            this.addActionButton('button_confirm_card_counterclockwise', _('Previous player'), 'onCounterclockwise');
+                            this.addActionButton('button_confirm_card_clockwise', args.clockwise_player_name, 'onClockwise');
+                            this.addActionButton('button_confirm_card_counterclockwise', args.counterclockwise_player_name, 'onCounterclockwise');
                             break;
                         case "specifyObjectToTake":
                             this.addActionButton('button_take_object', _('Take a card'), 'onTakeObject');

@@ -1339,6 +1339,15 @@ class GetTheMacGuffin extends Table
         );
     }
 
+    public function argClockwise()
+    {
+        $players = $this->getPlayersInOrder(); //starts with active player
+        return array(
+            'clockwise_player_name' => $this->getPlayerName($players[1]),
+            'counterclockwise_player_name' => $this->getPlayerName(array_pop($players)),
+        );
+    }
+
     function argCardsCounters()
     {
         $players = self::getObjectListFromDB("SELECT player_id id FROM player", true);
