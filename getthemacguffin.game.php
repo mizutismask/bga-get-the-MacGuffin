@@ -303,12 +303,12 @@ class GetTheMacGuffin extends Table
             $card = $this->deck->getCard($card_id);
             $this->deck->moveCard($card_id, DECK_LOC_HAND, $player_to);
             // Notify players about changes
-            self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, 'You steal ${card_name}', array(
+            self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, clienttranslate('You steal ${card_name}))'), array(
                 'added' => [$card],
                 'card_name' => $this->cards_description[$card["type"]]["name"],
                 'i18n' => array('card_name'),
             ));
-            self::notifyPlayer($player_from, NOTIF_HAND_CHANGE, 'You’ve been stolen ${card_name}', array(
+            self::notifyPlayer($player_from, NOTIF_HAND_CHANGE, clienttranslate('You’ve been stolen ${card_name}'), array(
                 'removed' => [$card],
                 'card_name' => $this->cards_description[$card["type"]]["name"],
                 'i18n' => array('card_name'),
