@@ -1042,7 +1042,8 @@ define([
 
                 //animates void cards
                 if (card.type == "HIPPIE" || card.type == "SHRUGMASTER" || card.type == "MARSHALL") {
-                    this.animate(card.type, 'discard_pile');
+                    var that = this;
+                    setTimeout(function () { that.animate(card.type, 'discard_pile'); }, 1300);
                 }
             },
 
