@@ -359,12 +359,18 @@ class GetTheMacGuffin extends Table
     {
         $from = $object_card["location_arg"];
         $this->deck->moveCard($object_card["id"], DECK_LOC_HAND, $player_to);
-        self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '', array("player_id" => $from, 'removed' => [$object_card]));
-        // Notify players about changes
-        self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, clienttranslate('You steal ${card_name}'), array(
-            'added' => [$object_card],
+        self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, clienttranslate('${player_name} steals ${card_name} from ${player_name2}'), array(
+            "player_id" => $from,
+            'removed' => [$object_card],
+            'player_name' => $this->getPlayerName($player_to),
+            'player_name2' => $this->getPlayerName($from),
             'card_name' => $this->cards_description[$object_card["type"]]["name"],
             'i18n' => array('card_name'),
+        ));
+        // Notify players about changes
+        self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, '', array(
+            'added' => [$object_card],
+            'card_name' => $this->cards_description[$object_card["type"]]["name"],
         ));
         self::incStat(1, "stolen_objects_number", $player_to);
     }
@@ -614,7 +620,7 @@ class GetTheMacGuffin extends Table
 
     function playNotDeadYet($player_id, $effect_on_card, $effect_on_player_id)
     {
-        if ($this->hasNoCardsInHand($player_id) && $this->hasNoCardsInPlay($player_id)) {
+        if ($this->hasNoCardsInHand($player_id) && $this->hasNoCardsInPlay($player_id)) { //NotDeadYet has been played in the generic method, so there is no more cards
             if ($effect_on_player_id && !$this->hasNoCardsInHand($effect_on_player_id)) {
                 $this->stealCardFromHand($effect_on_player_id, $player_id);
             } else if ($this->no_one_has_a_hand_other_than($player_id) && $effect_on_card) {
@@ -902,7 +908,6 @@ class GetTheMacGuffin extends Table
     function canActionCardBeUsed($played_card, $description, $effect_on_card = null, $effect_on_player_id = null)
     {
         $player_id = self::getActivePlayerId();
-
         switch ($played_card["type"]) {
             case THIEF:
                 if (!$effect_on_player_id && !$effect_on_card && ($this->someone_has_a_hand_other_than($player_id) || $this->someone_has_in_play_cards_other_than($player_id))) {
@@ -957,7 +962,7 @@ class GetTheMacGuffin extends Table
                 }
                 break;
             case NOT_DEAD_YET:
-                if ($this->hasNoCardsInHand($player_id) && $this->hasNoCardsInPlay($player_id)) { //effect only if no card in any location
+                if ($this->deck->countCardInLocation(DECK_LOC_HAND, $player_id) == 1 && $this->hasNoCardsInPlay($player_id)) { //effect only if no card in any location
 
                     if ($effect_on_player_id && !$this->hasNoCardsInHand($effect_on_player_id)) {
                         //normal case, steal a card
@@ -965,7 +970,7 @@ class GetTheMacGuffin extends Table
                         if ($this->inPlayObjectsAreMacGuffins()) {
                             //nothing happens
                         } else {
-                            if (($effect_on_card["type"] === MACGUFFIN) || ($effect_on_card["type"] === BACKUP_MACGUFFIN)) {
+                            if ($effect_on_card["type"] == MACGUFFIN || $effect_on_card["type"] == BACKUP_MACGUFFIN) {
                                 return new BgaUserException(self::_("You can NOT steal a sort of MacGuffin"));
                             }
                         }
@@ -973,6 +978,7 @@ class GetTheMacGuffin extends Table
                         return new BgaUserException(self::_("Select a player to steal a card from his hand. If no one has a hand, you can steal an object."));
                     }
                 }
+
                 break;
             default:
                 # code...
