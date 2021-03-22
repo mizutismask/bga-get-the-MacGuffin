@@ -122,12 +122,16 @@ define([
 
                         this.optionsByPlayerId[player_id] = stock;
                         this.addTooltip('options_' + player_id + "_item_0", _("Cards in hand for this player"), "");
+
+                        dojo.connect(this.inPlayStocksByPlayerId[player_id], 'onChangeSelection', this, 'onSelectInPlayCardFromOtherPlayers');
                     }
 
                     //show dead players
                     if (gamedatas.players[player_id].zombie || gamedatas.players[player_id].eliminated) {
                         dojo.addClass("in_play_" + player_id, "gtm_dead_player");
-                        this.optionsByPlayerId[player_id].setSelectionMode(0);
+                        if (this.player_id != player_id) {
+                            this.optionsByPlayerId[player_id].setSelectionMode(0);
+                        }
                     }
                 }
 
@@ -207,6 +211,8 @@ define([
                 // Setup game notifications to handle (see "setupNotifications" method below)
                 this.setupNotifications();
 
+                dojo.connect(this.playingZoneDetail, 'onChangeSelection', this, 'onSelectDiscardedCard');
+
                 //console.log("Ending game setup");
             },
 
@@ -218,8 +224,9 @@ define([
             //                  You can use this method to perform some user interface changes at this moment.
             //
             onEnteringState: function (stateName, args) {
-                //console.log('Entering state: ' + stateName);
+                // console.log('Entering state: ' + stateName);
                 //console.log('args', args);
+                this.currentState = stateName;
                 dojo.query("#playing_zone_detail .stockitem").removeClass('selectable').addClass('unselectable').addClass('stockitem_unselectable');
                 switch (stateName) {
                     case 'seeSecretCards':
@@ -483,7 +490,7 @@ define([
                         switch (card.type) {
                             case "GARBAGE_COLLECTR":
                                 if (this.playingZoneDetail.count() > 0) {
-                                    this.chooseEffectTarget(_("Now, select a card from the discard"));
+                                    this.chooseEffectTarget(_("Now, scroll down to select a card from the discard detail"));
                                 }
                                 break;
                             case "FIST_OF_DOOM":
@@ -509,9 +516,24 @@ define([
                                     }
                                 }
                                 break;
+                            case "ASSASSIN":
+                                if (this.argPossibleTargetsInfo.is_crown_in_play) {
+                                    this.onPlayCard();
+                                }
+                                break;
                             case "HIPPIE":
                             case "SHRUGMASTER":
                             case "MARSHALL":
+                            case "INTERROGATOR":
+                            case "MACGUFFIN":
+                            case "MONEY":
+                            case "CROWN":
+                            case "BACKUP_MACGUFFIN":
+                            case "SCISSORS":
+                            case "ROCK":
+                            case "PAPER":
+                            case "TOMB_ROBBERS":
+                            case "WHEEL_OF_FORTUNE":
                             case "INTERROGATOR":
                                 this.onPlayCard();
 
@@ -565,19 +587,31 @@ define([
                                 if (!this.argPossibleTargetsInfo.can_paper_be_used) {
                                     dojo.query("#button_confirm_card").removeClass("bgabutton_blue").addClass("bgabutton_gray");
                                     dojo.setAttr("button_confirm_card", 'disabled', 'true');
+                                    this.onDiscard();
+                                } else {
+                                    this.onPlayCard();
                                 }
                                 break;
                             case "ROCK":
                                 if (!this.argPossibleTargetsInfo.can_rock_be_used) {
                                     dojo.query("#button_confirm_card").removeClass("bgabutton_blue").addClass("bgabutton_gray");
                                     dojo.setAttr("button_confirm_card", 'disabled', 'true');
+                                    this.onDiscard();
+                                } else {
+                                    this.onPlayCard();
                                 }
                                 break;
                             case "SCISSORS":
                                 if (!this.argPossibleTargetsInfo.can_scissors_be_used) {
                                     dojo.query("#button_confirm_card").removeClass("bgabutton_blue").addClass("bgabutton_gray");
                                     dojo.setAttr("button_confirm_card", 'disabled', 'true');
+                                    this.onDiscard();
+                                } else {
+                                    this.onPlayCard();
                                 }
+                                break;
+                            case "THIEF":
+                                this.onPlayCard();
                                 break;
 
                             /* case "MACGUFFIN":
@@ -618,7 +652,34 @@ define([
                             dojo.removeAttr('button_confirm_card', 'disabled');
                         }
                     }
-                };
+                }
+            },
+
+            onSelectInPlayCardFromOtherPlayers: function (control_name, item_id) {
+                if (item_id == undefined)
+                    return;
+
+                // Check if item is selectable
+                if (dojo.hasClass(control_name + "_item_" + item_id, "unselectable")) {
+                    this.inPlayStocksByPlayerId[this.player_id].unselectItem(item_id);
+                }
+
+                if (this.isCurrentPlayerActive()) {
+                    var cardFromOtherPlayer = this.getSelectedInPlayCard();
+                    if (this.currentState == "client_choose_target" && cardFromOtherPlayer) {
+                        //console.log("selection of in play ", cardFromOtherPlayer.type);
+                        var itemsFromHand = this.playerHand.getSelectedItems();
+                        if (itemsFromHand.length == 1) {
+                            var card = itemsFromHand[0];
+                            switch (card.type) {
+                                case "THIEF":
+                                case "FIST_OF_DOOM":
+                                    this.onPlayCard();
+                                    break;
+                            }
+                        }
+                    }
+                }
             },
 
             /** 
@@ -633,12 +694,55 @@ define([
                 }
 
                 if (clickedStock.getSelectedItems().length == 1) {
+
+                    //Unselects other player hands when one is clicked, since hands are not in the same stock
                     for (var player_id in this.optionsByPlayerId) {
                         var stock = this.optionsByPlayerId[player_id];
                         if (stock.control_name != clickedStock.control_name)
                             stock.unselectAll();
                     }
+
+                    //plays without confirmation some cards needing a player targeted
+                    if (this.isCurrentPlayerActive()) {
+                        //get selected card
+                        var itemsFromHand = this.playerHand.getSelectedItems();
+                        if (itemsFromHand.length == 1) {
+                            var card = itemsFromHand[0];
+
+                            switch (card.type) {
+                                case "SWITCHEROO":
+                                case "SPY":
+                                case "CAN_I_USE_THAT":
+                                case "ASSASSIN":
+                                case "THIEF":
+                                case "NOT_DEAD_YET":
+                                    this.onPlayCard();
+                                    break;
+                            }
+                        } else {
+                            this.gtmRestoreServerGameState();
+                        }
+                    };
                 }
+            },
+
+            onSelectDiscardedCard: function (control_name, item_id) {
+                if (this.isCurrentPlayerActive() && this.playingZoneDetail.getSelectedItems().length == 1) {
+                    var itemsFromHand = this.playerHand.getSelectedItems();
+                    if (itemsFromHand.length == 1) {
+                        var card = itemsFromHand[0];
+
+                        //plays without confirmation 
+                        switch (card.type) {
+
+                            case "GARBAGE_COLLECTR":
+                                this.onPlayCard();
+                                break;
+                        }
+                    } else {
+                        this.gtmRestoreServerGameState();
+                    }
+                };
             },
 
             onSelectSecretCard: function (evt) {
@@ -724,7 +828,8 @@ define([
                 //console.log('onTakeObject');
 
                 // Preventing default browser reaction
-                dojo.stopEvent(evt);
+                if (evt)
+                    dojo.stopEvent(evt);
 
                 this.checkAction('takeObject');
                 if (this.isCurrentPlayerActive()) {
@@ -877,7 +982,8 @@ define([
                 this.checkAction('discard');
 
                 // Preventing default browser reaction
-                dojo.stopEvent(evt);
+                if (evt)
+                    dojo.stopEvent(evt);
 
                 var items = this.inPlayStocksByPlayerId[this.player_id].getSelectedItems();
                 //money needs to select an object or a player

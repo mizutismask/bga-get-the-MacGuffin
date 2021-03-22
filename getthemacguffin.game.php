@@ -303,7 +303,7 @@ class GetTheMacGuffin extends Table
             $card = $this->deck->getCard($card_id);
             $this->deck->moveCard($card_id, DECK_LOC_HAND, $player_to);
             // Notify players about changes
-            self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, clienttranslate('You steal ${card_name}))'), array(
+            self::notifyPlayer($player_to, NOTIF_HAND_CHANGE, clienttranslate('You steal ${card_name}'), array(
                 'added' => [$card],
                 'card_name' => $this->cards_description[$card["type"]]["name"],
                 'i18n' => array('card_name'),
@@ -1342,6 +1342,7 @@ class GetTheMacGuffin extends Table
             'can_paper_be_used' =>  $this->canShifumiCardBeUsed($player_id, ROCK),
             'can_rock_be_used' =>  $this->canShifumiCardBeUsed($player_id, SCISSORS),
             'can_scissors_be_used' =>  $this->canShifumiCardBeUsed($player_id, PAPER),
+            'is_crown_in_play' => $this->isTypeInPlay(CROWN),
         );
     }
 
