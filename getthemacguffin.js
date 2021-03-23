@@ -224,7 +224,7 @@ define([
             //                  You can use this method to perform some user interface changes at this moment.
             //
             onEnteringState: function (stateName, args) {
-                // console.log('Entering state: ' + stateName);
+                console.log('Entering state: ' + stateName);
                 //console.log('args', args);
                 this.currentState = stateName;
                 dojo.query("#playing_zone_detail .stockitem").removeClass('selectable').addClass('unselectable').addClass('stockitem_unselectable');
@@ -519,6 +519,8 @@ define([
                             case "ASSASSIN":
                                 if (this.argPossibleTargetsInfo.is_crown_in_play) {
                                     this.onPlayCard();
+                                } else {
+                                    this.chooseEffectTarget(_("Now, select an object in play or another player’s hand"));
                                 }
                                 break;
                             case "HIPPIE":
@@ -536,6 +538,7 @@ define([
                             case "WHEEL_OF_FORTUNE":
                             case "INTERROGATOR":
                             case "VORTEX":
+                            case "MERCHANT":
                                 this.onPlayCard();
 
                             //case "MERCHANT":
@@ -579,6 +582,7 @@ define([
                                     this.changeInnerHtml("button_confirm_card", _("Pass"));
                                     dojo.query("#button_confirm_card").removeClass("bgabutton_blue").addClass("bgabutton_gray");
                                     dojo.setAttr("button_confirm_card", 'disabled', 'true');
+                                    this.onDiscard();
                                 }
                                 break;
                             case "MONEY":
@@ -682,14 +686,35 @@ define([
                     if (this.currentState == "client_choose_target" && cardFromOtherPlayer) {
                         //console.log("selection of in play ", cardFromOtherPlayer.type);
                         var itemsFromHand = this.playerHand.getSelectedItems();
+                        var itemsFromMyInPlay = this.inPlayStocksByPlayerId[this.player_id].getSelectedItems();
                         if (itemsFromHand.length == 1) {
                             var card = itemsFromHand[0];
                             switch (card.type) {
+                                case "MONEY":
                                 case "THIEF":
                                 case "FIST_OF_DOOM":
                                     this.onPlayCard();
                                     break;
+                                case "ASSASSIN":
+                                    if (!this.argPossibleTargetsInfo.is_crown_in_play) {
+                                        this.onPlayCard();
+                                    }
+                                    break;
                             }
+                        }
+                        else if (itemsFromMyInPlay.length == 1) {
+                            var card = itemsFromMyInPlay[0];
+                            switch (card.type) {
+                                case "MONEY":
+                                    this.onPlayCard();
+                                    break;
+                            }
+                        }
+                    }
+                    else if (this.currentState == "specifyObjectsToSwap") {
+                        var cards = this.getSelectedObjectsFromOtherPlayers();
+                        if (cards.length == 2) {
+                            this.onSwapObjects();
                         }
                     }
                 }
@@ -730,6 +755,11 @@ define([
                                 case "THIEF":
                                 case "NOT_DEAD_YET":
                                     this.onPlayCard();
+                                    break;
+                                case "ASSASSIN":
+                                    if (!this.argPossibleTargetsInfo.is_crown_in_play) {
+                                        this.onPlayCard();
+                                    }
                                     break;
                             }
                         } else {
@@ -872,16 +902,36 @@ define([
                 }
             },
 
+            getSelectedObjectsFromOtherPlayers: function () {
+                var cards = [];
+                for (var player_id in this.inPlayStocksByPlayerId) {
+                    var selected = this.inPlayStocksByPlayerId[player_id].getSelectedItems();
+                    if (selected.length == 1) {
+                        if (cards.length == 0) {
+                            cards[0] = selected[0];
+                            //console.log("selection from other player ", card1.type);
+                        } else {
+                            cards[1] = selected[0];
+                            //console.log("selection from other player ", card2.type);
+                        }
+                    }
+                }
+                return cards;
+            },
+
             onSwapObjects: function (evt) {
                 //console.log('onSwapObjects');
 
                 // Preventing default browser reaction
-                dojo.stopEvent(evt);
+                if (evt)
+                    dojo.stopEvent(evt);
 
                 this.checkAction('swapObjects');
+
                 if (this.isCurrentPlayerActive()) {
-                    var card1;
-                    var card2;
+                    var cards = this.getSelectedObjectsFromOtherPlayers();
+                    var card1 = cards[0];
+                    var card2 = cards[1];
                     for (var player_id in this.inPlayStocksByPlayerId) {
                         var selected = this.inPlayStocksByPlayerId[player_id].getSelectedItems();
                         if (selected.length == 1) {
