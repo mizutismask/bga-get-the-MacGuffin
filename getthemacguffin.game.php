@@ -1339,6 +1339,7 @@ class GetTheMacGuffin extends Table
             'no_other_cards' => $this->deck->countCardInLocation(DECK_LOC_IN_PLAY, $player_id) == 0 && $this->deck->countCardInLocation(DECK_LOC_HAND, $player_id) == 1,
             'no_one_else_has_hand' => $this->no_one_has_a_hand_other_than($player_id),
             'is_a_mac_guffin_in_play' => $this->isTypeInPlay(MACGUFFIN) || $this->isTypeInPlay(BACKUP_MACGUFFIN),
+            'is_the_mac_guffin_in_play' => $this->isTypeInPlay(MACGUFFIN),
             'can_paper_be_used' =>  $this->canShifumiCardBeUsed($player_id, ROCK),
             'can_rock_be_used' =>  $this->canShifumiCardBeUsed($player_id, SCISSORS),
             'can_scissors_be_used' =>  $this->canShifumiCardBeUsed($player_id, PAPER),
