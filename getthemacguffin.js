@@ -743,6 +743,7 @@ define([
                     //plays without confirmation some cards needing a player targeted
                     if (this.isCurrentPlayerActive()) {
                         //get selected card
+                        var itemsFromMyInPlay = this.inPlayStocksByPlayerId[this.player_id].getSelectedItems();
                         var itemsFromHand = this.playerHand.getSelectedItems();
                         if (itemsFromHand.length == 1) {
                             var card = itemsFromHand[0];
@@ -762,7 +763,15 @@ define([
                                     }
                                     break;
                             }
-                        } else {
+                        } else if (itemsFromMyInPlay.length == 1) {
+                            var card = itemsFromMyInPlay[0];
+                            switch (card.type) {
+                                case "MONEY":
+                                    this.onPlayCard();
+                                    break;
+                            }
+                        }
+                        else {
                             this.gtmRestoreServerGameState();
                         }
                     };
