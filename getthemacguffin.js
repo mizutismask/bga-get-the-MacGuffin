@@ -906,7 +906,7 @@ define([
                     this.ajaxcall('/getthemacguffin/getthemacguffin/specifyClockwiseAction.html',
                         {
                             lock: true,
-                            clockwise: true,
+                            clockwise: false,//we give clockwise, so we receive counterclockwise, we changed the phrasing from give clockwise to receive, so we have to reverse the boolean.
                         },
                         this,
                         function (result) { });
@@ -924,7 +924,7 @@ define([
                     this.ajaxcall('/getthemacguffin/getthemacguffin/specifyClockwiseAction.html',
                         {
                             lock: true,
-                            clockwise: false,
+                            clockwise: true,//we give counterclockwise, so we receive clockwise
                         },
                         this,
                         function (result) { });
