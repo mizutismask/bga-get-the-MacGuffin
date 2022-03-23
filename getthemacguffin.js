@@ -207,6 +207,11 @@ define([
 
                 this.addTooltipToClass("gtm_cards_counter", _("Cards in the tomb"), "");
 
+                if (dojo.byId("overall_player_board_" + this.player_id)) {//not in spectator mode
+                    dojo.place(this.format_block('jstpl_ask_confirm', {
+                        askForConfirm: _("ask for confirmation"),
+                    }), "overall_player_board_" + this.player_id);
+                }
 
                 // Setup game notifications to handle (see "setupNotifications" method below)
                 this.setupNotifications();
@@ -478,7 +483,8 @@ define([
                 if (dojo.hasClass(control_name + "_item_" + item_id, "unselectable")) {
                     this.playerHand.unselectItem(item_id);
                 }
-
+                var askForConfirm = dojo.byId("askConfirmCb") && $(askConfirmCb).checked;
+                //console.log("askForConfirm ", askForConfirm);
                 if (this.isCurrentPlayerActive()) {
                     //get selected card
                     var itemsFromHand = this.playerHand.getSelectedItems();
@@ -518,7 +524,9 @@ define([
                                 break;
                             case "ASSASSIN":
                                 if (this.argPossibleTargetsInfo.is_crown_in_play) {
-                                    this.onPlayCard();
+                                    if (!askForConfirm) {
+                                        this.onPlayCard();
+                                    }
                                 } else {
                                     this.chooseEffectTarget(_("Now, select an object in play or another player’s hand"));
                                 }
@@ -539,7 +547,9 @@ define([
                             case "INTERROGATOR":
                             case "VORTEX":
                             case "MERCHANT":
-                                this.onPlayCard();
+                                if (!askForConfirm) {
+                                    this.onPlayCard();
+                                }
 
                             //case "MERCHANT":
                             //if (!this.argPossibleTargetsInfo.two_players_have_objects && this.argPossibleTargetsInfo.one_other_has_objects) {
@@ -566,99 +576,142 @@ define([
                 }
 
                 // This method is called when myStockControl selected items changed
+                var askForConfirm = dojo.byId("askConfirmCb") && $(askConfirmCb).checked;
                 if (this.isCurrentPlayerActive()) {
+
                     //get selected card
                     var itemsFromInPlayZone = this.inPlayStocksByPlayerId[this.player_id].getSelectedItems();
                     if (itemsFromInPlayZone.length == 1) {
                         var card = itemsFromInPlayZone[0];
-                        //console.log("selection of in play ", card.type);
-                        this.clientStateArgsCardType = card.type;
 
-                        switch (card.type) {
-                            case "CROWN":
-                                if (!this.argPossibleTargetsInfo.is_a_mac_guffin_in_play) {
-                                    this.onPlayCard();
-                                } else {
-                                    this.changeInnerHtml("button_confirm_card", _("Pass"));
-                                    dojo.query("#button_confirm_card").removeClass("bgabutton_blue").addClass("bgabutton_gray");
-                                    dojo.setAttr("button_confirm_card", 'disabled', 'true');
-                                    this.onDiscard();
-                                }
-                                break;
-                            case "MONEY":
-                                this.chooseEffectTarget(_("Now, select an object in play or another player’s hand"));
-                                break;
-                            case "PAPER":
-                                if (!this.argPossibleTargetsInfo.can_paper_be_used) {
-                                    dojo.query("#button_confirm_card").removeClass("bgabutton_blue").addClass("bgabutton_gray");
-                                    dojo.setAttr("button_confirm_card", 'disabled', 'true');
-                                    this.onDiscard();
-                                } else {
-                                    this.onPlayCard();
-                                }
-                                break;
-                            case "ROCK":
-                                if (!this.argPossibleTargetsInfo.can_rock_be_used) {
-                                    dojo.query("#button_confirm_card").removeClass("bgabutton_blue").addClass("bgabutton_gray");
-                                    dojo.setAttr("button_confirm_card", 'disabled', 'true');
-                                    this.onDiscard();
-                                } else {
-                                    this.onPlayCard();
-                                }
-                                break;
-                            case "SCISSORS":
-                                if (!this.argPossibleTargetsInfo.can_scissors_be_used) {
-                                    dojo.query("#button_confirm_card").removeClass("bgabutton_blue").addClass("bgabutton_gray");
-                                    dojo.setAttr("button_confirm_card", 'disabled', 'true');
-                                    this.onDiscard();
-                                } else {
-                                    this.onPlayCard();
-                                }
-                                break;
-                            case "THIEF":
-                                this.onPlayCard();
-                                break;
+                        if (this.currentState == "specifyObjectsToSwap") {
+                            var cards = this.getSelectedObjectsFromOtherPlayers();
+                            if (cards.length == 2 && !askForConfirm) {
+                                this.onSwapObjects();
+                            }
+                        }
+                        else {
+                            console.log("selection of in play ", card.type);
+                            console.log("saskForConfirm ", askForConfirm);
+                            this.clientStateArgsCardType = card.type;
 
-                            case "MACGUFFIN":
-                                var mcgfnId = this.getStockCardIdOfType(this.inPlayStocksByPlayerId[this.player_id], "MACGUFFIN");
-                                if (mcgfnId && (this.inPlayStocksByPlayerId[this.player_id].count() > 1 || this.playerHand.count() > 0)) {
-                                    if (dojo.byId("button_confirm_card")) {
-                                        dojo.removeClass('button_confirm_card', 'bgabutton_blue');
-                                        dojo.addClass('button_confirm_card', 'bgabutton_gray');
-                                        dojo.setAttr('button_confirm_card', 'disabled', 'true');
+                            switch (card.type) {
+                                case "CROWN":
+                                    if (!this.argPossibleTargetsInfo.is_a_mac_guffin_in_play) {
+                                        if (!askForConfirm) {
+                                            this.onPlayCard();
+                                        }
+                                    } else {
+                                        this.changeInnerHtml("button_confirm_card", _("Pass"));
+                                        dojo.query("#button_confirm_card").removeClass("bgabutton_blue").addClass("bgabutton_gray");
+                                        if (dojo.byId("button_confirm_card")) {
+                                            dojo.setAttr("button_confirm_card", 'disabled', 'true');
+                                        }
+                                        if (!askForConfirm) {
+                                            this.onDiscard();
+                                        }
                                     }
-                                }
-                                else {
-                                    this.onPlayCard();
-                                }
-                                break;
-                            case "BACKUP_MACGUFFIN":
-                                var mcgfnId = this.getStockCardIdOfType(this.inPlayStocksByPlayerId[this.player_id], "BACKUP_MACGUFFIN");
-                                if (mcgfnId && (this.inPlayStocksByPlayerId[this.player_id].count() > 1 || this.playerHand.count() > 0)) {
-                                    if (dojo.byId("button_confirm_card")) {
-                                        dojo.removeClass('button_confirm_card', 'bgabutton_blue');
-                                        dojo.addClass('button_confirm_card', 'bgabutton_gray');
-                                        dojo.setAttr('button_confirm_card', 'disabled', 'true');
+                                    break;
+                                case "MONEY":
+                                    this.chooseEffectTarget(_("Now, select an object in play or another player’s hand"));
+                                    break;
+                                case "PAPER":
+                                    if (!this.argPossibleTargetsInfo.can_paper_be_used) {
+                                        dojo.query("#button_confirm_card").removeClass("bgabutton_blue").addClass("bgabutton_gray");
+                                        if (dojo.byId("button_confirm_card")) {
+                                            dojo.setAttr("button_confirm_card", 'disabled', 'true');
+                                        }
+                                        if (!askForConfirm) {
+                                            this.onDiscard();
+                                        }
+                                    } else {
+                                        if (!askForConfirm) {
+                                            this.onPlayCard();
+                                        }
                                     }
-                                } else {
-                                    if (!this.argPossibleTargetsInfo.is_the_mac_guffin_in_play) {
+                                    break;
+                                case "ROCK":
+                                    if (!this.argPossibleTargetsInfo.can_rock_be_used) {
+                                        dojo.query("#button_confirm_card").removeClass("bgabutton_blue").addClass("bgabutton_gray");
+                                        if (dojo.byId("button_confirm_card")) {
+                                            dojo.setAttr("button_confirm_card", 'disabled', 'true');
+                                        }
+                                        if (!askForConfirm) {
+                                            this.onDiscard();
+                                        }
+                                    } else {
+                                        if (!askForConfirm) {
+                                            this.onPlayCard();
+                                        }
+                                    }
+                                    break;
+                                case "SCISSORS":
+                                    if (!this.argPossibleTargetsInfo.can_scissors_be_used) {
+                                        dojo.query("#button_confirm_card").removeClass("bgabutton_blue").addClass("bgabutton_gray");
+                                        if (dojo.byId("button_confirm_card")) {
+                                            dojo.setAttr("button_confirm_card", 'disabled', 'true');
+                                        }
+                                        if (!askForConfirm) {
+                                            this.onDiscard();
+                                        }
+                                    } else {
+                                        if (!askForConfirm) {
+                                            this.onPlayCard();
+                                        }
+                                    }
+                                    break;
+                                case "THIEF":
+                                    if (!askForConfirm) {
                                         this.onPlayCard();
                                     }
-                                    else {
-                                        this.onDiscard();
-                                    }
-                                }
-                                break;
-                            /*
-                        default:
-                            if (dojo.byId("button_confirm_card")) {
-                                this.changeInnerHtml("button_confirm_card", _("Play selected card"));
-                                dojo.removeClass('button_confirm_card', 'bgabutton_gray');
-                                dojo.addClass('button_confirm_card', 'bgabutton_blue');
-                                dojo.removeAttr('button_confirm_card', 'disabled');
-                            }
-       */
+                                    break;
 
+                                case "MACGUFFIN":
+                                    var mcgfnId = this.getStockCardIdOfType(this.inPlayStocksByPlayerId[this.player_id], "MACGUFFIN");
+                                    if (mcgfnId && (this.inPlayStocksByPlayerId[this.player_id].count() > 1 || this.playerHand.count() > 0)) {
+                                        if (dojo.byId("button_confirm_card")) {
+                                            dojo.removeClass('button_confirm_card', 'bgabutton_blue');
+                                            dojo.addClass('button_confirm_card', 'bgabutton_gray');
+                                            dojo.setAttr('button_confirm_card', 'disabled', 'true');
+                                        }
+                                    }
+                                    else {
+                                        if (!askForConfirm) {
+                                            this.onPlayCard();
+                                        }
+                                    }
+                                    break;
+                                case "BACKUP_MACGUFFIN":
+                                    var mcgfnId = this.getStockCardIdOfType(this.inPlayStocksByPlayerId[this.player_id], "BACKUP_MACGUFFIN");
+                                    if (mcgfnId && (this.inPlayStocksByPlayerId[this.player_id].count() > 1 || this.playerHand.count() > 0)) {
+                                        if (dojo.byId("button_confirm_card")) {
+                                            dojo.removeClass('button_confirm_card', 'bgabutton_blue');
+                                            dojo.addClass('button_confirm_card', 'bgabutton_gray');
+                                            dojo.setAttr('button_confirm_card', 'disabled', 'true');
+                                        }
+                                    } else {
+                                        if (!this.argPossibleTargetsInfo.is_the_mac_guffin_in_play) {
+                                            if (!askForConfirm) {
+                                                this.onPlayCard();
+                                            }
+                                        }
+                                        else {
+                                            if (!askForConfirm) {
+                                                this.onDiscard();
+                                            }
+                                        }
+                                    }
+                                    break;
+                                /*
+                            default:
+                                if (dojo.byId("button_confirm_card")) {
+                                    this.changeInnerHtml("button_confirm_card", _("Play selected card"));
+                                    dojo.removeClass('button_confirm_card', 'bgabutton_gray');
+                                    dojo.addClass('button_confirm_card', 'bgabutton_blue');
+                                    dojo.removeAttr('button_confirm_card', 'disabled');
+                                }
+           */
+                            }
                         }
                     }
                     else {
@@ -680,8 +733,8 @@ define([
                 if (dojo.hasClass(control_name + "_item_" + item_id, "unselectable")) {
                     this.inPlayStocksByPlayerId[this.player_id].unselectItem(item_id);
                 }
-
-                if (this.isCurrentPlayerActive()) {
+                var askForConfirm = dojo.byId("askConfirmCb") && $(askConfirmCb).checked;
+                if (this.isCurrentPlayerActive() && !askForConfirm) {
                     var cardFromOtherPlayer = this.getSelectedInPlayCard();
                     if (this.currentState == "client_choose_target" && cardFromOtherPlayer) {
                         //console.log("selection of in play ", cardFromOtherPlayer.type);
@@ -739,9 +792,9 @@ define([
                         if (stock.control_name != clickedStock.control_name)
                             stock.unselectAll();
                     }
-
+                    var askForConfirm = dojo.byId("askConfirmCb") && $(askConfirmCb).checked;
                     //plays without confirmation some cards needing a player targeted
-                    if (this.isCurrentPlayerActive()) {
+                    if (this.isCurrentPlayerActive() && !askForConfirm) {
                         //get selected card
                         var itemsFromMyInPlay = this.inPlayStocksByPlayerId[this.player_id].getSelectedItems();
                         var itemsFromHand = this.playerHand.getSelectedItems();
@@ -779,7 +832,8 @@ define([
             },
 
             onSelectDiscardedCard: function (control_name, item_id) {
-                if (this.isCurrentPlayerActive() && this.playingZoneDetail.getSelectedItems().length == 1) {
+                var askForConfirm = dojo.byId("askConfirmCb") && $(askConfirmCb).checked;
+                if (this.isCurrentPlayerActive() && this.playingZoneDetail.getSelectedItems().length == 1 && !askForConfirm) {
                     var itemsFromHand = this.playerHand.getSelectedItems();
                     if (itemsFromHand.length == 1) {
                         var card = itemsFromHand[0];
@@ -804,7 +858,8 @@ define([
 
                 this.checkAction('takeCard');
                 // This method is called when myStockControl selected items changed
-                if (this.isCurrentPlayerActive()) {
+                var askForConfirm = dojo.byId("askConfirmCb") && $(askConfirmCb).checked;
+                if (this.isCurrentPlayerActive() && !askForConfirm) {
                     //get selected card
                     var items = this.secretZone.getSelectedItems();
                     if (items.length == 1) {
@@ -992,6 +1047,8 @@ define([
                     dojo.stopEvent(evt);
 
                 this.checkAction('playCard');
+
+
 
                 var itemsFromHand = this.playerHand.getSelectedItems();
                 var itemsFromInPlayZone = this.inPlayStocksByPlayerId[this.player_id].getSelectedItems();

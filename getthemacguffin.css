@@ -251,6 +251,8 @@ a[disabled] {
     filter: grayscale(1);
 }
 
-
+#askConfirmCb{
+    margin: 5px;
+}
 
 

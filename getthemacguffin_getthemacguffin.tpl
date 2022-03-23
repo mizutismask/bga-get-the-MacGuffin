@@ -87,6 +87,8 @@
         </div>';
 
     var jstpl_animation = '<div id="animationDiv" class="gtm_animation_background gtm_animation ${background_class}" ></div>';
+    var jstpl_ask_confirm = '<input type="checkbox" id="askConfirmCb" name="askConfirm" unchecked><label for="askConfirm">${askForConfirm}</label>'; 
+
 </script>
 
 {OVERALL_GAME_FOOTER}
