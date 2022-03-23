@@ -1203,7 +1203,7 @@ class GetTheMacGuffin extends Table
             'card_name' => $description["name"],
             'card' => $played_card,
             'uses' => $uses,
-            'plays' => $uses ? self::_("uses") : self::_("plays"),
+            'plays' => $uses ? clienttranslate('uses') : clienttranslate('plays'),
             'toInPlay' => $description["type"] === OBJ && !($played_card["type"] === MONEY && $uses), //objects all go to inplay except for money who is discarded after its first use
             'i18n' => array('card_name', 'plays'),
         ));
