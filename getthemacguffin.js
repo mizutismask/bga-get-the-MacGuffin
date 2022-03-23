@@ -316,7 +316,7 @@ define([
                 if (this.isCurrentPlayerActive()) {
                     switch (stateName) {
                         case "playerTurn":
-                            this.addActionButton('button_confirm_card', _('Play selected card'), 'onPlayCard');
+                            this.addActionButton('button_confirm_card', _('Use selected card'), 'onPlayCard');
                             if (this.inPlayStocksByPlayerId[this.player_id].count() > 0)
                                 this.addActionButton('button_discard', _('Discard an object'), 'onDiscard');
                             break;
@@ -716,7 +716,7 @@ define([
                     }
                     else {
                         if (dojo.byId("button_confirm_card")) {
-                            this.changeInnerHtml("button_confirm_card", _("Play selected card"));
+                            this.changeInnerHtml("button_confirm_card", _("Use selected card"));
                             dojo.removeClass('button_confirm_card', 'bgabutton_gray');
                             dojo.addClass('button_confirm_card', 'bgabutton_blue');
                             dojo.removeAttr('button_confirm_card', 'disabled');
