@@ -255,6 +255,7 @@ define([
                             dojo.query("#myhand .stockitem").removeClass('selectable').addClass('unselectable').addClass('stockitem_unselectable');
                             dojo.query("#myhand_item_" + mandatorCardId).removeClass('unselectable').removeClass('stockitem_unselectable').addClass('selectable');
                             this.playerHand.selectItem(mandatorCardId);
+                            this.onSelectCard("myhand",mandatorCardId);
                             break;
                         }
                     case 'nextPlayer':
