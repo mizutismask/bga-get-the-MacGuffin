@@ -1243,7 +1243,7 @@ class GetTheMacGuffin extends Table
             $order = array_reverse($order);
         }
         self::notifyAllPlayers('msg', clienttranslate('Hands are passed ${clockwise}'), array(
-            'clockwise' => $clockwise ? 'clockwise' : 'counterclockwise',
+            'clockwise' => $clockwise ? clienttranslate('${clockwise}') : clienttranslate('${counterclockwise}'),
             'i18n' => array('clockwise'),
         ));
 
