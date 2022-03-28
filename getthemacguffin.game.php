@@ -968,12 +968,15 @@ class GetTheMacGuffin extends Table
 
                     if ($effect_on_player_id && !$this->hasNoCardsInHand($effect_on_player_id)) {
                         //normal case, steal a card
-                    } else if ($this->no_one_has_a_hand_other_than($player_id) && $effect_on_card) {
+                    } else if ($this->no_one_has_a_hand_other_than($player_id) ) {
+                        //steal an object
                         if ($this->inPlayObjectsAreMacGuffins()) {
-                            //nothing happens
+                            //unless nothing happens
                         } else {
-                            if ($effect_on_card["type"] == MACGUFFIN || $effect_on_card["type"] == BACKUP_MACGUFFIN) {
+                            if ($effect_on_card && $effect_on_card["type"] == MACGUFFIN || $effect_on_card["type"] == BACKUP_MACGUFFIN) {
                                 return new BgaUserException(self::_("You can NOT steal a sort of MacGuffin"));
+                            }else{
+                                return new BgaUserException(self::_("You have to select another player’s object"));
                             }
                         }
                     } else {
@@ -1341,6 +1344,7 @@ class GetTheMacGuffin extends Table
             'no_other_cards' => $this->deck->countCardInLocation(DECK_LOC_IN_PLAY, $player_id) == 0 && $this->deck->countCardInLocation(DECK_LOC_HAND, $player_id) == 1,
             'no_one_else_has_hand' => $this->no_one_has_a_hand_other_than($player_id),
             'is_a_mac_guffin_in_play' => $this->isTypeInPlay(MACGUFFIN) || $this->isTypeInPlay(BACKUP_MACGUFFIN),
+            'only_mac_guffins_are_in_play' => $this->inPlayObjectsAreMacGuffins(),
             'is_the_mac_guffin_in_play' => $this->isTypeInPlay(MACGUFFIN),
             'can_paper_be_used' =>  $this->canShifumiCardBeUsed($player_id, ROCK),
             'can_rock_be_used' =>  $this->canShifumiCardBeUsed($player_id, SCISSORS),

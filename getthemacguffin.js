@@ -514,7 +514,14 @@ define([
                             case "NOT_DEAD_YET":
                                 if (this.argPossibleTargetsInfo.no_other_cards) {
                                     if (this.argPossibleTargetsInfo.no_one_else_has_hand) {
-                                        this.chooseEffectTarget(_("Now, select an object in play"));
+                                        if(this.argPossibleTargetsInfo.only_mac_guffins_are_in_play){
+                                            if (!askForConfirm) {
+                                                this.onPlayCard();
+                                            }
+                                        }
+                                        else{
+                                            this.chooseEffectTarget(_("Now, select an object in play"));
+                                        }
                                     } else {
                                         this.chooseEffectTarget(_("Now, select another player’s hand"));
                                     }
