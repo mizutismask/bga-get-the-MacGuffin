@@ -392,15 +392,17 @@ class GetTheMacGuffin extends Table
     function discardRandomCardFromHand($player_id)
     {
         $cards = $this->deck->getCardsInLocation(DECK_LOC_HAND, $player_id);
-        $card_id = array_rand($cards);
-        $this->discardCardFromHand($card_id);
-        $card = $this->deck->getCard($card_id);
+        if ($cards) {
+            $card_id = array_rand($cards);
+            $this->discardCardFromHand($card_id);
+            $card = $this->deck->getCard($card_id);
 
-        self::notifyAllPlayers("msg", clienttranslate('${player_name} loses ${card_name} from their hand'), array(
-            'player_name' => $this->getPlayerName($player_id),
-            'card_name' => $this->cards_description[$card["type"]]["name"],
-            'i18n' => array('card_name'),
-        ));
+            self::notifyAllPlayers("msg", clienttranslate('${player_name} loses ${card_name} from their hand'), array(
+                'player_name' => $this->getPlayerName($player_id),
+                'card_name' => $this->cards_description[$card["type"]]["name"],
+                'i18n' => array('card_name'),
+            ));
+        }
     }
 
     function discardInPlayObject($object_card)
