@@ -255,7 +255,7 @@ define([
                             dojo.query("#myhand .stockitem").removeClass('selectable').addClass('unselectable').addClass('stockitem_unselectable');
                             dojo.query("#myhand_item_" + mandatorCardId).removeClass('unselectable').removeClass('stockitem_unselectable').addClass('selectable');
                             this.playerHand.selectItem(mandatorCardId);
-                            this.onSelectCard("myhand",mandatorCardId);
+                            this.onSelectCard("myhand", mandatorCardId);
                             break;
                         }
                     case 'nextPlayer':
@@ -459,18 +459,15 @@ define([
                 this.setClientState("client_choose_target", { descriptionmyturn: helpText, });
             },
 
+            isTargetClientState: function (state) {
+                return "client_choose_target" == state;
+            },
+
             ///////////////////////////////////////////////////
             //// Player's action
 
             /*
-            
-                Here, you are defining methods to handle player's action (ex: results of mouse click on 
-                game objects).
-                
-                Most of the time, these methods:
-                _ check the action is possible at this game state.
-                _ make a call to the game server
-            
+                Called when active user selects a card in his hand.
             */
             onSelectCard: function (control_name, item_id) {
                 // This method is called when myStockControl selected items changed
@@ -520,6 +517,11 @@ define([
                                         this.chooseEffectTarget(_("Now, select an object in play"));
                                     } else {
                                         this.chooseEffectTarget(_("Now, select another player’s hand"));
+                                    }
+                                }
+                                else {
+                                    if (!askForConfirm) {
+                                        this.onPlayCard();
                                     }
                                 }
                                 break;
@@ -590,6 +592,9 @@ define([
                             if (cards.length == 2 && !askForConfirm) {
                                 this.onSwapObjects();
                             }
+                        }
+                        else if (this.isTargetClientState(this.currentState)) {
+                            //we are selecting the target of an already selected card in my hand, so we don't apply the effect of this one
                         }
                         else {
                             console.log("selection of in play ", card.type);
