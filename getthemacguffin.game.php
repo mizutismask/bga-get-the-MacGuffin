@@ -735,37 +735,41 @@ class GetTheMacGuffin extends Table
     function playMerchant($player_id)
     {
         $count_by_player_id = $this->deck->countCardsByLocationArgs(DECK_LOC_IN_PLAY);
-        //if one player has objects
-        if (count($count_by_player_id) == 1) {
-            //if he has only one card, take it
-            $playersWithOneCard = array_filter($count_by_player_id, function ($count, $player) {
-                return $count == "1";
-            }, ARRAY_FILTER_USE_BOTH);
-
-            if (count($playersWithOneCard) == 1) {
-                $playersWithOneCardIds = array_keys($playersWithOneCard);
-                $from = array_pop($playersWithOneCardIds);
-                $cards = $this->deck->getCardsInLocation(DECK_LOC_IN_PLAY, $from);
-                $card = array_pop($cards);
-                $this->deck->moveCard($card["id"], DECK_LOC_IN_PLAY, $player_id);
-                self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '', array("player_id" => $from, 'removed' => [$card]));
-
-                self::notifyAllPlayers(NOTIF_CARD_PLAYED, clienttranslate('${player_name} trades ${card_name} from ${player_name2}'), array(
-                    'player_id' => $player_id,
-                    'player_name' => self::getActivePlayerName(),
-                    'player_name2' => self::getPlayerName($from),
-                    'card_name' =>  $this->cards_description[$card["type"]]["name"],
-                    'card' => $card,
-                    'toInPlay' => true,
-                    'i18n' => array('card_name'),
-                ));
-            } else {
-                //other specify which one
-                return TRANSITION_SPECIFY_IN_PLAY_OBJECT_TO_TAKE;
-            }
-        } else if (count($count_by_player_id) >= 2) {
+        if (count($count_by_player_id) >= 2) {//several players have objects
             //specify swap
             return TRANSITION_SPECIFY_IN_PLAY_OBJECTS_TO_SWAP;
+        }
+        else {//if one player has objects
+            unset($count_by_player_id[$player_id]); //removes active player since only opponents are relevant here
+
+            if (count($count_by_player_id) == 1) {
+                //if he has only one card, take it
+                $playersWithOneCard = array_filter($count_by_player_id, function ($count, $player) {
+                    return $count == "1";
+                }, ARRAY_FILTER_USE_BOTH);
+
+                if (count($playersWithOneCard) == 1) {
+                    $playersWithOneCardIds = array_keys($playersWithOneCard);
+                    $from = array_pop($playersWithOneCardIds);
+                    $cards = $this->deck->getCardsInLocation(DECK_LOC_IN_PLAY, $from);
+                    $card = array_pop($cards);
+                    $this->deck->moveCard($card["id"], DECK_LOC_IN_PLAY, $player_id);
+                    self::notifyAllPlayers(NOTIF_IN_PLAY_CHANGE, '', array("player_id" => $from, 'removed' => [$card]));
+
+                    self::notifyAllPlayers(NOTIF_CARD_PLAYED, clienttranslate('${player_name} trades ${card_name} from ${player_name2}'), array(
+                        'player_id' => $player_id,
+                        'player_name' => self::getActivePlayerName(),
+                        'player_name2' => self::getPlayerName($from),
+                        'card_name' =>  $this->cards_description[$card["type"]]["name"],
+                        'card' => $card,
+                        'toInPlay' => true,
+                        'i18n' => array('card_name'),
+                    ));
+                } else {
+                    //other specify which one
+                    return TRANSITION_SPECIFY_IN_PLAY_OBJECT_TO_TAKE;
+                }
+            }
         }
     }
 
@@ -939,7 +943,7 @@ class GetTheMacGuffin extends Table
                 if (!$effect_on_card && $this->deck->countCardInLocation(DECK_LOC_DISCARD) > 0) {
                     return new BgaUserException(self::_("You have to select one card from the discard"));
                 }
-                if ($effect_on_card["location"] != DECK_LOC_DISCARD) {
+                if ($effect_on_card && $effect_on_card["location"] != DECK_LOC_DISCARD) {
                     return new BgaUserException(self::_("You can take a card from the discard only"));
                 }
                 break;
@@ -968,14 +972,14 @@ class GetTheMacGuffin extends Table
 
                     if ($effect_on_player_id && !$this->hasNoCardsInHand($effect_on_player_id)) {
                         //normal case, steal a card
-                    } else if ($this->no_one_has_a_hand_other_than($player_id) ) {
+                    } else if ($this->no_one_has_a_hand_other_than($player_id)) {
                         //steal an object
                         if ($this->inPlayObjectsAreMacGuffins()) {
                             //unless nothing happens
                         } else {
                             if ($effect_on_card && $effect_on_card["type"] == MACGUFFIN || $effect_on_card["type"] == BACKUP_MACGUFFIN) {
                                 return new BgaUserException(self::_("You can NOT steal a sort of MacGuffin"));
-                            }else{
+                            } else {
                                 return new BgaUserException(self::_("You have to select another player’s object"));
                             }
                         }
@@ -1356,7 +1360,7 @@ class GetTheMacGuffin extends Table
     public function argClockwise()
     {
         $players = $this->getPlayersInOrder(); //starts with active player
-        array_shift($players);//removes the active player
+        array_shift($players); //removes the active player
         return array(
             'clockwise_player_name' => $this->getPlayerName(array_shift($players)),
             'counterclockwise_player_name' => $this->getPlayerName(array_pop($players)),
