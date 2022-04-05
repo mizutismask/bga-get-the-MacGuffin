@@ -1248,7 +1248,7 @@ class GetTheMacGuffin extends Table
             $order = array_reverse($order);
         }
         self::notifyAllPlayers('msg', clienttranslate('Hands are passed ${clockwise}'), array(
-            'clockwise' => $clockwise ? clienttranslate('${clockwise}') : clienttranslate('${counterclockwise}'),
+            'clockwise' => $clockwise ? clienttranslate('clockwise') : clienttranslate('counterclockwise'),
             'i18n' => array('clockwise'),
         ));
 
@@ -1356,8 +1356,9 @@ class GetTheMacGuffin extends Table
     public function argClockwise()
     {
         $players = $this->getPlayersInOrder(); //starts with active player
+        array_shift($players);//removes the active player
         return array(
-            'clockwise_player_name' => $this->getPlayerName($players[1]),
+            'clockwise_player_name' => $this->getPlayerName(array_shift($players)),
             'counterclockwise_player_name' => $this->getPlayerName(array_pop($players)),
         );
     }
