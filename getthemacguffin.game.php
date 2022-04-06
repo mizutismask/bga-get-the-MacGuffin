@@ -477,7 +477,7 @@ class GetTheMacGuffin extends Table
             $msg_args['ownerId'] = $mcGuffin["location_arg"];
         } else if ($mcGuffin["location"] == DECK_LOC_DISCARD) {
             $seen = true;
-            $message = '${card_name} is in the discard';
+            $message = clienttranslate('${card_name} is in the discard');
             $msg_args['inDiscard'] = true;
         }
 
