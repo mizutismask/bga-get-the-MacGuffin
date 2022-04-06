@@ -503,14 +503,14 @@ class GetTheMacGuffin extends Table
             $result[] = $player_id;
             $player_id = $next_player[$player_id];
         }
-        self::dump( '*********************************************************** before eliminating' , $result );
+        self::dump('*********************************************************** before eliminating', $result);
         if ($removeEliminated) {
             //Need to remove eliminated players
             $eliminated = array_keys(array_filter($players, function ($player) {
                 return $player["player_eliminated"];
             }));
             $result = array_diff($result, $eliminated);
-            self::dump( '*********************************************************** after eliminating' , $result );
+            self::dump('*********************************************************** after eliminating', $result);
         }
 
         return $result;
@@ -1363,9 +1363,11 @@ class GetTheMacGuffin extends Table
     {
         $players = $this->getPlayersInOrder(); //starts with active player
         array_shift($players); //removes the active player
+        $clockwise_player = array_shift($players);
+        $counterclockwise_player = array_pop($players);
         return array(
-            'clockwise_player_name' => $this->getPlayerName(array_shift($players)),
-            'counterclockwise_player_name' => $this->getPlayerName(array_pop($players)),
+            'clockwise_player_name' => $clockwise_player ? $this->getPlayerName($clockwise_player) : null,
+            'counterclockwise_player_name' => $counterclockwise_player ? $this->getPlayerName($counterclockwise_player) : null,
         );
     }
 

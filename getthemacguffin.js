@@ -333,8 +333,12 @@ define([
                             }
                             break;
                         case "specifyClockwise":
-                            this.addActionButton('button_confirm_card_clockwise', args.clockwise_player_name, 'onClockwise');
-                            this.addActionButton('button_confirm_card_counterclockwise', args.counterclockwise_player_name, 'onCounterclockwise');
+                            if (args.clockwise_player_name) {
+                                this.addActionButton('button_confirm_card_clockwise', args.clockwise_player_name, 'onClockwise');
+                            }
+                            if (args.counterclockwise_player_name) {
+                                this.addActionButton('button_confirm_card_counterclockwise', args.counterclockwise_player_name, 'onCounterclockwise');
+                            }
                             break;
                         case "specifyObjectToTake":
                             this.addActionButton('button_take_object', _('Take a card'), 'onTakeObject');
@@ -514,12 +518,12 @@ define([
                             case "NOT_DEAD_YET":
                                 if (this.argPossibleTargetsInfo.no_other_cards) {
                                     if (this.argPossibleTargetsInfo.no_one_else_has_hand) {
-                                        if(this.argPossibleTargetsInfo.only_mac_guffins_are_in_play){
+                                        if (this.argPossibleTargetsInfo.only_mac_guffins_are_in_play) {
                                             if (!askForConfirm) {
                                                 this.onPlayCard();
                                             }
                                         }
-                                        else{
+                                        else {
                                             this.chooseEffectTarget(_("Now, select an object in play"));
                                         }
                                     } else {
