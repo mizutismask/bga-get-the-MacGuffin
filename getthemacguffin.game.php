@@ -1367,7 +1367,7 @@ class GetTheMacGuffin extends Table
         $counterclockwise_player = array_pop($players);
         return array(
             'clockwise_player_name' => $clockwise_player ? $this->getPlayerName($clockwise_player) : null,
-            'counterclockwise_player_name' => $counterclockwise_player ? $this->getPlayerName($counterclockwise_player) : null,
+            'counterclockwise_player_name' => $counterclockwise_player && $counterclockwise_player != $clockwise_player ? $this->getPlayerName($counterclockwise_player) : null,
         );
     }
 
