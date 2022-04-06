@@ -1377,10 +1377,12 @@ class GetTheMacGuffin extends Table
         $counters = array();
         for ($i = 0; $i < ($this->getPlayersNumber()); $i++) {
             $counters['cards_count_' . $players[$i]] = array('counter_name' => 'cards_count_' . $players[$i], 'counter_value' => 0);
+            $counters['player_board_cards_count_' . $players[$i]] = array('counter_name' => 'player_board_cards_count_' . $players[$i], 'counter_value' => 0);
         }
         $cards_in_hand = $this->deck->countCardsByLocationArgs(DECK_LOC_HAND);
         foreach ($cards_in_hand as $player_id => $cards_nbr) {
             $counters['cards_count_' . $player_id]['counter_value'] = $cards_nbr;
+            $counters['player_board_cards_count_' . $player_id]['counter_value'] = $cards_nbr;
         }
 
         $counters['tomb_count']['counter_name'] = 'tomb_count';

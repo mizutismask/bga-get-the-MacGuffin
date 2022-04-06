@@ -88,7 +88,8 @@
 
     var jstpl_animation = '<div id="animationDiv" class="gtm_animation_background gtm_animation ${background_class}" ></div>';
     var jstpl_ask_confirm = '<input type="checkbox" id="askConfirmCb" name="askConfirm" unchecked><label for="askConfirm">${askForConfirm}</label>'; 
-
+    var jstpl_cards_icon = '<div id= "cards_panel_${id}"> \
+    <div id="cards_icon_${id}" class="gtm_cards_icon"></div><span id="player_board_cards_count_${id}" class="cards_count"></span></div>';
 </script>
 
 {OVERALL_GAME_FOOTER}

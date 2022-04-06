@@ -133,6 +133,16 @@ define([
                             this.optionsByPlayerId[player_id].setSelectionMode(0);
                         }
                     }
+
+                    //cards in hand counters in player board
+                    var player_board_div = $('overall_player_board_' + player_id);
+                    dojo.place(this.format_block('jstpl_cards_icon', {
+                        id: player_id,
+                    }), player_board_div);
+                    var el = 'cards_icon_' + player_id;
+                    var pileTooltip = _('Number of cards in hand');
+                    this.addTooltipHtml(el, pileTooltip);
+                    this.addTooltipHtml("cards_count_" + player_id, pileTooltip);
                 }
 
                 dojo.connect(this.inPlayStocksByPlayerId[this.player_id], 'onChangeSelection', this, 'onSelectInPlayCard');
@@ -203,8 +213,6 @@ define([
                 }
 
                 dojo.style("cards_count_" + this.player_id, "display", "none");//do not display my counter
-                this.updateCounters(gamedatas.counters);
-
                 this.addTooltipToClass("gtm_cards_counter", _("Cards in the tomb"), "");
 
                 if (dojo.byId("overall_player_board_" + this.player_id)) {//not in spectator mode
@@ -213,6 +221,7 @@ define([
                     }), "overall_player_board_" + this.player_id);
                 }
 
+                this.updateCounters(gamedatas.counters);
                 // Setup game notifications to handle (see "setupNotifications" method below)
                 this.setupNotifications();
 
