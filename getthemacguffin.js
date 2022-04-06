@@ -143,6 +143,9 @@ define([
                     var pileTooltip = _('Number of cards in hand');
                     this.addTooltipHtml(el, pileTooltip);
                     this.addTooltipHtml("cards_count_" + player_id, pileTooltip);
+                    if (this.player_id != player_id) {
+                       dojo.connect($(el), 'onclick', this, 'onSelectOption');
+                    }
                 }
 
                 dojo.connect(this.inPlayStocksByPlayerId[this.player_id], 'onChangeSelection', this, 'onSelectInPlayCard');
@@ -801,15 +804,20 @@ define([
 
             /** 
              * Unselects other player hands when one is clicked, since hands are not in the same stock.
+             * Can be called by clicking the hand symbol under the cards, then control_name is the name of the div linked to the stock.
+             * Can be called by clicking on an opponent playerboard, control_name is then an PointerEvent we have to find the target.
              */
             onSelectOption: function (control_name, item_id) {
                 var clickedStock = null;
                 for (var player_id in this.optionsByPlayerId) {
                     var stock = this.optionsByPlayerId[player_id];
-                    if (stock.control_name == control_name)
+                    if (stock.control_name == control_name || (control_name.target && stock.control_name.split("_").pop()==control_name.target.id.split("_").pop()))
                         clickedStock = stock;
+                        //we got here by the playerboard, so we have to select the option in stock
+                        if(control_name.target && clickedStock){
+                            clickedStock.selectItem(0);//selects the hand
+                        }
                 }
-
                 if (clickedStock.getSelectedItems().length == 1) {
 
                     //Unselects other player hands when one is clicked, since hands are not in the same stock
