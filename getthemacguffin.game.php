@@ -270,8 +270,10 @@ class GetTheMacGuffin extends Table
 
     function getPlayerName($player_id)
     {
-        $sql = "select player_name from player where player_id=" . $player_id;
-        return self::getUniqueValueFromDB($sql);
+        if ($player_id) {
+            $sql = "select player_name from player where player_id=" . $player_id;
+            return self::getUniqueValueFromDB($sql);
+        } else return "playerUnknown";
     }
 
     function updateScore($player_id, $score)
@@ -501,13 +503,14 @@ class GetTheMacGuffin extends Table
             $result[] = $player_id;
             $player_id = $next_player[$player_id];
         }
-
+        self::dump( '*********************************************************** before eliminating' , $result );
         if ($removeEliminated) {
             //Need to remove eliminated players
             $eliminated = array_keys(array_filter($players, function ($player) {
                 return $player["player_eliminated"];
             }));
             $result = array_diff($result, $eliminated);
+            self::dump( '*********************************************************** after eliminating' , $result );
         }
 
         return $result;
@@ -735,11 +738,10 @@ class GetTheMacGuffin extends Table
     function playMerchant($player_id)
     {
         $count_by_player_id = $this->deck->countCardsByLocationArgs(DECK_LOC_IN_PLAY);
-        if (count($count_by_player_id) >= 2) {//several players have objects
+        if (count($count_by_player_id) >= 2) { //several players have objects
             //specify swap
             return TRANSITION_SPECIFY_IN_PLAY_OBJECTS_TO_SWAP;
-        }
-        else {//if one player has objects
+        } else { //if one player has objects
             unset($count_by_player_id[$player_id]); //removes active player since only opponents are relevant here
 
             if (count($count_by_player_id) == 1) {
@@ -977,7 +979,7 @@ class GetTheMacGuffin extends Table
                         if ($this->inPlayObjectsAreMacGuffins()) {
                             //unless nothing happens
                         } else {
-                            if ($effect_on_card && $effect_on_card["type"] == MACGUFFIN || $effect_on_card["type"] == BACKUP_MACGUFFIN) {
+                            if ($effect_on_card && ($effect_on_card["type"] == MACGUFFIN || $effect_on_card["type"] == BACKUP_MACGUFFIN)) {
                                 return new BgaUserException(self::_("You can NOT steal a sort of MacGuffin"));
                             } else {
                                 return new BgaUserException(self::_("You have to select another player’s object"));
