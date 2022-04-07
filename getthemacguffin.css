@@ -60,6 +60,7 @@
     color: rgb(13, 158, 177);
     font-family: "Parisish", "Broadway", "Roboto", Arial, sans-serif;
     margin-top: 0;
+    border-radius: 15px;
 }
 
 .gtm-tooltip-name{
