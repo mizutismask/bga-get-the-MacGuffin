@@ -144,7 +144,7 @@ define([
                     this.addTooltipHtml(el, pileTooltip);
                     this.addTooltipHtml("cards_count_" + player_id, pileTooltip);
                     if (this.player_id != player_id) {
-                       dojo.connect($(el), 'onclick', this, 'onSelectOption');
+                        dojo.connect($(el), 'onclick', this, 'onSelectOption');
                     }
                 }
 
@@ -703,6 +703,9 @@ define([
                                             dojo.addClass('button_confirm_card', 'bgabutton_gray');
                                             dojo.setAttr('button_confirm_card', 'disabled', 'true');
                                         }
+                                        if (!askForConfirm) {
+                                            this.onDiscard();
+                                        }
                                     }
                                     else {
                                         if (!askForConfirm) {
@@ -717,6 +720,9 @@ define([
                                             dojo.removeClass('button_confirm_card', 'bgabutton_blue');
                                             dojo.addClass('button_confirm_card', 'bgabutton_gray');
                                             dojo.setAttr('button_confirm_card', 'disabled', 'true');
+                                        }
+                                        if (!askForConfirm) {
+                                            this.onDiscard();
                                         }
                                     } else {
                                         if (!this.argPossibleTargetsInfo.is_the_mac_guffin_in_play) {
@@ -811,12 +817,12 @@ define([
                 var clickedStock = null;
                 for (var player_id in this.optionsByPlayerId) {
                     var stock = this.optionsByPlayerId[player_id];
-                    if (stock.control_name == control_name || (control_name.target && stock.control_name.split("_").pop()==control_name.target.id.split("_").pop()))
+                    if (stock.control_name == control_name || (control_name.target && stock.control_name.split("_").pop() == control_name.target.id.split("_").pop()))
                         clickedStock = stock;
-                        //we got here by the playerboard, so we have to select the option in stock
-                        if(control_name.target && clickedStock){
-                            clickedStock.selectItem(0);//selects the hand
-                        }
+                    //we got here by the playerboard, so we have to select the option in stock
+                    if (control_name.target && clickedStock) {
+                        clickedStock.selectItem(0);//selects the hand
+                    }
                 }
                 if (clickedStock.getSelectedItems().length == 1) {
 
