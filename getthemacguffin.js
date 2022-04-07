@@ -479,6 +479,8 @@ define([
                 return "client_choose_target" == state;
             },
 
+            askForConfirm: function () { return dojo.byId("askConfirmCb") && $(askConfirmCb).checked; },
+
             ///////////////////////////////////////////////////
             //// Player's action
 
@@ -497,7 +499,7 @@ define([
                 if (dojo.hasClass(control_name + "_item_" + item_id, "unselectable")) {
                     this.playerHand.unselectItem(item_id);
                 }
-                var askForConfirm = dojo.byId("askConfirmCb") && $(askConfirmCb).checked;
+                var askForConfirm = this.askForConfirm();
                 //console.log("askForConfirm ", askForConfirm);
                 if (this.isCurrentPlayerActive()) {
                     //get selected card
@@ -804,6 +806,9 @@ define([
                         if (cards.length == 2) {
                             this.onSwapObjects();
                         }
+                    }
+                    else if (this.currentState == "specifyObjectToTake") {
+                            this.onTakeObject();
                     }
                 }
             },
