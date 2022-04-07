@@ -462,15 +462,7 @@ class GetTheMacGuffin extends Table
             'ownerId' => 0,
         );
 
-        if ($mcGuffin["location"] == DECK_LOC_DECK || $mcGuffin["location_arg"] == $player_id) {
-            $message = clienttranslate('No one knows where ${card_name} is…');
-        } else if ($mcGuffin["location"] == DECK_LOC_HAND && $mcGuffin["location_arg"] != $player_id) {
-            //in the hand of someone else
-            $seen = true;
-            $message = clienttranslate('${player_name} reveals ${card_name}');
-            $msg_args['player_name'] = $this->getPlayerName($mcGuffin["location_arg"]);
-            $msg_args['ownerId'] = $mcGuffin["location_arg"];
-        } else if ($mcGuffin["location"] == DECK_LOC_IN_PLAY) {
+        if ($mcGuffin["location"] == DECK_LOC_IN_PLAY) {
             $seen = true;
             $message = clienttranslate('${player_name} already played ${card_name}');
             $msg_args['player_name'] = $this->getPlayerName($mcGuffin["location_arg"]);
@@ -479,6 +471,14 @@ class GetTheMacGuffin extends Table
             $seen = true;
             $message = clienttranslate('${card_name} is in the discard');
             $msg_args['inDiscard'] = true;
+        } else if ($mcGuffin["location"] == DECK_LOC_DECK || $mcGuffin["location_arg"] == $player_id) {
+            $message = clienttranslate('No one knows where ${card_name} is…');
+        } else if ($mcGuffin["location"] == DECK_LOC_HAND && $mcGuffin["location_arg"] != $player_id) {
+            //in the hand of someone else
+            $seen = true;
+            $message = clienttranslate('${player_name} reveals ${card_name}');
+            $msg_args['player_name'] = $this->getPlayerName($mcGuffin["location_arg"]);
+            $msg_args['ownerId'] = $mcGuffin["location_arg"];
         }
 
         self::notifyAllPlayers(NOTIF_REVELATION, clienttranslate($message), $msg_args);
