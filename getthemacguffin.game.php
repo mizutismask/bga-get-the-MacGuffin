@@ -467,12 +467,12 @@ class GetTheMacGuffin extends Table
         } else if ($mcGuffin["location"] == DECK_LOC_HAND && $mcGuffin["location_arg"] != $player_id) {
             //in the hand of someone else
             $seen = true;
-            $message = '${player_name} reveals ${card_name}';
+            $message = clienttranslate('${player_name} reveals ${card_name}');
             $msg_args['player_name'] = $this->getPlayerName($mcGuffin["location_arg"]);
             $msg_args['ownerId'] = $mcGuffin["location_arg"];
         } else if ($mcGuffin["location"] == DECK_LOC_IN_PLAY) {
             $seen = true;
-            $message = '${player_name} already played ${card_name}';
+            $message = clienttranslate('${player_name} already played ${card_name}');
             $msg_args['player_name'] = $this->getPlayerName($mcGuffin["location_arg"]);
             $msg_args['ownerId'] = $mcGuffin["location_arg"];
         } else if ($mcGuffin["location"] == DECK_LOC_DISCARD) {
