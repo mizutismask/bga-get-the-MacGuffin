@@ -981,7 +981,7 @@ class GetTheMacGuffin extends Table
                         } else {
                             if ($effect_on_card && ($effect_on_card["type"] == MACGUFFIN || $effect_on_card["type"] == BACKUP_MACGUFFIN)) {
                                 return new BgaUserException(self::_("You can NOT steal a sort of MacGuffin"));
-                            } else {
+                            } else if(!$effect_on_card) {
                                 return new BgaUserException(self::_("You have to select another player’s object"));
                             }
                         }
@@ -1319,8 +1319,32 @@ class GetTheMacGuffin extends Table
         $this->gamestate->nextState(TRANSITION_NEXT_PLAYER);
     }
 
+    /************
+     * Debug
+     */
+    function dbg_reset()
+    {
+        /*
+        $reds = [1, 11, 20, 21];
+        $purples = [2, 4, 15, 24];
+        $blues = [7, 8, 12, 25];
+        $greens = [3, 5, 6, 14];
+        $oranges = [10, 13, 19, 23];
+        $yellows = [16, 17, 18, 22];
 
+        $reds = ["AGENT_17", 'MRS_JENKINS', 'THE_LITTLE_BOY', 'THE_LITTLE_GIRL'];
+        $purples = ['BOB_FRUITCAKE', 'CANDICE', 'THE_ASTRONAUT', 'WALLY'];
+        $blues = ['MARY_ANN', 'MOJO', 'GRANNY', 'THE_PROFESSOR'];
+        $greens = ['BOSTON_GUY', 'FUZZY', 'INGA', 'ROLAND'];
+        $oranges = ['MR_HEALTHY', 'NATURE_GIRL', 'THE_HIPPIE', 'THE_TOURIST'];
+        $yellows = ['THE_DUDE', 'THE_EMPEROR', 'THE_HERMIT', 'THE_LUMBERJACK'];
+        */
 
+        $hands = $this->deck->getCardsInLocation(DECK_LOC_HAND);
+        
+        foreach ($hands as $card) {
+            $this->deck->moveCard($card["id"], DECK_LOC_DISCARD);}
+    }
 
     //////////////////////////////////////////////////////////////////////////////
     //////////// Game state arguments

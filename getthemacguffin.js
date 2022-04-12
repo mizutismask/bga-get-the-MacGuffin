@@ -785,6 +785,11 @@ define([
                                 case "FIST_OF_DOOM":
                                     this.onPlayCard();
                                     break;
+                                case "NOT_DEAD_YET":
+                                    if (this.argPossibleTargetsInfo.no_other_cards && this.argPossibleTargetsInfo.no_one_else_has_hand) {
+                                        this.onPlayCard();
+                                    }
+                                    break;
                                 case "ASSASSIN":
                                     if (!this.argPossibleTargetsInfo.is_crown_in_play) {
                                         this.onPlayCard();
@@ -808,7 +813,7 @@ define([
                         }
                     }
                     else if (this.currentState == "specifyObjectToTake") {
-                            this.onTakeObject();
+                        this.onTakeObject();
                     }
                 }
             },
