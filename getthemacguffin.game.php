@@ -981,7 +981,7 @@ class GetTheMacGuffin extends Table
                         } else {
                             if ($effect_on_card && ($effect_on_card["type"] == MACGUFFIN || $effect_on_card["type"] == BACKUP_MACGUFFIN)) {
                                 return new BgaUserException(self::_("You can NOT steal a sort of MacGuffin"));
-                            } else if(!$effect_on_card) {
+                            } else if (!$effect_on_card) {
                                 return new BgaUserException(self::_("You have to select another player’s object"));
                             }
                         }
@@ -1082,26 +1082,34 @@ class GetTheMacGuffin extends Table
         $players = self::loadPlayersBasicInfos();
         $newEliminated = array();
 
+        $stillAlivePlayers=array();
         foreach ($players as $player) {
             $player_id = $player["player_id"];
             if (!$player["player_eliminated"] && !$this->isZombie($player_id)) {
                 if ($this->hasNoCardsInHand($player_id) && $this->hasNoCardsInPlay($player_id)) {
+                    //we have to eliminate this player
                     $newEliminated[] = $player_id;
-                    self::eliminatePlayer($player_id);
+                    //self::dump("eliminatePlayer++++++++++++++++++++++", $player_id);
+                    if ($this->getStillAlivePlayersCount() > 1) {
+                        self::eliminatePlayer($player_id);//we can not eliminate everyone because bga bugs, so we leave one player, but it's the end and no one wins 
+                        //(play assassin on opponent's hand with 1 card and no object anywhere, both players should be eliminated a the same time)
+                        //eliminate the 2 last one triggers end of game
+                    }
                     self::notifyAllPlayers(NOTIF_PLAYER_ELIMINATED, '', array("player_id" => $player_id));
+                }
+                else{
+                    //we keep record here of really alive players (not eliminated, not zombie, with cards)
+                    $stillAlivePlayers[]=$player_id;
                 }
             }
         }
         //zombies don’t matter, only real people can win
-        $stillAlivePlayers = $this->getStillAlivePlayers();
+        //self::dump("still alive++++++++++++++++++++++", $stillAlivePlayers);
         $stillAliveCount = count($stillAlivePlayers);
         if ($stillAliveCount == 1) {
             //end of game
             $last = array_pop($stillAlivePlayers);
-            $this->updateScores([$last["player_id"]]);
-        } else if ($stillAliveCount == 0) {
-            //end of game
-            $this->updateScores($newEliminated);
+            $this->updateScores([$last]);
         }
         return $this->isEndOfGame();
     }
@@ -1112,6 +1120,7 @@ class GetTheMacGuffin extends Table
         $stillAlivePlayers = array_filter($players, function ($p) {
             return !$p["player_eliminated"] && !$p["player_zombie"];
         });
+
         return $stillAlivePlayers;
     }
 
@@ -1324,26 +1333,11 @@ class GetTheMacGuffin extends Table
      */
     function dbg_reset()
     {
-        /*
-        $reds = [1, 11, 20, 21];
-        $purples = [2, 4, 15, 24];
-        $blues = [7, 8, 12, 25];
-        $greens = [3, 5, 6, 14];
-        $oranges = [10, 13, 19, 23];
-        $yellows = [16, 17, 18, 22];
-
-        $reds = ["AGENT_17", 'MRS_JENKINS', 'THE_LITTLE_BOY', 'THE_LITTLE_GIRL'];
-        $purples = ['BOB_FRUITCAKE', 'CANDICE', 'THE_ASTRONAUT', 'WALLY'];
-        $blues = ['MARY_ANN', 'MOJO', 'GRANNY', 'THE_PROFESSOR'];
-        $greens = ['BOSTON_GUY', 'FUZZY', 'INGA', 'ROLAND'];
-        $oranges = ['MR_HEALTHY', 'NATURE_GIRL', 'THE_HIPPIE', 'THE_TOURIST'];
-        $yellows = ['THE_DUDE', 'THE_EMPEROR', 'THE_HERMIT', 'THE_LUMBERJACK'];
-        */
-
         $hands = $this->deck->getCardsInLocation(DECK_LOC_HAND);
-        
+
         foreach ($hands as $card) {
-            $this->deck->moveCard($card["id"], DECK_LOC_DISCARD);}
+            $this->deck->moveCard($card["id"], DECK_LOC_DISCARD);
+        }
     }
 
     //////////////////////////////////////////////////////////////////////////////
