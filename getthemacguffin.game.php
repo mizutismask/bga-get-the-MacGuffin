@@ -1090,10 +1090,17 @@ class GetTheMacGuffin extends Table
                     //we have to eliminate this player
                     $newEliminated[] = $player_id;
                     //self::dump("eliminatePlayer++++++++++++++++++++++", $player_id);
-                    if ($this->getStillAlivePlayersCount() > 1) {
-                        self::eliminatePlayer($player_id);//we can not eliminate everyone because bga bugs, so we leave one player, but it's the end and no one wins 
-                        //(play assassin on opponent's hand with 1 card and no object anywhere, both players should be eliminated a the same time)
-                        //eliminate the 2 last one triggers end of game
+                    if ($this->getStillAlivePlayersCount() > 2) {
+                        self::eliminatePlayer($player_id);
+                        /*
+                        bugfix here : play assassin on opponent's hand with 1 card and no object anywhere, 
+                        both players should be eliminated a the same time, 
+                        but we can not eliminate everyone because bga bugs, 
+                        so we eliminate players until 2 players left and we trigger end of game with $stillAlivePlayers[],
+                        that we maintain here when there is only one validating conditions to be alive.
+                        We keep 2 players and not only one, because we don't want the loosing player getting first, the
+                        windows saying he's eliminated, and second, the result window. Only the result window is usefull.
+                       */
                     }
                     self::notifyAllPlayers(NOTIF_PLAYER_ELIMINATED, '', array("player_id" => $player_id));
                 }
@@ -1111,7 +1118,7 @@ class GetTheMacGuffin extends Table
             $last = array_pop($stillAlivePlayers);
             $this->updateScores([$last]);
         }
-        return $this->isEndOfGame();
+        return $stillAliveCount<2;
     }
 
     function getStillAlivePlayers()
