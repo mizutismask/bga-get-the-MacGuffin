@@ -188,7 +188,6 @@ $this->cards_description = array(
     'name' => clienttranslate('I’m Not Dead Yet'),
     'nametr' => self::_('I’m Not Dead Yet'),
     'type' => ACTION,
-    'description' => clienttranslate('If you have no other cards (including Objects), take a card at random from another player’s hand and add it to your own. <p>If no one has a hand, you may steal an Object (other than any MacGuffin) and add it to your hand.</p>
-    <p>Nothing happens if you play this early.</p>'),
+    'description' => clienttranslate('If you have no other cards (including Objects), take a card at random from another player’s hand and add it to your own. <p>If no one has a hand, you may steal an Object (other than any MacGuffin) and add it to your hand.</p><p>Nothing happens if you play this early.</p>'),
   ),
 );
