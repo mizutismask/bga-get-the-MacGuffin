@@ -230,6 +230,36 @@ define([
 
                 dojo.connect(this.playingZoneDetail, 'onChangeSelection', this, 'onSelectDiscardedCard');
 
+                // Load production bug report handler
+                dojo.subscribe("loadBug", this, function loadBug(n) {
+                    function fetchNextUrl() {
+                        var url = n.args.urls.shift();
+                        console.log("Fetching URL", url);
+                        dojo.xhrGet({
+                            url: url,
+                            load: function (success) {
+                                if (success.hasOwnProperty("error")) {
+                                    console.log("Error while loading : ", success.error);
+                                } else {
+                                    console.log("Success for URL", url, success);
+                                }
+                                if (n.args.urls.length > 0) {
+                                    fetchNextUrl();
+                                } else {
+                                    console.log("Done, reloading page");
+                                    window.location.reload();
+                                }
+                            },
+                            preventCache: true,
+                            handleAs: "json",
+                            error: function (error) {
+                                console.log("Error while loading : ", error);
+                            }
+                        });
+                    }
+                    console.log("Notif: load bug", n.args);
+                    fetchNextUrl();
+                });
                 //console.log("Ending game setup");
             },
 

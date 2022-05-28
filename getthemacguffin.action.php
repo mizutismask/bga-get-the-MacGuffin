@@ -119,4 +119,11 @@ class action_getthemacguffin extends APP_GameAction
 
     self::ajaxResponse();
   }
+
+  public function loadBugSQL() {
+    self::setAjaxMode();
+    $reportId = (int) self::getArg('report_id', AT_int, true);
+    $this->game->loadBugSQL($reportId);
+    self::ajaxResponse();
+  }
 }
