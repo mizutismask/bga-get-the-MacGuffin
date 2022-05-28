@@ -121,6 +121,8 @@ class GetTheMacGuffin extends Table
 
         // Activate first player
         $this->activeNextPlayer();
+
+        $this->debugSetup();
     }
 
     /*
@@ -1345,6 +1347,29 @@ class GetTheMacGuffin extends Table
         foreach ($hands as $card) {
             $this->deck->moveCard($card["id"], DECK_LOC_DISCARD);
         }
+    }
+
+    private function dbg_setCardInHand($cardType, $playerId) {
+        $cards = $this->deck->getCardsOfType($cardType);
+        $card = array_pop($cards);
+        $this->deck->moveCard($card["id"], 'hand', $playerId);
+        return $card;
+    }
+
+    function debugSetup() {
+        if ($this->getBgaEnvironment() != 'studio') { 
+            return;
+        } 
+        $me = "2333092";
+        $myCards=array(NOT_DEAD_YET);
+        
+        $this->dbg_reset();
+
+        foreach ($myCards as $card) {
+            $this->dbg_setCardInHand($card, $me);
+        }
+        
+        $this->gamestate->changeActivePlayer($me);
     }
 
     //////////////////////////////////////////////////////////////////////////////
