@@ -505,14 +505,14 @@ class GetTheMacGuffin extends Table
             $result[] = $player_id;
             $player_id = $next_player[$player_id];
         }
-        self::dump('*********************************************************** before eliminating', $result);
+        //self::dump('*********************************************************** before eliminating', $result);
         if ($removeEliminated) {
             //Need to remove eliminated players
             $eliminated = array_keys(array_filter($players, function ($player) {
                 return $player["player_eliminated"];
             }));
             $result = array_diff($result, $eliminated);
-            self::dump('*********************************************************** after eliminating', $result);
+            //self::dump('*********************************************************** after eliminating', $result);
         }
 
         return $result;
@@ -1156,6 +1156,12 @@ class GetTheMacGuffin extends Table
         return $card["location"] === DECK_LOC_IN_PLAY;
     }
 
+    function isMine($card_id){
+        $card = $this->deck->getCard($card_id);
+        $player_id = self::getActivePlayerId();
+        return $card["location_arg"] == $player_id;
+    }
+
     //////////////////////////////////////////////////////////////////////////////
     //////////// Player actions
     //////////// 
@@ -1170,6 +1176,10 @@ class GetTheMacGuffin extends Table
     {
         // Check that this is the player's turn and that it is a "possible action" at this game state (see states.inc.php)
         self::checkAction('playCard');
+        if (!$this->isMine($played_card_id)) {
+            throw new BgaUserException(self::_("You're trying to use a card that is not yours, refresh your browser (press F5)"));
+        }
+
         $mandatory_id = self::getGameStateValue(GS_MANDATORY_CARD);
         if ($mandatory_id && $played_card_id != $mandatory_id) {
             throw new BgaUserException(self::_("You have to play the card you’ve just stolen"));
@@ -1361,16 +1371,34 @@ class GetTheMacGuffin extends Table
         if ($this->getBgaEnvironment() != 'studio') {
             return;
         }
-        $me = "2333092";
-        $myCards = array(NOT_DEAD_YET);
-
         $this->dbg_reset();
+        $me = "2333092";
+        $this->gamestate->changeActivePlayer($me);
+        $myCards = array(CROWN, ROCK, NOT_DEAD_YET, ASSASSIN, MERCHANT);
+
+        $p2 = self::getPlayerAfter($me);
+        $p2Cards = array(PAPER, SPY, SWITCHEROO, SCISSORS, WHEEL_OF_FORTUNE);
+
+        $p3 = self::getPlayerAfter($p2);
+        $p3Cards = array(THIEF, FIST_OF_DOOM, HIPPIE, MARSHALL, INTERROGATOR);
+
+        $p4 = self::getPlayerAfter($p3);
+        $p4Cards = array(MONEY, CAN_I_USE_THAT, GARBAGE_COLLECTR, SHRUGMASTER, BACKUP_MACGUFFIN);
+
 
         foreach ($myCards as $card) {
             $this->dbg_setCardInHand($card, $me);
         }
+        foreach ($p2Cards as $card) {
+            $this->dbg_setCardInHand($card, $p2);
+        }
+        foreach ($p3Cards as $card) {
+            $this->dbg_setCardInHand($card, $p3);
+        }
+        foreach ($p4Cards as $card) {
+            $this->dbg_setCardInHand($card, $p4);
+        }
 
-        $this->gamestate->changeActivePlayer($me);
     }
 
     /*
