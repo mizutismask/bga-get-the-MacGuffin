@@ -1156,7 +1156,8 @@ class GetTheMacGuffin extends Table
         return $card["location"] === DECK_LOC_IN_PLAY;
     }
 
-    function isMine($card_id){
+    function isMine($card_id)
+    {
         $card = $this->deck->getCard($card_id);
         $player_id = self::getActivePlayerId();
         return $card["location_arg"] == $player_id;
@@ -1398,7 +1399,6 @@ class GetTheMacGuffin extends Table
         foreach ($p4Cards as $card) {
             $this->dbg_setCardInHand($card, $p4);
         }
-
     }
 
     /*
@@ -1446,25 +1446,28 @@ class GetTheMacGuffin extends Table
             $sql[] = "UPDATE player SET player_id=$studioPlayer WHERE player_id=$pId";
             $sql[] = "UPDATE global SET global_value=$studioPlayer WHERE global_value=$pId";
             $sql[] = "UPDATE stats SET stats_player_id=$studioPlayer WHERE stats_player_id=$pId";
+            $sql[] = "UPDATE gamelog SET gamelog_player=$studioPlayer WHERE gamelog_player=$pId";
+            $sql[] = "UPDATE gamelog SET gamelog_current_player=$studioPlayer WHERE gamelog_current_player=$pId";
+            $sql[] = "UPDATE gamelog SET gamelog_notification=REPLACE(gamelog_notification, $pId, $studioPlayer)";
 
             // Add game-specific SQL update the tables for your game
-            //$sql[] = "UPDATE card SET card_location_arg=$studioPlayer WHERE card_location_arg=$pId";
-            //$sql[] = "UPDATE piece SET player_id=$studioPlayer WHERE player_id=$pId";
-            //$sql[] = "UPDATE log SET player_id=$studioPlayer WHERE player_id=$pId";
-            //$sql[] = "UPDATE log SET action_arg=REPLACE(action_arg, $pId, $studioPlayer)";
+            $sql[] = "UPDATE deck SET card_location_arg=$studioPlayer WHERE card_location_arg=$pId";
 
             // This could be improved, it assumes you had sequential studio accounts before loading
             // e.g., quietmint0, quietmint1, quietmint2, etc. are at the table
             $studioPlayer++;
         }
         $msg = "<b>Loaded <a href='https://boardgamearena.com/bug?id=$reportId' target='_blank'>bug report $reportId</a></b><hr><ul><li>" . implode(';</li><li>', $sql) . ';</li></ul>';
-        self::warn($msg);
+        self::warn("*******************************************", $msg);
         self::notifyAllPlayers('message', $msg, []);
 
         foreach ($sql as $q) {
             self::DbQuery($q);
         }
         self::reloadPlayersBasicInfos();
+        $this->gamestate->reloadState();
+        //$active_player_list = $this->gamestate->getActivePlayerList();
+        //self::dump("*********************************************************active_player_list******", $active_player_list);
     }
 
     //////////////////////////////////////////////////////////////////////////////

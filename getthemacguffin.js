@@ -231,31 +231,46 @@ define([
                 dojo.connect(this.playingZoneDetail, 'onChangeSelection', this, 'onSelectDiscardedCard');
 
                 // Load production bug report handler
+                const self = this; // save the `this` context in a variable
                 dojo.subscribe("loadBug", this, function loadBug(n) {
                     function fetchNextUrl() {
                         var url = n.args.urls.shift();
-                        console.log("Fetching URL", url);
-                        dojo.xhrGet({
-                            url: url,
-                            load: function (success) {
-                                if (success.hasOwnProperty("error")) {
-                                    console.log("Error while loading : ", success.error);
-                                } else {
-                                    console.log("Success for URL", url, success);
-                                }
-                                if (n.args.urls.length > 0) {
-                                    fetchNextUrl();
-                                } else {
-                                    console.log("Done, reloading page");
-                                    window.location.reload();
-                                }
+                        console.log("Fetching URL", url, "...");
+                        // all the calls have to be made with ajaxcall in order to add the csrf token, otherwise you'll get "Invalid session information for this action. Please try reloading the page or logging in again"
+                        self.ajaxcall(url,
+                            {
+                                lock: true,
                             },
-                            preventCache: true,
-                            handleAs: "json",
-                            error: function (error) {
-                                console.log("Error while loading : ", error);
+                            self,
+                            function (success) {
+                                console.log("=> Success ", success);
+
+                                if (n.args.urls.length > 1) {
+                                    fetchNextUrl();
+                                }
+                                else if (n.args.urls.length > 0) {
+                                    //except the last one, clearing php cache
+                                    url = n.args.urls.shift();
+                                    dojo.xhrGet({
+                                        url: url,
+                                        load: function (success) {
+                                            console.log("Success for URL", url, success);
+                                            console.log("Done, reloading page");
+                                            window.location.reload();
+                                        },
+                                        handleAs: "text",
+                                        error: function (error) {
+                                            console.log("Error while loading : ", error);
+                                        }
+                                    });
+                                }
                             }
-                        });
+                            ,
+                            function (error) {
+                                if (error)
+                                    console.log("=> Error ", error);
+                            }
+                        );
                     }
                     console.log("Notif: load bug", n.args);
                     fetchNextUrl();
@@ -615,7 +630,7 @@ define([
                             //    break;
                             // }
                             default:
-                                this.clientStateArgsCardTypeteArgs = undefined;
+                                this.clientStateArgsCardType = undefined;
                             // this.gtmRestoreServerGameState();
                         }
                     } else {
